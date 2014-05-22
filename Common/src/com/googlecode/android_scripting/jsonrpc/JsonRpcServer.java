@@ -57,18 +57,33 @@ public class JsonRpcServer extends SimpleServer {
   public void shutdown() {
     super.shutdown();
     // Notify all RPC receiving objects. They may have to clean up some of their state.
-    for (RpcReceiverManager manager : mRpcReceiverManagerFactory.getRpcReceiverManagers()) {
+    for (RpcReceiverManager manager : mRpcReceiverManagerFactory.getRpcReceiverManagers().values()) {
       manager.shutdown();
     }
   }
 
+
   @Override
-  protected void handleConnection(Socket socket) throws Exception {
-    RpcReceiverManager receiverManager = mRpcReceiverManagerFactory.create();
+  protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader, PrintWriter writer) throws Exception {
+    RpcReceiverManager receiverManager = null;
+    //Log.d("Sock state 3: "+sock.isClosed());
+    Log.d("UID "+UID);
+    Log.d("manager map size: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().size());
+    Log.d("manager map keys: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().keySet());
+    if(mRpcReceiverManagerFactory.getRpcReceiverManagers().containsKey(UID)) {
+      Log.d("Look up existing session");
+      receiverManager = mRpcReceiverManagerFactory.getRpcReceiverManagers().get(UID);
+    }else{
+      Log.d("Create a new session");
+      receiverManager = mRpcReceiverManagerFactory.create(UID);
+    }
+    //Log.d("Sock state 4: "+sock.isClosed());
+
+    /*RpcReceiverManager receiverManager = mRpcReceiverManagerFactory.create();
     BufferedReader reader =
         new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);
-    PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-    boolean passedAuthentication = false;
+    PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);*/
+    //boolean passedAuthentication = false;
     String data;
     while ((data = reader.readLine()) != null) {
       Log.v("Received: " + data);
@@ -78,17 +93,17 @@ public class JsonRpcServer extends SimpleServer {
       JSONArray params = request.getJSONArray("params");
 
       // First RPC must be _authenticate if a handshake was specified.
-      if (!passedAuthentication && mHandshake != null) {
-        if (!checkHandshake(method, params)) {
-          SecurityException exception = new SecurityException("Authentication failed!");
-          send(writer, JsonRpcResult.error(id, exception));
-          shutdown();
-          throw exception;
-        }
-        passedAuthentication = true;
-        send(writer, JsonRpcResult.result(id, true));
-        continue;
-      }
+//      if (!passedAuthentication && mHandshake != null) {
+//        if (!checkHandshake(method, params)) {
+//          SecurityException exception = new SecurityException("Authentication failed!");
+//          send(writer, JsonRpcResult.error(id, exception));
+//          shutdown();
+//          throw exception;
+//        }
+//        passedAuthentication = true;
+//        send(writer, JsonRpcResult.result(id, true));
+//        continue;
+//      }
 
       MethodDescriptor rpc = receiverManager.getMethodDescriptor(method);
       if (rpc == null) {
@@ -115,5 +130,9 @@ public class JsonRpcServer extends SimpleServer {
     writer.write(result + "\n");
     writer.flush();
     Log.v("Sent: " + result);
+  }
+
+  @Override
+  protected void handleConnection(Socket socket) throws Exception {
   }
 }

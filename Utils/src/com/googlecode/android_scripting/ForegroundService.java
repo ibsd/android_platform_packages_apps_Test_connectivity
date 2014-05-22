@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class ForegroundService extends Service {
@@ -70,18 +69,6 @@ public abstract class ForegroundService extends Service {
     // foreground state, since we could be killed at that point.
     mNotificationManager.cancel(mNotificationId);
     setForeground(false);
-  }
-
-  void invokeMethod(Method method, Object[] args) {
-    try {
-      method.invoke(this, args);
-    } catch (InvocationTargetException e) {
-      // Should not happen.
-      Log.e(e);
-    } catch (IllegalAccessException e) {
-      // Should not happen.
-      Log.e(e);
-    }
   }
 
   @Override

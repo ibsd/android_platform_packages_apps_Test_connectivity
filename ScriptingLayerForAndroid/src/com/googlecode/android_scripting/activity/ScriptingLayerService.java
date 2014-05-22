@@ -213,7 +213,7 @@ public class ScriptingLayerService extends ForegroundService {
     AndroidProxy androidProxy = new AndroidProxy(this, intent, requiresHandshake);
     boolean usePublicIp = intent.getBooleanExtra(Constants.EXTRA_USE_EXTERNAL_IP, false);
     int usePort = intent.getIntExtra(Constants.EXTRA_USE_SERVICE_PORT, 0);
-    // If port is in use, fall back to defaut behaviour
+    // If port is in use, fall back to default behaviour
     if (!tryPort(androidProxy, usePublicIp, usePort)) {
       if (usePort != 0) {
         tryPort(androidProxy, usePublicIp, 0);

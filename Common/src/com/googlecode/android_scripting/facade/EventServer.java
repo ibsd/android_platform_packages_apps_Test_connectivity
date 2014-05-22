@@ -20,6 +20,7 @@ import com.googlecode.android_scripting.SimpleServer;
 import com.googlecode.android_scripting.event.Event;
 import com.googlecode.android_scripting.jsonrpc.JsonBuilder;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
@@ -64,6 +65,7 @@ public class EventServer extends SimpleServer implements EventFacade.EventObserv
 
   @Override
   protected void handleConnection(Socket socket) throws IOException {
+    Log.d("handle event connection.");
     Listener l = new Listener(socket);
     Log.v("Adding EventServer listener " + socket.getPort());
     mListeners.add(l);
@@ -115,5 +117,10 @@ public class EventServer extends SimpleServer implements EventFacade.EventObserv
       sock = l;
       out = new PrintWriter(l.getOutputStream(), true);
     }
+  }
+
+  @Override
+  protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader, PrintWriter writer)
+      throws Exception {
   }
 }

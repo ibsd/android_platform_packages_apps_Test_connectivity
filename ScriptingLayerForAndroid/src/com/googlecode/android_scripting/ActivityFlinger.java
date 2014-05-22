@@ -20,9 +20,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnTouchListener;
 
 import com.googlecode.android_scripting.activity.InterpreterManager;
@@ -70,8 +70,8 @@ public class ActivityFlinger {
     Class<? extends Activity> current = null;
     Class<? extends Activity> right = null;
 
-    for (Iterator<Class<? extends Activity>> it = entries.iterator();
-        it.hasNext() || current != null;) {
+    for (Iterator<Class<? extends Activity>> it = entries.iterator(); it.hasNext()
+        || current != null;) {
       if (current == null) {
         current = it.next();
       }
@@ -126,8 +126,7 @@ public class ActivityFlinger {
     Runnable mRightRunnable;
 
     @Override
-    public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX,
-        float velocityY) {
+    public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
       if (Math.abs(event1.getY() - event2.getY()) > SWIPE_MAX_OFF_PATH) {
         return false;
       }

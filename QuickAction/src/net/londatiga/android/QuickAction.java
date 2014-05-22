@@ -19,7 +19,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import net.londatiga.android.R;
 
 /**
  * Popup window, shows action list as icon and text (QuickContact / Twitter app).

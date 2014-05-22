@@ -16,10 +16,10 @@
 
 package com.googlecode.android_scripting.jsonrpc;
 
-import java.util.List;
+import java.util.Map;
 
 public interface RpcReceiverManagerFactory {
-  public RpcReceiverManager create();
+  public RpcReceiverManager create(Integer UID);
 
-  public List<RpcReceiverManager> getRpcReceiverManagers();
+  public Map<Integer, RpcReceiverManager> getRpcReceiverManagers();
 }

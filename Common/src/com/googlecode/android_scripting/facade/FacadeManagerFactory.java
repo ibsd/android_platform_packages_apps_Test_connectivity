@@ -7,9 +7,9 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManagerFactory;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 public class FacadeManagerFactory implements RpcReceiverManagerFactory {
 
@@ -17,7 +17,7 @@ public class FacadeManagerFactory implements RpcReceiverManagerFactory {
   private final Service mService;
   private final Intent mIntent;
   private final Collection<Class<? extends RpcReceiver>> mClassList;
-  private final List<RpcReceiverManager> mFacadeManagers;
+  private final Map<Integer, RpcReceiverManager> mFacadeManagers;
 
   public FacadeManagerFactory(int sdkLevel, Service service, Intent intent,
       Collection<Class<? extends RpcReceiver>> classList) {
@@ -25,17 +25,18 @@ public class FacadeManagerFactory implements RpcReceiverManagerFactory {
     mService = service;
     mIntent = intent;
     mClassList = classList;
-    mFacadeManagers = new ArrayList<RpcReceiverManager>();
+    mFacadeManagers = new HashMap<Integer, RpcReceiverManager>();
   }
 
-  public FacadeManager create() {
+  @Override
+  public FacadeManager create(Integer UID) {
     FacadeManager facadeManager = new FacadeManager(mSdkLevel, mService, mIntent, mClassList);
-    mFacadeManagers.add(facadeManager);
+    mFacadeManagers.put(UID, facadeManager);
     return facadeManager;
   }
 
   @Override
-  public List<RpcReceiverManager> getRpcReceiverManagers() {
+  public Map<Integer, RpcReceiverManager> getRpcReceiverManagers() {
     return mFacadeManagers;
   }
 }

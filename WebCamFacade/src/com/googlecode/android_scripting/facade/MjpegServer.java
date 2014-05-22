@@ -16,9 +16,11 @@
 
 package com.googlecode.android_scripting.facade;
 
+import java.io.BufferedReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
-
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.SimpleServer;
 
 class MjpegServer extends SimpleServer {
@@ -31,6 +33,7 @@ class MjpegServer extends SimpleServer {
 
   @Override
   protected void handleConnection(Socket socket) throws Exception {
+    Log.d("handle Mjpeg connection");
     byte[] data = mProvider.getJpeg();
     if (data == null) {
       return;
@@ -57,5 +60,10 @@ class MjpegServer extends SimpleServer {
       outputStream.write("\r\n\r\n".getBytes());
       outputStream.flush();
     }
+  }
+
+  @Override
+  protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader, PrintWriter writer)
+      throws Exception {
   }
 }

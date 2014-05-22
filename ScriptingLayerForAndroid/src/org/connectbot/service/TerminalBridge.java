@@ -825,7 +825,7 @@ public class TerminalBridge implements VDUDisplay, OnSharedPreferenceChangeListe
   public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
     if (mProcess.isAlive()) {
       RpcReceiverManagerFactory rpcReceiverManagerFactory = mProcess.getRpcReceiverManagerFactory();
-      for (RpcReceiverManager manager : rpcReceiverManagerFactory.getRpcReceiverManagers()) {
+      for (RpcReceiverManager manager : rpcReceiverManagerFactory.getRpcReceiverManagers().values()) {
         UiFacade facade = manager.getReceiver(UiFacade.class);
         facade.onCreateContextMenu(menu, v, menuInfo);
       }
@@ -836,7 +836,7 @@ public class TerminalBridge implements VDUDisplay, OnSharedPreferenceChangeListe
     boolean returnValue = false;
     if (mProcess.isAlive()) {
       RpcReceiverManagerFactory rpcReceiverManagerFactory = mProcess.getRpcReceiverManagerFactory();
-      for (RpcReceiverManager manager : rpcReceiverManagerFactory.getRpcReceiverManagers()) {
+      for (RpcReceiverManager manager : rpcReceiverManagerFactory.getRpcReceiverManagers().values()) {
         UiFacade facade = manager.getReceiver(UiFacade.class);
         returnValue = returnValue || facade.onPrepareOptionsMenu(menu);
       }

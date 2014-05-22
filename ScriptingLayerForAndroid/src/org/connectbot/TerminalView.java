@@ -41,7 +41,6 @@ import org.connectbot.util.SelectionArea;
 /**
  * User interface {@link View} for showing a TerminalBridge in an {@link Activity}. Handles drawing
  * bitmap updates and passing keystrokes down to terminal.
- *
  * @author jsharkey
  */
 public class TerminalView extends View implements FontSizeChangedListener {
@@ -208,8 +207,9 @@ public class TerminalView extends View implements FontSizeChangedListener {
       if (bridge.isSelectingForCopy()) {
         SelectionArea area = bridge.getSelectionArea();
         canvas.save(Canvas.CLIP_SAVE_FLAG);
-        canvas.clipRect(area.getLeft() * bridge.charWidth, area.getTop() * bridge.charHeight,
-            (area.getRight() + 1) * bridge.charWidth, (area.getBottom() + 1) * bridge.charHeight);
+        canvas.clipRect(area.getLeft() * bridge.charWidth, area.getTop() * bridge.charHeight, (area
+            .getRight() + 1)
+            * bridge.charWidth, (area.getBottom() + 1) * bridge.charHeight);
         canvas.drawPaint(cursorPaint);
         canvas.restore();
       }
@@ -239,7 +239,6 @@ public class TerminalView extends View implements FontSizeChangedListener {
 
   /**
    * Ask the {@link TerminalBridge} we're connected to to resize to a specific size.
-   *
    * @param width
    * @param height
    */
@@ -249,7 +248,6 @@ public class TerminalView extends View implements FontSizeChangedListener {
 
   /**
    * Sets the ability for the TerminalView to display Toast notifications to the user.
-   *
    * @param value
    *          whether to enable notifications or not
    */
@@ -264,8 +262,9 @@ public class TerminalView extends View implements FontSizeChangedListener {
 
   @Override
   public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-    outAttrs.imeOptions |= EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_ENTER_ACTION
-        | EditorInfo.IME_ACTION_NONE;
+    outAttrs.imeOptions |=
+        EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_ENTER_ACTION
+            | EditorInfo.IME_ACTION_NONE;
     outAttrs.inputType = EditorInfo.TYPE_NULL;
     return new BaseInputConnection(this, false);
   }

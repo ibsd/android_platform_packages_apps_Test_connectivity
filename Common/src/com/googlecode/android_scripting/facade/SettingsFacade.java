@@ -84,7 +84,7 @@ public class SettingsFacade extends RpcReceiver {
   public Boolean checkAirplaneMode() {
     try {
       return android.provider.Settings.System.getInt(mService.getContentResolver(),
-          android.provider.Settings.System.AIRPLANE_MODE_ON) == AIRPLANE_MODE_ON;
+          android.provider.Settings.Global.AIRPLANE_MODE_ON) == AIRPLANE_MODE_ON;
     } catch (SettingNotFoundException e) {
       return false;
     }
@@ -96,7 +96,7 @@ public class SettingsFacade extends RpcReceiver {
       enabled = !checkAirplaneMode();
     }
     android.provider.Settings.System.putInt(mService.getContentResolver(),
-        android.provider.Settings.System.AIRPLANE_MODE_ON, enabled ? AIRPLANE_MODE_ON
+        android.provider.Settings.Global.AIRPLANE_MODE_ON, enabled ? AIRPLANE_MODE_ON
             : AIRPLANE_MODE_OFF);
     Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
     intent.putExtra("state", enabled);

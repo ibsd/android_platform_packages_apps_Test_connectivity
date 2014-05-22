@@ -295,8 +295,7 @@ public class JsonBuilder {
     return result;
   }
 
-  private static JSONObject buildNeighboringCellInfo(NeighboringCellInfo data)
-      throws JSONException {
+  private static JSONObject buildNeighboringCellInfo(NeighboringCellInfo data) throws JSONException {
     // TODO(damonkohler): Additional information available at API level 5.
     JSONObject result = new JSONObject();
     result.put("cid", data.getCid());

@@ -11,6 +11,7 @@ import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
@@ -20,14 +21,13 @@ import java.util.concurrent.Callable;
 
 /**
  * ScanManager functions.
- *
  */
 public class ScanFacade extends RpcReceiver {
   private final Service mService;
   private final EventFacade mEventFacade;
   private final WifiScanner mScan;
-  // These counters are just for indexing;
-  // they do not represent the total number of listeners
+  //These counters are just for indexing;
+  //they do not represent the total number of listeners
   private static int WifiScanListenerCnt;
   private static int WifiChangeListenerCnt;
   private static int WifiHotspotListenerCnt;
@@ -52,10 +52,10 @@ public class ScanFacade extends RpcReceiver {
     protected String listenerType;
 
     public WifiActionListener(String type, int idx, Bundle statusBundle, Bundle resultBundle) {
-      index = idx;
-      listenerType = type;
-      mStatus = statusBundle;
-      mResults = resultBundle;
+      this.index = idx;
+      this.listenerType = type;
+      this.mStatus = statusBundle;
+      this.mResults = resultBundle;
     }
 
     @Override
@@ -81,28 +81,25 @@ public class ScanFacade extends RpcReceiver {
     public void reportResult(ScanResult[] results, String eventType) {
       Log.d("android_scripting " + eventType + " " + listenerType + index);
       mResults.putString("ID", listenerType + index);
+      mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
       mResults.putString("Type", eventType);
       mResults.putParcelableArray("Results", results);
-      mResults.putLong("Time", System.currentTimeMillis());
       mEventFacade.postEvent("ScanResults", mResults.clone());
       mResults.clear();
     }
-
   }
 
   /**
    * Constructs a wifiScanListener obj and returns it
-   *
    * @return WifiScanListener
    */
   private WifiScanListener genWifiScanListener() {
-    WifiScanListener mWifiScannerListener =
-        MainThread.run(mService, new Callable<WifiScanListener>() {
-          @Override
-          public WifiScanListener call() throws Exception {
-            return new WifiScanListener();
-          }
-        });
+    WifiScanListener mWifiScannerListener = MainThread.run(mService, new Callable<WifiScanListener>() {
+      @Override
+      public WifiScanListener call() throws Exception {
+        return new WifiScanListener();
+      }
+    });
     wifiScannerListenerList.put(mWifiScannerListener.index, mWifiScannerListener);
     return mWifiScannerListener;
   }
@@ -161,7 +158,6 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Constructs a ChangeListener obj and returns it
-   *
    * @return ChangeListener
    */
   public ChangeListener genWifiChangeListener() {
@@ -198,38 +194,29 @@ public class ScanFacade extends RpcReceiver {
     public void onFailure(int reason, Object exception) {
       mWAL.onFailure(reason, exception);
     }
-
-    /**
-     * indicates that changes were detected in wifi environment
-     *
-     * @param results
-     *          indicate the access points that exhibited change
+    /** indicates that changes were detected in wifi environment
+     * @param results indicate the access points that exhibited change
      */
     @Override
-    public void onChanging(ScanResult[] results) { /* changes are found */
+    public void onChanging(ScanResult[] results) {           /* changes are found */
       mWAL.reportResult(results, "onChanging");
     }
-
-    /**
-     * indicates that no wifi changes are being detected for a while
-     *
-     * @param results
-     *          indicate the access points that are bing monitored for change
+    /** indicates that no wifi changes are being detected for a while
+     * @param results indicate the access points that are bing monitored for change
      */
     @Override
-    public void onQuiescence(ScanResult[] results) { /* changes settled down */
+    public void onQuiescence(ScanResult[] results) {         /* changes settled down */
       mWAL.reportResult(results, "onQuiescence");
     }
   }
 
   public WifiHotspotListener genWifiHotspotListener() {
-    WifiHotspotListener mWifiHotspotListener =
-        MainThread.run(mService, new Callable<WifiHotspotListener>() {
-          @Override
-          public WifiHotspotListener call() throws Exception {
-            return new WifiHotspotListener();
-          }
-        });
+    WifiHotspotListener mWifiHotspotListener = MainThread.run(mService, new Callable<WifiHotspotListener>() {
+      @Override
+      public WifiHotspotListener call() throws Exception {
+        return new WifiHotspotListener();
+      }
+    });
     wifiHotspotListenerList.put(mWifiHotspotListener.index, mWifiHotspotListener);
     return mWifiHotspotListener;
   }
@@ -268,26 +255,23 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Starts periodic wifi background scan
-   *
    * @param periodInMs
-   * @param channel_freqs
-   *          frequencies of channels to scan
+   * @param channel_freqs frequencies of channels to scan
    * @return the id of the scan listener associated with this scan
    */
   @Rpc(description = "Starts a periodic Wifi scan in background.")
   @RpcStartEvent("WifiScan")
   public Integer startWifiBackgroundScan(@RpcParameter(name = "periodInMs") Integer periodInMs,
-      @RpcParameter(name = "channel_freqs") Integer[] channel_freqs) {
+                                  @RpcParameter(name = "channel_freqs") Integer[] channel_freqs) {
     WifiScanner.ScanSettings ss = new WifiScanner.ScanSettings();
     ss.channels = new WifiScanner.ChannelSpec[channel_freqs.length];
-    for (int i = 0; i < channel_freqs.length; i++) {
+    for(int i=0; i<channel_freqs.length; i++) {
       ss.channels[i] = new WifiScanner.ChannelSpec(channel_freqs[i]);
     }
     ss.periodInMs = periodInMs;
     Log.d("android_scripting periodInMs " + ss.periodInMs);
-    for (int i = 0; i < ss.channels.length; i++) {
-      Log.d("android_scripting " + ss.channels[i].frequency + " " + ss.channels[i].passive + " "
-          + ss.channels[i].dwellTimeMS);
+    for(int i=0; i<ss.channels.length; i++) {
+      Log.d("android_scripting " + ss.channels[i].frequency + " " + ss.channels[i].passive + " " + ss.channels[i].dwellTimeMS);
     }
     WifiScanListener mListener = genWifiScanListener();
     mScan.startBackgroundScan(ss, mListener);
@@ -296,9 +280,7 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Stops a wifi background scan
-   *
-   * @param listener_index
-   *          the id of the scan listener whose scan to stop
+   * @param listener_index the id of the scan listener whose scan to stop
    */
   @Rpc(description = "Stops an ongoing periodic Wifi scan in background")
   @RpcStopEvent("WifiScan")
@@ -314,7 +296,7 @@ public class ScanFacade extends RpcReceiver {
   public Integer[] showWifiScanListeners() {
     Integer[] result = new Integer[wifiScannerListenerList.size()];
     int j = 0;
-    for (int i : wifiScannerListenerList.keySet()) {
+    for(int i : wifiScannerListenerList.keySet()) {
       result[j] = wifiScannerListenerList.get(i).index;
       j += 1;
     }
@@ -323,7 +305,6 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Starts tracking wifi changes
-   *
    * @return the id of the change listener associated with this track
    */
   @Rpc(description = "Starts tracking wifi changes")
@@ -336,9 +317,7 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Stops tracking wifi changes
-   *
-   * @param listener_index
-   *          the id of the change listener whose track to stop
+   * @param listener_index the id of the change listener whose track to stop
    */
   @Rpc(description = "Stops tracking wifi changes")
   public void stopTrackingChange(@RpcParameter(name = "listener") Integer listener_index) {
@@ -349,31 +328,27 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Starts tracking changes of the wifi networks specified in a hotlist
-   *
-   * @param hotspotInfos
-   *          a 'hotlist' specifying which wifi networks to track
-   * @param apLostThreshold
-   *          signal strength below which an AP is considered lost
+   * @param hotspotInfos a 'hotlist' specifying which wifi networks to track
+   * @param apLostThreshold signal strength below which an AP is considered lost
    * @return the id of the hotlist listener associated with this track
    * @throws Exception
    */
   @Rpc(description = "Starts tracking changes of the APs on hotlist")
   public Integer setHotlist(String[] hotspotInfos, Integer apLostThreshold) throws Exception {
-    // Instantiates HotspotInfo objs
+    //Instantiates HotspotInfo objs
     HotspotInfo[] mHotspotInfos = new HotspotInfo[hotspotInfos.length];
-    for (int i = 0; i < hotspotInfos.length; i++) {
+    for(int i=0; i<hotspotInfos.length; i++) {
       Log.d("android_scripting " + hotspotInfos[i]);
       String[] tokens = hotspotInfos[i].split(" ");
-      if (tokens.length != 3) {
-        throw new Exception("Invalid hotspot info: " + hotspotInfos[i]);
-
+      if(tokens.length!=3) {
+        throw new Exception("Invalid hotspot info: "+hotspotInfos[i]);
       }
       int a = Integer.parseInt(tokens[1]);
       int b = Integer.parseInt(tokens[2]);
       HotspotInfo mHI = new HotspotInfo();
       mHI.bssid = tokens[0];
-      mHI.low = a < b ? a : b;
-      mHI.high = a < b ? b : a;
+      mHI.low = a<b? a:b;
+      mHI.high = a<b? b:a;
       mHotspotInfos[i] = mHI;
     }
     WifiHotspotListener mWHL = genWifiHotspotListener();
@@ -383,9 +358,7 @@ public class ScanFacade extends RpcReceiver {
 
   /**
    * Stops tracking the hotlist associated with the input listener
-   *
-   * @param listener_index
-   *          the id of the hotspot listener whose track to stop
+   * @param listener_index the id of the hotspot listener whose track to stop
    */
   @Rpc(description = "Stops tracking changes of the APs on hotlist")
   public void resetHotlist(@RpcParameter(name = "listener") Integer listener_index) {
@@ -399,7 +372,7 @@ public class ScanFacade extends RpcReceiver {
    */
   @Rpc(description = "Shuts down all WifiScanner activities")
   public void wifiScannerShutdown() {
-    shutdown();
+    this.shutdown();
   }
 
   /**
@@ -407,19 +380,19 @@ public class ScanFacade extends RpcReceiver {
    */
   @Override
   public void shutdown() {
-    if (!wifiScannerListenerList.isEmpty()) {
-      for (int i : wifiScannerListenerList.keySet()) {
-        stopWifiBackgroundScan(i);
+    if(!wifiScannerListenerList.isEmpty()) {
+      for(int i : wifiScannerListenerList.keySet()) {
+        this.stopWifiBackgroundScan(i);
       }
     }
-    if (!wifiChangeListenerList.isEmpty()) {
-      for (int i : wifiChangeListenerList.keySet()) {
-        stopTrackingChange(i);
+    if(!wifiChangeListenerList.isEmpty()) {
+      for(int i : wifiChangeListenerList.keySet()) {
+        this.stopTrackingChange(i);
       }
     }
-    if (!wifiHotspotListenerList.isEmpty()) {
-      for (int i : wifiHotspotListenerList.keySet()) {
-        resetHotlist(i);
+    if(!wifiHotspotListenerList.isEmpty()) {
+      for(int i : wifiHotspotListenerList.keySet()) {
+        this.resetHotlist(i);
       }
     }
   }

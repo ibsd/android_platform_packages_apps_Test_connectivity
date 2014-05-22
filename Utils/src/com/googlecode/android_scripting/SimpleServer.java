@@ -18,7 +18,16 @@ package com.googlecode.android_scripting;
 
 import com.google.common.collect.Lists;
 
+//import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -30,17 +39,16 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A simple server.
- * 
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public abstract class SimpleServer {
-
-  private final CopyOnWriteArrayList<ConnectionThread> mConnectionThreads =
-      new CopyOnWriteArrayList<ConnectionThread>();
+  private static int threadIndex = 0;
+  private final ConcurrentHashMap<Integer, ConnectionThread> mConnectionThreads =
+      new ConcurrentHashMap<Integer, ConnectionThread>();
   private final List<SimpleServerObserver> mObservers = Lists.newArrayList();
   private volatile boolean mStopServer = false;
   private ServerSocket mServer;
@@ -53,6 +61,10 @@ public abstract class SimpleServer {
   }
 
   protected abstract void handleConnection(Socket socket) throws Exception;
+  protected abstract void handleRPCConnection(Socket socket,
+                                              Integer UID,
+                                              BufferedReader reader,
+                                              PrintWriter writer) throws Exception;
 
   /** Adds an observer. */
   public void addObserver(SimpleServerObserver observer) {
@@ -78,17 +90,32 @@ public abstract class SimpleServer {
 
   private final class ConnectionThread extends Thread {
     private final Socket mmSocket;
+    private final BufferedReader reader;
+    private final PrintWriter writer;
+    private final Integer UID;
+    private final boolean isRpc;
 
-    private ConnectionThread(Socket socket) {
+    private ConnectionThread(Socket socket, boolean rpc, Integer uid, BufferedReader reader, PrintWriter writer) {
       setName("SimpleServer ConnectionThread " + getId());
       mmSocket = socket;
+      this.UID = uid;
+      this.reader = reader;
+      this.writer = writer;
+      this.isRpc = rpc;
     }
 
     @Override
     public void run() {
       Log.v("Server thread " + getId() + " started.");
       try {
-        handleConnection(mmSocket);
+        if(isRpc) {
+          Log.d("Sock state 2: "+mmSocket.isClosed());
+          Log.d("Handling RPC connection in "+getId());
+          handleRPCConnection(mmSocket, UID, reader, writer);
+        }else{
+          Log.d("Handling Non-RPC connection in "+getId());
+          handleConnection(mmSocket);
+        }
       } catch (Exception e) {
         if (!mStopServer) {
           Log.e("Server error.", e);
@@ -241,6 +268,10 @@ public abstract class SimpleServer {
             if (!mStopServer) {
               Log.e("Failed to accept connection.", e);
             }
+          } catch (JSONException e) {
+            if (!mStopServer) {
+              Log.e("Failed to parse request.", e);
+            }
           }
         }
       }
@@ -250,11 +281,57 @@ public abstract class SimpleServer {
     return mServer.getLocalPort();
   }
 
-  private void startConnectionThread(final Socket sock) {
-    ConnectionThread networkThread = new ConnectionThread(sock);
-    mConnectionThreads.add(networkThread);
-    networkThread.start();
-    notifyOnConnect();
+  private void startConnectionThread(final Socket sock) throws IOException, JSONException {
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(sock.getInputStream()), 8192);
+    PrintWriter writer = new PrintWriter(sock.getOutputStream(), true);
+    String data;
+    if((data = reader.readLine()) != null) {
+      Log.v("Received: " + data);
+      JSONObject request = new JSONObject(data);
+      if(request.has("cmd") && request.has("uid")) {
+        String cmd = request.getString("cmd");
+        int uid = request.getInt("uid");
+        JSONObject result = new JSONObject();
+        if(cmd.equals("initiate")) {
+          Log.d("Initiate a new session");
+          threadIndex += 1;
+          int mUID = threadIndex;
+          //Log.d("Sock state 1: "+sock.isClosed());
+          ConnectionThread networkThread = new ConnectionThread(sock,true,mUID,reader,writer);
+          mConnectionThreads.put(uid, networkThread);
+          networkThread.start();
+          notifyOnConnect();
+          result.put("uid", mUID);
+          result.put("status",true);
+        }else if(cmd.equals("continue")) {
+          Log.d("Continue an existing session");
+          ConnectionThread networkThread = new ConnectionThread(sock,true,uid,reader,writer);
+          mConnectionThreads.put(uid, networkThread);
+          networkThread.start();
+          notifyOnConnect();
+          result.put("uid", uid);
+          result.put("status",true);
+        }else if(cmd.equals("terminate")) {
+          Log.d("Terminate an existing session");
+          mConnectionThreads.remove(uid);
+          result.put("uid", uid);
+          result.put("status",true);
+        }else {
+          result.put("uid", uid);
+          result.put("status",false);
+          result.put("message", "Unrecognized command.");
+        }
+        writer.write(result + "\n");
+        writer.flush();
+        Log.v("Sent: " + result);
+      }else{
+        ConnectionThread networkThread = new ConnectionThread(sock,false,0,reader,writer);
+        mConnectionThreads.put(0, networkThread);
+        networkThread.start();
+        notifyOnConnect();
+      }
+    }
   }
 
   public void shutdown() {
@@ -271,7 +348,7 @@ public abstract class SimpleServer {
     // threads. In the worst case, one of the running threads will already have
     // shut down. Since this is a CopyOnWriteList, we don't have to worry about
     // concurrency issues while iterating over the set of threads.
-    for (ConnectionThread connectionThread : mConnectionThreads) {
+    for (ConnectionThread connectionThread : mConnectionThreads.values()) {
       connectionThread.close();
     }
     for (SimpleServerObserver observer : mObservers) {
