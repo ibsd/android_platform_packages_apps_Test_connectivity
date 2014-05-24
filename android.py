@@ -28,6 +28,9 @@ import socket
 HOST = os.environ.get('AP_HOST', None)
 PORT = os.environ.get('AP_PORT', 9999)
 
+LAUNCH_CMD=("adb shell am start -a com.googlecode.android_scripting.action.LAUNCH_SERVER "
+        "-n com.googlecode.android_scripting/.activity.ScriptingLayerServiceLauncher "
+        "--ei com.googlecode.android_scripting.extra.USE_SERVICE_PORT {}")
 
 class SL4AException(Exception):
     pass
@@ -49,8 +52,9 @@ class Android(object):
     COUNTER = IDCounter()
 
     def __init__(self, cmd='initiate', uid=-1, port=PORT, addr=HOST):
-        conn = socket.create_connection((addr, port))
+        self.client = None # prevent close errors on connect failure
         self.uid = None
+        conn = socket.create_connection((addr, port))
         self.client = conn.makefile(mode="brw")
         handshake = {'cmd':cmd, 'uid':uid}
         self.client.write(json.dumps(handshake).encode("utf8")+b'\n')
@@ -63,6 +67,14 @@ class Android(object):
           self.uid = result['uid']
         else:
           self.uid = -1
+
+    def close(self):
+        if self.client is not None:
+            self.client.close()
+            self.client = None
+
+    def __del__(self):
+        self.close()
 
     def _rpc(self, method, *args):
         apiid = next(Android.COUNTER)
@@ -90,15 +102,28 @@ def start_forwarding(port, localport=PORT):
     os.system("adb forward tcp:{} tcp:{}".format(localport, port))
 
 
+def kill_adb_server():
+    os.system("adb kill-server")
+
+
+def start_adb_server():
+    os.system("adb start-server")
+
+
+def start_sl4a(port=8080):
+    start_adb_server()
+    os.system(LAUNCH_CMD.format(port))
+
+
 def android(argv):
     import getopt
 
     def _usage():
-        print("""Usage: android -p <port> [-l <localport>] [-u <uid>] <apicall> [<apiargs>...]
-            Example: android.py -p 56241 makeToast hello""")
+        print("""Usage: android [-p <remoteport>] [-l <localport>] [-u <uid>] <apicall>|start [<apiargs>...]
+            Example: android.py -p 8080 makeToast hello""")
 
     localport = PORT
-    port = 0
+    port = 8080
     uid = -1
     cmd = "initiate"
     try:
@@ -113,20 +138,28 @@ def android(argv):
             except ValueError:
                 _usage()
                 return
-        if opt in ("-u", "--uid"):
+        elif opt in ("-u", "--uid"):
             try:
                 uid = int(optarg)
             except ValueError:
                 _usage()
                 return
             cmd = "continue"
+        elif opt in ("-l", "--localport"):
+            try:
+                localport = int(optarg)
+            except ValueError:
+                _usage()
+                return
 
     if not args:
         _usage()
         return
 
-    if not port:
-        _usage()
+    if args[0] == "start":
+        kill_adb_server()
+        start_adb_server()
+        start_sl4a(port)
         return
 
     if cmd == "initiate":
@@ -136,6 +169,7 @@ def android(argv):
     print ("UID:", a.uid)
     rpc = getattr(a, args[0])
     rpc(*args[1:])
+    a.close()
 
 
 # Run as top-level script for handy test utility
