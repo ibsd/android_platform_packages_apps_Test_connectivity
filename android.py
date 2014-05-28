@@ -36,10 +36,10 @@ class SL4AException(Exception):
     pass
 
 class SL4AAPIError(SL4AException):
-    pass
+    """Raised when remote API reports an error."""
 
 class SL4AProtocolError(SL4AException):
-    pass
+    """Raised when there is some error in exchanging data with server on device."""
 
 
 def IDCounter():
@@ -85,6 +85,8 @@ class Android(object):
         self.client.write(request.encode("utf8")+b'\n')
         self.client.flush()
         response = self.client.readline()
+        if not response:
+            raise SL4AProtocolError("No response from server.")
         result = json.loads(str(response, encoding="utf8"))
         if result['error']:
             raise SL4AAPIError(result['error'])
