@@ -229,14 +229,17 @@ public class JsonBuilder {
     result.put("seen", scanResult.seen);
     result.put("distanceCm", scanResult.distanceCm);
     result.put("distanceSdCm", scanResult.distanceSdCm);
-    JSONArray infoEles = new JSONArray();
-    for(ScanResult.InformationElement ie : scanResult.informationElements) {
-      JSONObject infoEle = new JSONObject();
-      infoEle.put("id", ie.id);
-      infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes));
-      infoEles.put(infoEle);
-    }
-    result.put("InfomationElements", infoEles);
+    if (scanResult.informationElements != null){
+      JSONArray infoEles = new JSONArray();
+      for(ScanResult.InformationElement ie : scanResult.informationElements) {
+        JSONObject infoEle = new JSONObject();
+        infoEle.put("id", ie.id);
+        infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes));
+        infoEles.put(infoEle);
+      }
+      result.put("InfomationElements", infoEles);
+    } else
+      result.put("InfomationElements", null);
     return result;
   }
 

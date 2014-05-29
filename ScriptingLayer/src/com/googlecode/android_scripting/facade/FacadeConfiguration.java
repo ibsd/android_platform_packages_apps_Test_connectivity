@@ -93,7 +93,6 @@ public class FacadeConfiguration {
 
     if (sSdkLevel >= 5) {
       sFacadeClassList.add(BluetoothFacade.class);
-      sFacadeClassList.add(ScanFacade.class);
     }
 
     if (sSdkLevel >= 7) {
@@ -102,6 +101,11 @@ public class FacadeConfiguration {
 
     if (sSdkLevel >= 8) {
       sFacadeClassList.add(WebCamFacade.class);
+    }
+
+    if (sSdkLevel >= 18) {
+      sFacadeClassList.add(ScanFacade.class);
+      sFacadeClassList.add(WifiPasspointFacade.class);
     }
 
     for (Class<? extends RpcReceiver> recieverClass : sFacadeClassList) {

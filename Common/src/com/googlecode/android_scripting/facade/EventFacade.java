@@ -164,15 +164,21 @@ public class EventFacade extends RpcReceiver {
     return events;
   }
 
-  @Rpc(description = "Blocks until an event with the supplied name occurs. The returned event is not removed from the buffer.", returns = "Map of event properties.")
+  @Rpc(description = "Blocks until an event with the supplied name occurs. Event is removed from the buffer if removeEvent is True.",
+      returns = "Map of event properties.")
   public Event eventWaitFor(
       @RpcParameter(name = "eventName") final String eventName,
+      @RpcParameter(name = "removeEvent") final Boolean removeEvent,
       @RpcParameter(name = "timeout", description = "the maximum time to wait (in ms)") @RpcOptional Integer timeout)
       throws InterruptedException {
+    Event result = null;
     synchronized (mEventQueue) { // First check to make sure it isn't already there
       for (Event event : mEventQueue) {
         if (event.getName().equals(eventName)) {
-          return event;
+          result = event;
+          if(removeEvent)
+            mEventQueue.remove(event);
+          return result;
         }
       }
     }
@@ -186,15 +192,18 @@ public class EventFacade extends RpcReceiver {
               futureEvent.set(event);
               removeEventObserver(this);
             }
+            if(removeEvent)
+              mEventQueue.remove(event);
           }
         }
       }
     });
     if (timeout != null) {
-      return futureEvent.get(timeout, TimeUnit.MILLISECONDS);
+      result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
     } else {
-      return futureEvent.get();
+      result = futureEvent.get();
     }
+    return result;
   }
 
   @Rpc(description = "Blocks until an event occurs. The returned event is removed from the buffer.", returns = "Map of event properties.")
@@ -293,12 +302,14 @@ public class EventFacade extends RpcReceiver {
   }
 
   @RpcDeprecated(value = "eventWaitFor", release = "r4")
-  @Rpc(description = "Blocks until an event with the supplied name occurs. The returned event is not removed from the buffer.", returns = "Map of event properties.")
+  @Rpc(description = "Blocks until an event with the supplied name occurs. Event is removed from the buffer if removeEvent is True.",
+   returns = "Map of event properties.")
   public Event waitForEvent(
       @RpcParameter(name = "eventName") final String eventName,
+      @RpcOptional final Boolean removeEvent,
       @RpcParameter(name = "timeout", description = "the maximum time to wait") @RpcOptional Integer timeout)
       throws InterruptedException {
-    return eventWaitFor(eventName, timeout);
+    return eventWaitFor(eventName, removeEvent, timeout);
   }
 
   @Rpc(description = "Opens up a socket where you can read for events posted")

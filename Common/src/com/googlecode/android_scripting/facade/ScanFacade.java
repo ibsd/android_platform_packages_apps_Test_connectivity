@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.googlecode.android_scripting.facade;
 
 import android.app.Service;
@@ -16,6 +31,7 @@ import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -34,6 +50,7 @@ public class ScanFacade extends RpcReceiver {
   private final Hashtable<Integer, WifiScanListener> wifiScannerListenerList;
   private final Hashtable<Integer, ChangeListener> wifiChangeListenerList;
   private final Hashtable<Integer, WifiHotspotListener> wifiHotspotListenerList;
+  private static Hashtable<Integer, ScanResult[]> wifiScannerResultList;
 
   public ScanFacade(FacadeManager manager) {
     super(manager);
@@ -43,48 +60,53 @@ public class ScanFacade extends RpcReceiver {
     wifiScannerListenerList = new Hashtable<Integer, WifiScanListener>();
     wifiChangeListenerList = new Hashtable<Integer, ChangeListener>();
     wifiHotspotListenerList = new Hashtable<Integer, WifiHotspotListener>();
+    wifiScannerResultList = new Hashtable<Integer, ScanResult[]>();
+  }
+
+  public static List<ScanResult> getWifiScanResult(Integer listener_index, List<ScanResult> scanResults){
+    synchronized (wifiScannerResultList) {
+      ScanResult[] scanArray = wifiScannerResultList.get(listener_index);
+      for(ScanResult scanresult :  scanArray)
+        scanResults.add(scanresult);
+      return scanResults;
+    }
   }
 
   private class WifiActionListener implements WifiScanner.ActionListener {
-    private final Bundle mStatus;
     private final Bundle mResults;
-    public int index;
-    protected String listenerType;
+    public int mIndex;
+    protected String mEventType;
 
-    public WifiActionListener(String type, int idx, Bundle statusBundle, Bundle resultBundle) {
-      this.index = idx;
-      this.listenerType = type;
-      this.mStatus = statusBundle;
+    public WifiActionListener(String type, int idx, Bundle resultBundle) {
+      this.mIndex = idx;
+      this.mEventType = type;
       this.mResults = resultBundle;
     }
 
     @Override
     public void onSuccess() {
-      Log.d("android_scripting change onSuccess "+listenerType+index);
-      mStatus.putString("ID", listenerType+index);
-      mStatus.putBoolean("Status", true);
-      mEventFacade.postEvent("Started", mStatus.clone());
-      mStatus.clear();
+      Log.d("onSuccess " + mEventType + " " + mIndex);
+      mResults.putString("Type", "onSuccess");
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
+      mResults.clear();
     }
 
     @Override
     public void onFailure(int reason, String description) {
-      Log.d("android_scripting change onFailure "+listenerType+index);
-      mStatus.putString("ID", listenerType+index);
-      mStatus.putBoolean("Status", false);
-      mStatus.putInt("Reason", reason);
-      mStatus.putString("Exception", description);
-      mEventFacade.postEvent("Failed", mStatus.clone());
-      mStatus.clear();
+      Log.d("onFailure " + mEventType + " " + mIndex);
+      mResults.putString("Type", "onFailure");
+      mResults.putInt("Reason", reason);
+      mResults.putString("Description", description);
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
+      mResults.clear();
     }
 
-    public void reportResult(ScanResult[] results, String eventType) {
-      Log.d("android_scripting "+eventType+" "+listenerType+index);
-      mResults.putString("ID", listenerType+index);
+    public void reportResult(ScanResult[] results, String type) {
+      Log.d("reportResult "+ mEventType + " "+ mIndex);
       mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
-      mResults.putString("Type", eventType);
+      mResults.putString("Type", type);
       mResults.putParcelableArray("Results", results);
-      mEventFacade.postEvent("ScanResults", mResults.clone());
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
       mResults.clear();
     }
   }
@@ -100,22 +122,21 @@ public class ScanFacade extends RpcReceiver {
         return new WifiScanListener();
       }
     });
-    wifiScannerListenerList.put(mWifiScannerListener.index, mWifiScannerListener);
+    wifiScannerListenerList.put(mWifiScannerListener.mIndex, mWifiScannerListener);
     return mWifiScannerListener;
   }
 
   private class WifiScanListener implements WifiScanner.ScanListener {
+    private static final String mEventType =  "WifiBackgroundScan";
     protected final Bundle mScanResults;
-    protected final Bundle mScanStatus;
     private final WifiActionListener mWAL;
-    public int index;
+    public int mIndex;
 
     public WifiScanListener() {
-      mScanStatus = new Bundle();
       mScanResults = new Bundle();
       WifiScanListenerCnt += 1;
-      index = WifiScanListenerCnt;
-      mWAL = new WifiActionListener("WifiScanListener", index, mScanStatus, mScanResults);
+      mIndex = WifiScanListenerCnt;
+      mWAL = new WifiActionListener(mEventType, mIndex, mScanResults);
     }
 
     @Override
@@ -130,21 +151,24 @@ public class ScanFacade extends RpcReceiver {
 
     @Override
     public void onPeriodChanged(int periodInMs) {
-      mScanStatus.putString("ID", "WifiScanListener"+index);
-      mScanStatus.putBoolean("Status", true);
-      mScanStatus.putInt("NewPeriod", periodInMs);
-      mEventFacade.postEvent("onPeriodChanged", mScanStatus.clone());
-      mScanStatus.clear();
+      Log.d("onPeriodChanged " + mEventType + " " + mIndex);
+      mScanResults.putString("Type", "onPeriodChanged");
+      mScanResults.putInt("NewPeriod", periodInMs);
+      mEventFacade.postEvent(mEventType + mIndex, mScanResults.clone());
+      mScanResults.clear();
     }
 
     @Override
     public void onResults(ScanResult[] results) {
+      synchronized (wifiScannerResultList) {
+        wifiScannerResultList.put(mIndex, results);
+      }
       mWAL.reportResult(results, "onScanResults");
     }
 
     @Override
     public void onFullResult(ScanResult fullScanResult) {
-      Log.d("android_scripting onFullResult WifiScanListener "+index);
+      Log.d("onFullResult WifiScanListener " + mIndex);
       mWAL.reportResult(new ScanResult[]{fullScanResult}, "onFullResult");
     }
   }
@@ -160,22 +184,21 @@ public class ScanFacade extends RpcReceiver {
         return new ChangeListener();
       }
     });
-    wifiChangeListenerList.put(mWifiChangeListener.index, mWifiChangeListener);
+    wifiChangeListenerList.put(mWifiChangeListener.mIndex, mWifiChangeListener);
     return mWifiChangeListener;
   }
 
   private class ChangeListener implements WifiScanner.WifiChangeListener {
-    protected final Bundle mStatus;
+    private static final String mEventType =  "TrackChanges";
     protected final Bundle mResults;
     private final WifiActionListener mWAL;
-    public int index;
+    public int mIndex;
 
     public ChangeListener() {
-      mStatus = new Bundle();
       mResults = new Bundle();
       WifiChangeListenerCnt += 1;
-      index = WifiChangeListenerCnt;
-      mWAL = new WifiActionListener("WifiChangeListener", index, mStatus, mResults);
+      mIndex = WifiChangeListenerCnt;
+      mWAL = new WifiActionListener(mEventType, mIndex, mResults);
     }
 
     @Override
@@ -210,22 +233,21 @@ public class ScanFacade extends RpcReceiver {
         return new WifiHotspotListener();
       }
     });
-    wifiHotspotListenerList.put(mWifiHotspotListener.index, mWifiHotspotListener);
+    wifiHotspotListenerList.put(mWifiHotspotListener.mIndex, mWifiHotspotListener);
     return mWifiHotspotListener;
   }
 
   private class WifiHotspotListener implements WifiScanner.HotspotListener {
-    protected final Bundle mStatus;
+    private static final String mEventType =  "TrackHotspot";
     protected final Bundle mResults;
     private final WifiActionListener mWAL;
-    public int index;
+    public int mIndex;
 
     public WifiHotspotListener() {
-      mStatus = new Bundle();
       mResults = new Bundle();
       WifiHotspotListenerCnt += 1;
-      index = WifiHotspotListenerCnt;
-      mWAL = new WifiActionListener("HotspotListener", index, mStatus, mResults);
+      mIndex = WifiHotspotListenerCnt;
+      mWAL = new WifiActionListener(mEventType, mIndex, mResults);
     }
 
     @Override
@@ -262,35 +284,37 @@ public class ScanFacade extends RpcReceiver {
       ss.channels[i] = new WifiScanner.ChannelSpec(channel_freqs[i]);
     }
     ss.periodInMs = periodInMs;
-    Log.d("android_scripting periodInMs "+ss.periodInMs);
+    Log.d("startWifiBackgroundScan periodInMs " + ss.periodInMs);
     for(int i=0; i<ss.channels.length; i++) {
-      Log.d("android_scripting "+ss.channels[i].frequency+" "+ss.channels[i].passive+" "+ss.channels[i].dwellTimeMS);
+      Log.d("startWifiBackgroundScan " + ss.channels[i].frequency + " " + ss.channels[i].passive + " " + ss.channels[i].dwellTimeMS);
     }
     WifiScanListener mListener = genWifiScanListener();
     mScan.startBackgroundScan(ss, mListener);
-    return mListener.index;
+    return mListener.mIndex;
   }
 
   /**
    * Stops a wifi background scan
-   * @param listener_index the id of the scan listener whose scan to stop
+   * @param listener_mIndex the id of the scan listener whose scan to stop
    */
   @Rpc(description = "Stops an ongoing periodic Wifi scan in background")
   @RpcStopEvent("WifiScan")
   public void stopWifiBackgroundScan(@RpcParameter(name = "listener") Integer listener_index) {
-    Log.d("android_scripting stopping background scan");
     WifiScanListener mListener = wifiScannerListenerList.get(listener_index);
-    Log.d("android_scripting mListener "+mListener.index+mListener.toString());
+    Log.d("stopWifiBackgroundScan mListener "+ mListener.mIndex );
     mScan.stopBackgroundScan(mListener);
+    synchronized (wifiScannerResultList) {
+      wifiScannerResultList.remove(listener_index);
+    }
     wifiScannerListenerList.remove(listener_index);
   }
 
-  @Rpc(description = "Returns a list of indexes of existing listeners")
+  @Rpc(description = "Returns a list of mIndexes of existing listeners")
   public Integer[] showWifiScanListeners() {
     Integer[] result = new Integer[wifiScannerListenerList.size()];
     int j = 0;
     for(int i : wifiScannerListenerList.keySet()) {
-      result[j] = wifiScannerListenerList.get(i).index;
+      result[j] = wifiScannerListenerList.get(i).mIndex;
       j += 1;
     }
     return result;
@@ -302,10 +326,10 @@ public class ScanFacade extends RpcReceiver {
    */
   @Rpc(description = "Starts tracking wifi changes")
   public Integer startTrackingChange() {
-    Log.d("android_scripting starting change track");
+    Log.d("starting change track");
     ChangeListener mListener = genWifiChangeListener();
     mScan.startTrackingWifiChange(mListener);
-    return mListener.index;
+    return mListener.mIndex;
   }
 
   /**
@@ -347,7 +371,7 @@ public class ScanFacade extends RpcReceiver {
     }
     WifiHotspotListener mWHL = genWifiHotspotListener();
     mScan.startTrackingHotspots(mHotspotInfos, apLostThreshold, mWHL);
-    return mWHL.index;
+    return mWHL.mIndex;
   }
 
   /**
