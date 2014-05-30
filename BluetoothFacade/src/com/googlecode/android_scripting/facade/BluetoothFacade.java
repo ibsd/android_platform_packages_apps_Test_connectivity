@@ -176,12 +176,14 @@ public class BluetoothFacade extends RpcReceiver {
   @Rpc(description = "Requests that the device be discoverable for Bluetooth connections.")
   public void bluetoothMakeDiscoverable(
       @RpcParameter(name = "duration", description = "period of time, in seconds, during which the device should be discoverable") @RpcDefault("300") Integer duration) {
-    if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-      Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-      discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, duration);
-      // Use startActivityForResult to make this a synchronous call.
-      mAndroidFacade.startActivityForResult(discoverableIntent);
-    }
+    Log.d("Making discoverable for "+duration+" seconds.\n");
+    mBluetoothAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, duration);
+  }
+
+  @Rpc(description = "Requests that the device be not discoverable.")
+  public void bluetoothMakeUndiscoverable() {
+    Log.d("Making undiscoverable\n");
+    mBluetoothAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_NONE);
   }
 
   @Rpc(description = "Sends ASCII characters over the currently open Bluetooth connection.")

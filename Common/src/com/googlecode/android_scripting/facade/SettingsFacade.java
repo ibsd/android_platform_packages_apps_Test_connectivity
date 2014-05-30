@@ -18,8 +18,8 @@ package com.googlecode.android_scripting.facade;
 
 import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.os.PowerManager;
 import android.provider.Settings.SettingNotFoundException;
 import android.view.WindowManager;
@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 
 /**
  * Exposes phone settings functionality.
- * 
+ *
  * @author Frank Spychalski (frank.spychalski@gmail.com)
  */
 public class SettingsFacade extends RpcReceiver {
@@ -48,10 +48,11 @@ public class SettingsFacade extends RpcReceiver {
   private final Service mService;
   private final AudioManager mAudio;
   private final PowerManager mPower;
+  private final ConnectivityManager mConnect;
 
   /**
    * Creates a new SettingsFacade.
-   * 
+   *
    * @param service
    *          is the {@link Context} the APIs will run under
    */
@@ -60,6 +61,7 @@ public class SettingsFacade extends RpcReceiver {
     mService = manager.getService();
     mAudio = (AudioManager) mService.getSystemService(Context.AUDIO_SERVICE);
     mPower = (PowerManager) mService.getSystemService(Context.POWER_SERVICE);
+    mConnect = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
   }
 
   @Rpc(description = "Sets the screen timeout to this number of seconds.", returns = "The original screen timeout.")
@@ -91,17 +93,11 @@ public class SettingsFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Toggles airplane mode on and off.", returns = "True if airplane mode is enabled.")
-  public Boolean toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
+  public void toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
     if (enabled == null) {
       enabled = !checkAirplaneMode();
     }
-    android.provider.Settings.System.putInt(mService.getContentResolver(),
-        android.provider.Settings.Global.AIRPLANE_MODE_ON, enabled ? AIRPLANE_MODE_ON
-            : AIRPLANE_MODE_OFF);
-    Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-    intent.putExtra("state", enabled);
-    mService.sendBroadcast(intent);
-    return enabled;
+    mConnect.setAirplaneMode(enabled);
   }
 
   @Rpc(description = "Checks the ringer silent mode setting.", returns = "True if ringer silent mode is enabled.")

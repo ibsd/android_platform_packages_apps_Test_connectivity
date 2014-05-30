@@ -6,6 +6,8 @@ include $(CLEAR_VARS)
 
 LOCAL_PACKAGE_NAME := sl4a
 
+LOCAL_CERTIFICATE := platform
+
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
 

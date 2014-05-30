@@ -34,7 +34,7 @@ declare -a test_list=("Utils" "Common")
 APP_NAME=sl4a
 APP_PACKAGE_NAME=com.googlecode.android_scripting
 
-BRANCH_ROOT=~/My_workshope/klp-wireless-dev
+BRANCH_ROOT=~/dev/android/another-klp-wireless-dev
 SL4A_ROOT=$BRANCH_ROOT/vendor/google_testing/comms/Tools/sl4a
 SHARED_LIB_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/JAVA_LIBRARIES
 APP_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/APPS
@@ -78,12 +78,18 @@ cd $SL4A_PROJ_DIR
 exec mm -B "building $APP_NAME.apk"
 echo
 
+echo -e "${y}Switching to root${NC}"
+adb root
+adb remount
+
 echo -e "${y}Uninstalling old apk from device${NC}"
 adb uninstall $APP_PACKAGE_NAME
+adb shell rm -r /system/priv-app/$APP_NAME.apk
 
 echo -e "${lb}Installing apk to device${NC}"
 cd $APK_ROOT
-exec adb install $APP_NAME.apk "installing apk to device"
+#exec adb install $APP_NAME.apk "installing apk to device"
+exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
 
 echo "All clear!"
 echo -e " ${r}U${brn}N${y}I${g}C${cy}O${lb}R${p}N ${r}P${brn}O${y}W${g}E${cy}R${lb}!${p}!${NC}"
