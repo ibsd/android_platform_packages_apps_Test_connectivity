@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc.
+ * Copyright (C) 2014 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -38,7 +38,7 @@ import java.util.TreeMap;
 
 /**
  * Encapsulates the list of supported facades and their construction.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author Igor Karp (igor.v.karp@gmail.com)
  */
@@ -106,6 +106,8 @@ public class FacadeConfiguration {
     if (sSdkLevel >= 18) {
       sFacadeClassList.add(ScanFacade.class);
       sFacadeClassList.add(WifiPasspointFacade.class);
+      sFacadeClassList.add(BluetoothLeScanFacade.class);
+      sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
     }
 
     for (Class<? extends RpcReceiver> recieverClass : sFacadeClassList) {
