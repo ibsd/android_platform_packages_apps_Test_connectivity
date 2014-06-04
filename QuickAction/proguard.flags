@@ -1,6 +1,0 @@
-
--keepclassmembers class net.londatiga.android.R {
-    public *;
-}
-
--keep class net.londatiga.android.R
