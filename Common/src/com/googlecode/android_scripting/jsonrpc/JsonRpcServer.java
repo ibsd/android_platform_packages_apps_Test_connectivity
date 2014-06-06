@@ -21,18 +21,18 @@ import com.googlecode.android_scripting.SimpleServer;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
 import com.googlecode.android_scripting.rpc.RpcError;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Map;
+
 /**
  * A JSON RPC server that forwards RPC calls to a specified receiver object.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class JsonRpcServer extends SimpleServer {
@@ -42,7 +42,7 @@ public class JsonRpcServer extends SimpleServer {
 
   /**
    * Construct a {@link JsonRpcServer} connected to the provided {@link RpcReceiverManager}.
-   * 
+   *
    * @param managerFactory
    *          the {@link RpcReceiverManager} to register with the server
    * @param handshake
@@ -66,18 +66,19 @@ public class JsonRpcServer extends SimpleServer {
   @Override
   protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader, PrintWriter writer) throws Exception {
     RpcReceiverManager receiverManager = null;
-    //Log.d("Sock state 3: "+sock.isClosed());
-    Log.d("UID "+UID);
-    Log.d("manager map size: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().size());
-    Log.d("manager map keys: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().keySet());
-    if(mRpcReceiverManagerFactory.getRpcReceiverManagers().containsKey(UID)) {
-      Log.d("Look up existing session");
-      receiverManager = mRpcReceiverManagerFactory.getRpcReceiverManagers().get(UID);
-    }else{
-      Log.d("Create a new session");
-      receiverManager = mRpcReceiverManagerFactory.create(UID);
+    Map<Integer, RpcReceiverManager> mgrs = mRpcReceiverManagerFactory.getRpcReceiverManagers();
+    synchronized (mgrs) {
+      Log.d("UID "+UID);
+      Log.d("manager map size: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().size());
+      Log.d("manager map keys: "+mRpcReceiverManagerFactory.getRpcReceiverManagers().keySet());
+      if(mgrs.containsKey(UID)) {
+        Log.d("Look up existing session");
+        receiverManager = mgrs.get(UID);
+      }else{
+        Log.d("Create a new session");
+        receiverManager = mRpcReceiverManagerFactory.create(UID);
+      }
     }
-    //Log.d("Sock state 4: "+sock.isClosed());
 
     /*RpcReceiverManager receiverManager = mRpcReceiverManagerFactory.create();
     BufferedReader reader =
