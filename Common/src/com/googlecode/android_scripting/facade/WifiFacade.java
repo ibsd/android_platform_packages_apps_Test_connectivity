@@ -1,12 +1,16 @@
 package com.googlecode.android_scripting.facade;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
+import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -18,22 +22,26 @@ import java.net.ConnectException;
 import java.util.List;
 
 /**
- * Wifi functions.
- * 
+ * WifiManager functions.
+ *
  */
 //TODO: make methods handle various wifi states properly
 //e.g. wifi connection result will be null when flight mode is on
 public class WifiFacade extends RpcReceiver {
-
   private final Service mService;
   private final WifiManager mWifi;
+  private final IntentFilter mIntentFilter;
+  private final WifiScanReceiver mReceiver;
   private WifiLock mLock;
+  private static int WifiScanCnt;
 
   public WifiFacade(FacadeManager manager) {
     super(manager);
     mService = manager.getService();
     mWifi = (WifiManager) mService.getSystemService(Context.WIFI_SERVICE);
     mLock = null;
+    mIntentFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+    mReceiver = new WifiScanReceiver(manager.getReceiver(EventFacade.class));
   }
 
   private void makeLock(int wifiMode) {
@@ -43,8 +51,34 @@ public class WifiFacade extends RpcReceiver {
     }
   }
 
+  /**
+   * Handle Brodacst receiver for Scan Result
+   * @parm eventFacade
+   *        Object of EventFacade
+   */
+  class WifiScanReceiver extends BroadcastReceiver {
+    private final static String mEventType = "WiFiScan";
+    private final EventFacade mEventFacade;
+    private final Bundle mResults;
+
+    WifiScanReceiver(EventFacade eventFacade){
+      mEventFacade = eventFacade;
+      mResults = new Bundle();
+    }
+
+    @Override
+    public void onReceive(Context c, Intent intent) {
+      Log.d("WifiScanReceiver  "+ mEventType);
+      mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
+      mResults.putString("Type", "onWifiScanReceive");
+      mEventFacade.postEvent(mEventType, mResults.clone());
+      mResults.clear();
+    }
+  }
+
   @Rpc(description = "Returns the list of access points found during the most recent Wifi scan.")
   public List<ScanResult> wifiGetScanResults() {
+    mService.unregisterReceiver(mReceiver);
     return mWifi.getScanResults();
   }
 
@@ -68,6 +102,7 @@ public class WifiFacade extends RpcReceiver {
 
   @Rpc(description = "Starts a scan for Wifi access points.", returns = "True if the scan was initiated successfully.")
   public Boolean wifiStartScan() {
+    mService.registerReceiver(mReceiver, mIntentFilter);
     return mWifi.startScan();
   }
 
@@ -120,7 +155,11 @@ public class WifiFacade extends RpcReceiver {
       @RpcParameter(name = "wifiPassword") String wifiPassword) throws ConnectException {
     WifiConfiguration wifiConfig = new WifiConfiguration();
     wifiConfig.SSID = "\"" + wifiSSID + "\"";
-    wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
+    if(wifiPassword == null)
+      wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+    else
+      wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
+
     mWifi.addNetwork(wifiConfig);
     Boolean status = false;
     Boolean found = false;
