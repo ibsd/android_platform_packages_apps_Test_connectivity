@@ -42,7 +42,6 @@ public class JsonRpcServer extends SimpleServer {
 
   /**
    * Construct a {@link JsonRpcServer} connected to the provided {@link RpcReceiverManager}.
-   *
    * @param managerFactory
    *          the {@link RpcReceiverManager} to register with the server
    * @param handshake
@@ -79,7 +78,6 @@ public class JsonRpcServer extends SimpleServer {
         receiverManager = mRpcReceiverManagerFactory.create(UID);
       }
     }
-
     /*RpcReceiverManager receiverManager = mRpcReceiverManagerFactory.create();
     BufferedReader reader =
         new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);

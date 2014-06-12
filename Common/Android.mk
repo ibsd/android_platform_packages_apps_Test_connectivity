@@ -16,4 +16,7 @@ LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
 
 include $(BUILD_STATIC_JAVA_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := libGoogleAnalytics:libs/libGoogleAnalytics.jar
+include $(BUILD_MULTI_PREBUILT)
 
