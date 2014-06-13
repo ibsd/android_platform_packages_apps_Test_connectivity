@@ -21,6 +21,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiScanner;
 import android.net.wifi.WifiScanner.HotspotInfo;
 import android.os.Bundle;
+import android.os.SystemClock;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
@@ -89,6 +90,7 @@ public class ScanFacade extends RpcReceiver {
     public void onSuccess() {
       Log.d("onSuccess " + mEventType + " " + mIndex);
       mResults.putString("Type", "onSuccess");
+      mResults.putLong("Realtime", SystemClock.elapsedRealtime());
       mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
       mResults.clear();
     }
