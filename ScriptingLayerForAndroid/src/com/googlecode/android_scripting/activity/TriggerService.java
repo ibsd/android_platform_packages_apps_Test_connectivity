@@ -42,15 +42,15 @@ import com.googlecode.android_scripting.trigger.TriggerRepository.TriggerReposit
 
 /**
  * The trigger service takes care of installing triggers serialized to the preference storage.
- * 
+ *
  * <p>
  * The service also installs an alarm that keeps it running, unless the user force-quits the
  * service.
- * 
+ *
  * <p>
  * When no triggers are installed the service shuts down silently as to not consume resources
  * unnecessarily.
- * 
+ *
  * @author Felix Arends (felix.arends@gmail.com)
  * @author Damon Kohler (damonkohler@gmail.com)
  */
@@ -105,12 +105,15 @@ public class TriggerService extends ForegroundService {
   /** Returns the notification to display whenever the service is running. */
   @Override
   protected Notification createNotification() {
-    Notification notification =
-        new Notification(R.drawable.sl4a_logo_48, "SL4A Trigger Service started.",
-            System.currentTimeMillis());
     Intent notificationIntent = new Intent(this, TriggerManager.class);
-    notification.setLatestEventInfo(this, "SL4A Trigger Service", "Tap to view triggers",
-        PendingIntent.getActivity(this, 0, notificationIntent, 0));
+    Notification.Builder builder = new Notification.Builder(this);
+    builder.setSmallIcon(R.drawable.sl4a_logo_48)
+           .setTicker("SL4A Trigger Service started.")
+           .setWhen(System.currentTimeMillis())
+           .setContentTitle("SL4A Trigger Service")
+           .setContentText("Tap to view triggers")
+           .setContentIntent(PendingIntent.getActivity(this, 0, notificationIntent, 0));
+    Notification notification = builder.build();
     notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
     return notification;
   }

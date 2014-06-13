@@ -103,25 +103,27 @@ public class ScriptingLayerService extends ForegroundService {
 
   @Override
   protected Notification createNotification() {
-    mNotification =
-        new Notification(R.drawable.sl4a_notification_logo, null, System.currentTimeMillis());
-    mNotification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
     Intent notificationIntent = new Intent(this, ScriptingLayerService.class);
     notificationIntent.setAction(Constants.ACTION_SHOW_RUNNING_SCRIPTS);
     mNotificationPendingIntent = PendingIntent.getService(this, 0, notificationIntent, 0);
-    mNotification.setLatestEventInfo(this, "SL4A Service", "Tap to view running scripts",
-        mNotificationPendingIntent);
+
+    Notification.Builder builder = new Notification.Builder(this);
+    builder.setSmallIcon(R.drawable.sl4a_notification_logo)
+           .setTicker(null)
+           .setWhen(System.currentTimeMillis())
+           .setContentTitle("SL4A Service")
+           .setContentText("Tap to view running scripts")
+           .setContentIntent(mNotificationPendingIntent);
+    mNotification = builder.build();
+    mNotification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
     return mNotification;
   }
 
   private void updateNotification(String tickerText) {
-    mNotification.iconLevel = mProcessMap.size();
     if (tickerText.equals(mNotification.tickerText)) {
       // Consequent notifications with the same ticker-text are displayed without any ticker-text.
       // This is a way around. Alternatively, we can display process name and port.
-      mNotification.tickerText = tickerText + " ";
-    } else {
-      mNotification.tickerText = tickerText;
+      tickerText = tickerText + " ";
     }
     String msg;
     if (mProcessMap.size() <= 1) {
@@ -129,7 +131,15 @@ public class ScriptingLayerService extends ForegroundService {
     } else {
       msg = "Tap to view " + Integer.toString(mProcessMap.size()) + " running scripts";
     }
-    mNotification.setLatestEventInfo(this, "SL4A Service", msg, mNotificationPendingIntent);
+    Notification.Builder builder = new Notification.Builder(this);
+    builder.setContentTitle("SL4A Service")
+           .setContentText(msg)
+           .setContentIntent(mNotificationPendingIntent)
+           .setSmallIcon(mNotification.icon, mProcessMap.size())
+           .setWhen(mNotification.when)
+           .setTicker(tickerText);
+
+    mNotification = builder.build();
     mNotificationManager.notify(NOTIFICATION_ID, mNotification);
   }
 

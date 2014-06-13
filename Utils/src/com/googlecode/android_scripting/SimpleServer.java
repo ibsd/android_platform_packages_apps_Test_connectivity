@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -192,13 +193,23 @@ public abstract class SimpleServer {
    *          the port to bind to or 0 to pick any unused port
    *
    * @return the port that the server is bound to
+   * @throws IOException
    */
   public InetSocketAddress startLocal(int port) {
     InetAddress address;
     try {
       // address = InetAddress.getLocalHost();
       address = getPrivateInetAddress();
-      mServer = new ServerSocket(port, 5 /* backlog */, address);
+      mServer = new ServerSocket(port, 5, address);
+    } catch (BindException e) {
+      Log.e("Port " + port + " already in use.");
+      try {
+        address = getPrivateInetAddress();
+        mServer = new ServerSocket(0, 5, address);
+      } catch (IOException e1) {
+        e1.printStackTrace();
+        return null;
+      }
     } catch (Exception e) {
       Log.e("Failed to start server.", e);
       return null;
