@@ -32,12 +32,11 @@
 		android:layout_height="wrap_content"
 		android:singleLine="true"
 		android:numeric="integer"
-		android:text="80"/>
+		android:text="@string/default_width"/>
 
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="x"
 		android:paddingLeft="10dip"
 		android:paddingRight="10dip"
 		android:gravity="right|bottom"
@@ -51,5 +50,5 @@
 		android:layout_height="wrap_content"
 		android:singleLine="true"
 		android:numeric="integer"
-		android:text="25"/>
+		android:text="@string/default_height"/>
 </LinearLayout>

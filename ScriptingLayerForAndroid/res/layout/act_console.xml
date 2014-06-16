@@ -51,7 +51,7 @@
 
 		<Button
 			android:id="@+id/console_prompt_no"
-			android:text="No"
+			android:text="@string/prompt_no"
 			android:paddingTop="5dip"
 			android:paddingBottom="10dip"
 			android:paddingLeft="40dip"
@@ -65,7 +65,7 @@
 
 		<Button
 			android:id="@+id/console_prompt_yes"
-			android:text="Yes"
+			android:text="@string/prompt_yes"
 			android:paddingTop="5dip"
 			android:paddingBottom="10dip"
 			android:paddingLeft="40dip"

@@ -4,11 +4,11 @@
   android:orientation="vertical"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
-    <TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Find"></TextView>
+    <TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/display_find"></TextView>
     <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/searchFind">
         <requestFocus></requestFocus>
     </EditText>
-    <TextView android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Replace"></TextView>
+    <TextView android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/display_replace"></TextView>
     <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/searchReplace"></EditText>
     <LinearLayout android:id="@+id/linearLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
     </LinearLayout>
@@ -16,14 +16,13 @@
     </LinearLayout>
     <TableLayout android:id="@+id/tableLayout1" android:layout_width="match_parent" android:layout_height="wrap_content">
         <TableRow android:id="@+id/tableRow1" android:layout_width="wrap_content" android:layout_height="wrap_content">
-            <CheckBox android:text="Whole Words" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchWord"></CheckBox>
-            <CheckBox android:text="Case Sensitive" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchCase"></CheckBox>
+            <CheckBox android:text="@string/display_whole_words" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchWord"></CheckBox>
+            <CheckBox android:text="@string/display_case_sensitive" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchCase"></CheckBox>
         </TableRow>
         <TableRow android:id="@+id/tableRow2" android:layout_width="wrap_content" android:layout_height="wrap_content">
-            <CheckBox android:text="Replace All" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchAll"></CheckBox>
-            <CheckBox android:text="From Start" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchStart"></CheckBox>
+            <CheckBox android:text="@string/display_replace_all" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchAll"></CheckBox>
+            <CheckBox android:text="@string/display_from_start" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/searchStart"></CheckBox>
         </TableRow>
     </TableLayout>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView3" android:typeface="normal" android:text="Remember you can use the volume keys to undo mistakes."></TextView>
-    
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView3" android:typeface="normal" android:text="@string/findreplace_undo_reminder"></TextView>
 </LinearLayout>

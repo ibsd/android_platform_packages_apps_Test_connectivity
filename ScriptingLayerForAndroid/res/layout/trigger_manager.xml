@@ -3,7 +3,7 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent" android:orientation="vertical">
-  <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/btnTriggerCancel" android:onClick="clickCancel" android:text="Cancel All"></Button><ListView
+  <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/btnTriggerCancel" android:onClick="clickCancel" android:text="@string/cancel_all"></Button><ListView
     android:id="@+id/android:list"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" />
