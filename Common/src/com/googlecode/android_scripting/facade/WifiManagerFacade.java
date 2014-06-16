@@ -27,7 +27,7 @@ import java.util.List;
  */
 //TODO: make methods handle various wifi states properly
 //e.g. wifi connection result will be null when flight mode is on
-public class WifiFacade extends RpcReceiver {
+public class WifiManagerFacade extends RpcReceiver {
   private final Service mService;
   private final WifiManager mWifi;
   private final IntentFilter mIntentFilter;
@@ -35,7 +35,7 @@ public class WifiFacade extends RpcReceiver {
   private WifiLock mLock;
   private static int WifiScanCnt;
 
-  public WifiFacade(FacadeManager manager) {
+  public WifiManagerFacade(FacadeManager manager) {
     super(manager);
     mService = manager.getService();
     mWifi = (WifiManager) mService.getSystemService(Context.WIFI_SERVICE);
@@ -57,7 +57,7 @@ public class WifiFacade extends RpcReceiver {
    *        Object of EventFacade
    */
   class WifiScanReceiver extends BroadcastReceiver {
-    private final static String mEventType = "WiFiScan";
+    private final static String mEventType = "WiFiManager";
     private final EventFacade mEventFacade;
     private final Bundle mResults;
 

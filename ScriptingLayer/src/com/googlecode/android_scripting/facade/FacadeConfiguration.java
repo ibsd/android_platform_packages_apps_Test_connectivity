@@ -78,7 +78,7 @@ public class FacadeConfiguration {
     sFacadeClassList.add(SpeechRecognitionFacade.class);
     sFacadeClassList.add(ToneGeneratorFacade.class);
     sFacadeClassList.add(WakeLockFacade.class);
-    sFacadeClassList.add(WifiFacade.class);
+    sFacadeClassList.add(WifiManagerFacade.class);
     sFacadeClassList.add(UiFacade.class);
     sFacadeClassList.add(BatteryManagerFacade.class);
     sFacadeClassList.add(ActivityResultFacade.class);
@@ -104,10 +104,11 @@ public class FacadeConfiguration {
     }
 
     if (sSdkLevel >= 18) {
-      sFacadeClassList.add(ScanFacade.class);
-      sFacadeClassList.add(WifiPasspointFacade.class);
       sFacadeClassList.add(BluetoothLeScanFacade.class);
       sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
+      sFacadeClassList.add(WifiScannerFacade.class);
+      sFacadeClassList.add(WifiPasspointManagerFacade.class);
+
     }
 
     for (Class<? extends RpcReceiver> recieverClass : sFacadeClassList) {

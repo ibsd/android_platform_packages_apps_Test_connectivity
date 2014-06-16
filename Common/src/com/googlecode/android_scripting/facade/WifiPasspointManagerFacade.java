@@ -42,9 +42,9 @@ import java.util.concurrent.Callable;
 /**
  * Exposes WifiPasspointManger functionality.
  */
-public class WifiPasspointFacade extends RpcReceiver {
+public class WifiPasspointManagerFacade extends RpcReceiver {
 
-  private final static String mEventType = "ANQPInfo";
+  private final static String mEventType = "WifiPasspointManager";
   private final Service mService;
   private final EventFacade mEventFacade;
   private final WifiPasspointManager mWifiPasspointMgr;
@@ -52,7 +52,7 @@ public class WifiPasspointFacade extends RpcReceiver {
   private Hashtable<Integer, WifiPasspointChannelActionListener> mWifiPasspointChannelAlList;
   private List<ScanResult> mScanResults;
 
-  public WifiPasspointFacade(FacadeManager facadeManager){
+  public WifiPasspointManagerFacade(FacadeManager facadeManager){
     super(facadeManager);
     mService = facadeManager.getService();
     mEventFacade = facadeManager.getReceiver(EventFacade.class);
@@ -135,7 +135,7 @@ public class WifiPasspointFacade extends RpcReceiver {
   @RpcStartEvent("ANQPInfo")
   public Integer requestAnqpInfoOfPasspoints(@RpcParameter(name = "scanIndex") Integer scanIndex,
       @RpcParameter(name = "mask") Integer mask) {
-    ScanFacade.getWifiScanResult(scanIndex, mScanResults);
+    WifiScannerFacade.getWifiScanResult(scanIndex, mScanResults);
     if(mScanResults != null && mScanResults.size() >= 0) {
       WifiPasspointChannelActionListener mWifiPpChannelAL = genWifiPasspointChannelAL();
       mWifiPasspointMgr.requestAnqpInfo(mWifiPpChannelAL.mChannel,  mScanResults, mask, mWifiPpChannelAL);

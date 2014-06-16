@@ -36,10 +36,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * ScanManager functions.
+ * WifiScanner functions.
  *
  */
-public class ScanFacade extends RpcReceiver {
+public class WifiScannerFacade extends RpcReceiver {
   private final Service mService;
   private final EventFacade mEventFacade;
   private final WifiScanner mScan;
@@ -53,7 +53,7 @@ public class ScanFacade extends RpcReceiver {
   private final Hashtable<Integer, WifiHotspotListener> wifiHotspotListenerList;
   private static Hashtable<Integer, ScanResult[]> wifiScannerResultList;
 
-  public ScanFacade(FacadeManager manager) {
+  public WifiScannerFacade(FacadeManager manager) {
     super(manager);
     mService = manager.getService();
     mScan = (WifiScanner) mService.getSystemService(Context.WIFI_SCANNING_SERVICE);
@@ -131,7 +131,7 @@ public class ScanFacade extends RpcReceiver {
   }
 
   private class WifiScanListener implements WifiScanner.ScanListener {
-    private static final String mEventType =  "WifiBackgroundScan";
+    private static final String mEventType =  "WifiScannerScan";
     protected final Bundle mScanResults;
     private final WifiActionListener mWAL;
     public int mIndex;
@@ -193,7 +193,7 @@ public class ScanFacade extends RpcReceiver {
   }
 
   private class ChangeListener implements WifiScanner.WifiChangeListener {
-    private static final String mEventType =  "TrackChanges";
+    private static final String mEventType =  "WifiScannerChange";
     protected final Bundle mResults;
     private final WifiActionListener mWAL;
     public int mIndex;
@@ -242,7 +242,7 @@ public class ScanFacade extends RpcReceiver {
   }
 
   private class WifiHotspotListener implements WifiScanner.HotspotListener {
-    private static final String mEventType =  "TrackHotspot";
+    private static final String mEventType =  "WifiScannerHotspot";
     protected final Bundle mResults;
     private final WifiActionListener mWAL;
     public int mIndex;
@@ -273,14 +273,14 @@ public class ScanFacade extends RpcReceiver {
   /** RPC Method Section */
 
   /**
-   * Starts periodic wifi background scan
+   * Starts periodic WifiScanner scan
    * @param periodInMs
    * @param channel_freqs frequencies of channels to scan
    * @return the id of the scan listener associated with this scan
    */
-  @Rpc(description = "Starts a periodic Wifi scan in background.")
-  @RpcStartEvent("WifiScan")
-  public Integer startWifiBackgroundScan(@RpcParameter(name = "periodInMs") Integer periodInMs,
+  @Rpc(description = "Starts a periodic WifiScanner scan")
+  @RpcStartEvent("WifiScannerScan")
+  public Integer startWifiScannerScan(@RpcParameter(name = "periodInMs") Integer periodInMs,
                                   @RpcParameter(name = "channel_freqs") Integer[] channel_freqs) {
     WifiScanner.ScanSettings ss = new WifiScanner.ScanSettings();
     ss.channels = new WifiScanner.ChannelSpec[channel_freqs.length];
@@ -288,9 +288,9 @@ public class ScanFacade extends RpcReceiver {
       ss.channels[i] = new WifiScanner.ChannelSpec(channel_freqs[i]);
     }
     ss.periodInMs = periodInMs;
-    Log.d("startWifiBackgroundScan periodInMs " + ss.periodInMs);
+    Log.d("startWifiScannerScan periodInMs " + ss.periodInMs);
     for(int i=0; i<ss.channels.length; i++) {
-      Log.d("startWifiBackgroundScan " + ss.channels[i].frequency + " " + ss.channels[i].passive + " " + ss.channels[i].dwellTimeMS);
+      Log.d("startWifiScannerScan " + ss.channels[i].frequency + " " + ss.channels[i].passive + " " + ss.channels[i].dwellTimeMS);
     }
     WifiScanListener mListener = genWifiScanListener();
     mScan.startBackgroundScan(ss, mListener);
@@ -298,14 +298,14 @@ public class ScanFacade extends RpcReceiver {
   }
 
   /**
-   * Stops a wifi background scan
+   * Stops a WifiScanner scan
    * @param listener_mIndex the id of the scan listener whose scan to stop
    */
-  @Rpc(description = "Stops an ongoing periodic Wifi scan in background")
-  @RpcStopEvent("WifiScan")
-  public void stopWifiBackgroundScan(@RpcParameter(name = "listener") Integer listener_index) {
+  @Rpc(description = "Stops an ongoing periodic WifiScanner scan")
+  @RpcStopEvent("WifiScannerScan")
+  public void stopWifiScannerScan(@RpcParameter(name = "listener") Integer listener_index) {
     WifiScanListener mListener = wifiScannerListenerList.get(listener_index);
-    Log.d("stopWifiBackgroundScan mListener "+ mListener.mIndex );
+    Log.d("stopWifiScannerScan mListener "+ mListener.mIndex );
     mScan.stopBackgroundScan(mListener);
     synchronized (wifiScannerResultList) {
       wifiScannerResultList.remove(listener_index);
@@ -404,7 +404,7 @@ public class ScanFacade extends RpcReceiver {
   public void shutdown() {
     if(!wifiScannerListenerList.isEmpty()) {
       for(int i : wifiScannerListenerList.keySet()) {
-        this.stopWifiBackgroundScan(i);
+        this.stopWifiScannerScan(i);
       }
     }
     if(!wifiChangeListenerList.isEmpty()) {
