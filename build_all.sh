@@ -37,7 +37,7 @@ BRANCH_ROOT=$PWD/../../../../..
 SL4A_ROOT=$BRANCH_ROOT/vendor/google_testing/comms/Tools/sl4a
 SHARED_LIB_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/JAVA_LIBRARIES
 APP_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/APPS
-APK_ROOT=$BRANCH_ROOT/out/target/product/hammerhead/system/priv-app
+APK_ROOT=$BRANCH_ROOT/out/target/product/hammerhead/data/app
 SL4A_PROJ_DIR=$SL4A_ROOT/ScriptingLayerForAndroid
 
 echo -e "${y}Removing intermediates of all the dependency libs${NC}"
