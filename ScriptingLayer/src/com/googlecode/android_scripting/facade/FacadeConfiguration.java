@@ -109,6 +109,7 @@ public class FacadeConfiguration {
 
     if (sSdkLevel >= 18) {
       sFacadeClassList.add(BluetoothLeScanFacade.class);
+      sFacadeClassList.add(BluetoothLeConnectFacade.class);
       sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
       sFacadeClassList.add(WifiScannerFacade.class);
       sFacadeClassList.add(WifiPasspointManagerFacade.class);
