@@ -112,8 +112,10 @@ public class HtmlActivityTask extends FutureActivityTask<Void> {
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
       /*
-       * if (Uri.parse(url).getHost().equals("www.example.com")) { // This is my web site, so do not
-       * override; let my WebView load the page return false; } // Otherwise, the link is not for a
+       * if (Uri.parse(url).getHost().equals("www.example.com")) { 
+       * // This is my web site, so do not
+       * override; let my WebView load the page return false; }
+       * // Otherwise, the link is not for a
        * page on my site, so launch another Activity that handles URLs Intent intent = new
        * Intent(Intent.ACTION_VIEW, Uri.parse(url)); startActivity(intent);
        */
@@ -301,7 +303,8 @@ public class HtmlActivityTask extends FutureActivityTask<Void> {
     @Override
     public void onReceivedIcon(WebView view, Bitmap icon) {
       mActivity.getWindow().requestFeature(Window.FEATURE_RIGHT_ICON);
-      mActivity.getWindow().setFeatureDrawable(Window.FEATURE_RIGHT_ICON, new BitmapDrawable(icon));
+      mActivity.getWindow().setFeatureDrawable(Window.FEATURE_RIGHT_ICON,
+                                               new BitmapDrawable(mActivity.getResources(), icon));
     }
 
     @Override

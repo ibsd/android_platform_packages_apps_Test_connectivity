@@ -64,7 +64,8 @@ public class SettingsFacade extends RpcReceiver {
     mConnect = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
   }
 
-  @Rpc(description = "Sets the screen timeout to this number of seconds.", returns = "The original screen timeout.")
+  @Rpc(description = "Sets the screen timeout to this number of seconds.",
+       returns = "The original screen timeout.")
   public Integer setScreenTimeout(@RpcParameter(name = "value") Integer value) {
     Integer oldValue = getScreenTimeout();
     android.provider.Settings.System.putInt(mService.getContentResolver(),
@@ -72,7 +73,8 @@ public class SettingsFacade extends RpcReceiver {
     return oldValue;
   }
 
-  @Rpc(description = "Returns the current screen timeout in seconds.", returns = "the current screen timeout in seconds.")
+  @Rpc(description = "Returns the current screen timeout in seconds.",
+       returns = "the current screen timeout in seconds.")
   public Integer getScreenTimeout() {
     try {
       return android.provider.Settings.System.getInt(mService.getContentResolver(),
@@ -82,7 +84,8 @@ public class SettingsFacade extends RpcReceiver {
     }
   }
 
-  @Rpc(description = "Checks the airplane mode setting.", returns = "True if airplane mode is enabled.")
+  @Rpc(description = "Checks the airplane mode setting.",
+       returns = "True if airplane mode is enabled.")
   public Boolean checkAirplaneMode() {
     try {
       return android.provider.Settings.System.getInt(mService.getContentResolver(),
@@ -92,7 +95,8 @@ public class SettingsFacade extends RpcReceiver {
     }
   }
 
-  @Rpc(description = "Toggles airplane mode on and off.", returns = "True if airplane mode is enabled.")
+  @Rpc(description = "Toggles airplane mode on and off.",
+       returns = "True if airplane mode is enabled.")
   public void toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
     if (enabled == null) {
       enabled = !checkAirplaneMode();
@@ -100,13 +104,16 @@ public class SettingsFacade extends RpcReceiver {
     mConnect.setAirplaneMode(enabled);
   }
 
-  @Rpc(description = "Checks the ringer silent mode setting.", returns = "True if ringer silent mode is enabled.")
+  @Rpc(description = "Checks the ringer silent mode setting.",
+       returns = "True if ringer silent mode is enabled.")
   public Boolean checkRingerSilentMode() {
     return mAudio.getRingerMode() == AudioManager.RINGER_MODE_SILENT;
   }
 
-  @Rpc(description = "Toggles ringer silent mode on and off.", returns = "True if ringer silent mode is enabled.")
-  public Boolean toggleRingerSilentMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
+  @Rpc(description = "Toggles ringer silent mode on and off.",
+       returns = "True if ringer silent mode is enabled.")
+  public Boolean toggleRingerSilentMode(@RpcParameter(name = "enabled")
+                                        @RpcOptional Boolean enabled) {
     if (enabled == null) {
       enabled = !checkRingerSilentMode();
     }
@@ -115,19 +122,19 @@ public class SettingsFacade extends RpcReceiver {
     return enabled;
   }
 
-  @Rpc(description = "Toggles vibrate mode on and off. If ringer=true then set Ringer setting, else set Notification setting", returns = "True if vibrate mode is enabled.")
-  public Boolean toggleVibrateMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled,
-      @RpcParameter(name = "ringer") @RpcOptional Boolean ringer) {
-    int atype = ringer ? AudioManager.VIBRATE_TYPE_RINGER : AudioManager.VIBRATE_TYPE_NOTIFICATION;
-    int asetting = enabled ? AudioManager.VIBRATE_SETTING_ON : AudioManager.VIBRATE_SETTING_OFF;
-    mAudio.setVibrateSetting(atype, asetting);
-    return enabled;
+  @Rpc(description = "Set the ringer to a specified mode")
+  public void setRingerMode(@RpcParameter(name = "mode") Integer mode) throws Exception {
+    if(AudioManager.isValidRingerMode(mode)) {
+      mAudio.setRingerMode(mode);
+    } else {
+      throw new Exception("Ringer mode " + mode + " does not exist.");
+    }
   }
 
-  @Rpc(description = "Checks Vibration setting. If ringer=true then query Ringer setting, else query Notification setting", returns = "True if vibrate mode is enabled.")
-  public Boolean getVibrateMode(@RpcParameter(name = "ringer") @RpcOptional Boolean ringer) {
-    int atype = ringer ? AudioManager.VIBRATE_TYPE_RINGER : AudioManager.VIBRATE_TYPE_NOTIFICATION;
-    return mAudio.shouldVibrate(atype);
+  @Rpc(description = "Returns the current ringtone mode.",
+       returns = "An integer representing the current ringer mode")
+  public Integer getRingerMode() {
+    return mAudio.getRingerMode();
   }
 
   @Rpc(description = "Returns the maximum ringer volume.")
@@ -160,7 +167,8 @@ public class SettingsFacade extends RpcReceiver {
     mAudio.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
   }
 
-  @Rpc(description = "Returns the screen backlight brightness.", returns = "the current screen brightness between 0 and 255")
+  @Rpc(description = "Returns the screen backlight brightness.",
+       returns = "the current screen brightness between 0 and 255")
   public Integer getScreenBrightness() {
     try {
       return android.provider.Settings.System.getInt(mService.getContentResolver(),
@@ -170,9 +178,11 @@ public class SettingsFacade extends RpcReceiver {
     }
   }
 
-  @Rpc(description = "Sets the the screen backlight brightness.", returns = "the original screen brightness.")
+  @Rpc(description = "Sets the the screen backlight brightness.",
+       returns = "the original screen brightness.")
   public Integer setScreenBrightness(
-      @RpcParameter(name = "value", description = "brightness value between 0 and 255") Integer value) {
+      @RpcParameter(name = "value", description = "brightness value between 0 and 255")
+      Integer value) {
     if (value < 0) {
       value = 0;
     } else if (value > 255) {
@@ -202,7 +212,8 @@ public class SettingsFacade extends RpcReceiver {
     return oldValue;
   }
 
-  @Rpc(description = "Checks if the screen is on or off (requires API level 7).", returns = "True if the screen is currently on.")
+  @Rpc(description = "Checks if the screen is on or off (requires API level 7).",
+       returns = "True if the screen is currently on.")
   public Boolean checkScreenOn() throws Exception {
     Class<?> powerManagerClass = mPower.getClass();
     Boolean result = null;
