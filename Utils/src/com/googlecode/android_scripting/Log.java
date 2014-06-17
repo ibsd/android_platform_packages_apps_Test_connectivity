@@ -48,14 +48,9 @@ public class Log {
     int iconId = context.getResources().getIdentifier("stat_sys_warning", "drawable", packageName);
     NotificationManager notificationManager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-    Notification.Builder builder = new Notification.Builder(context);
-    builder.setSmallIcon(iconId > 0 ? iconId : -1)
-           .setTicker(title)
-           .setWhen(0)
-           .setContentTitle(contentTitle)
-           .setContentText(message)
-           .setContentIntent(PendingIntent.getService(context, 0, null, 0));
-    Notification note = builder.build();
+    Notification note = new Notification(iconId > 0 ? iconId : -1, title, 0);
+    note.setLatestEventInfo(context, contentTitle, message, PendingIntent.getService(context, 0,
+        null, 0));
     note.contentView.getLayoutId();
     notificationManager.notify(NotificationIdFactory.create(), note);
   }
