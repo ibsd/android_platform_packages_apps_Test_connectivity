@@ -56,7 +56,7 @@ from json.encoder import JSONEncoder
 HOST = os.environ.get('AP_HOST', None)
 PORT = os.environ.get('AP_PORT', 9999)
 
-LAUNCH_CMD=("adb shell am start -a com.googlecode.android_scripting.action.LAUNCH_SERVER "
+LAUNCH_CMD=("adb {} shell am start -a com.googlecode.android_scripting.action.LAUNCH_SERVER "
         "-n com.googlecode.android_scripting/.activity.ScriptingLayerServiceLauncher "
         "--ei com.googlecode.android_scripting.extra.USE_SERVICE_PORT {}")
 
@@ -160,7 +160,7 @@ class Android(object):
         handshake = {'cmd':cmd, 'uid':uid}
         self.client.write(self._encoder.encode(handshake))
         self.client.flush()
-        resp = self.client.readline(16384)
+        resp = self.client.readline(36384)
         if not resp:
             raise SL4AProtocolError("No response from handshake.")
         result = self._decoder.decode(resp)
@@ -218,22 +218,37 @@ class Android(object):
         return rpc_call
 
 
-def start_forwarding(port, localport=PORT):
-    os.system("adb forward tcp:{} tcp:{}".format(localport, port))
+def start_forwarding(port, localport=PORT,serial=""):
+    if serial:
+        serial = " -s " + serial
+    os.system("adb {} forward tcp:{} tcp:{}".format(serial,localport, port))
 
 
-def kill_adb_server():
-    os.system("adb kill-server")
+def kill_adb_server(serial=""):
+    if serial:
+        serial = " -s " + serial
+    os.system("adb {} kill-server".format(serial))
 
 
-def start_adb_server():
-    os.system("adb start-server")
+def start_adb_server(serial=""):
+    if serial:
+        serial = " -s "+serial
+    os.system("adb {} start-server".format(serial))
 
 
-def start_sl4a(port=8080):
-    start_adb_server()
-    os.system(LAUNCH_CMD.format(port))
+def start_sl4a(port=8080,serial=""):
+    if is_sl4a_running(serial):
+        return
+    start_adb_server(serial)
+    if serial:
+        serial = " -s " + serial
+    os.system(LAUNCH_CMD.format(serial,port))
 
+def is_sl4a_running(serial=""):
+    if serial:
+      serial = " -s " + serial
+    status = os.system("adb {} shell ps | grep com.googlecode.android_scripting".format(serial))
+    return status != 256
 
 def android(argv):
     import getopt
