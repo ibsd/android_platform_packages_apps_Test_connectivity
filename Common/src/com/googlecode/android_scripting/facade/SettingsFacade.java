@@ -21,6 +21,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.Settings.SettingNotFoundException;
 import android.view.WindowManager;
 
@@ -225,6 +226,24 @@ public class SettingsFacade extends RpcReceiver {
       throw new UnsupportedOperationException("This feature is only available after Eclair.");
     }
     return result;
+  }
+
+  @Rpc(description = "Wakeup screen(requires API level 19).")
+  public void wakeupScreen() throws Exception {
+    Class<?> powerManagerClass = mPower.getClass();
+    try {
+      Method wakeUp = powerManagerClass.getMethod("wakeUp", long.class);
+      wakeUp.invoke(mPower, SystemClock.uptimeMillis());
+    } catch (Exception e) {
+      Log.e(e);
+      throw new UnsupportedOperationException("This feature is only available after Kitkat.");
+    }
+  }
+
+  @Rpc(description = "Get Up time of device.",
+      returns = "Long value of device up time in milliseconds.")
+  public long getDeviceUpTime() throws Exception {
+    return SystemClock.elapsedRealtime();
   }
 
   @Override
