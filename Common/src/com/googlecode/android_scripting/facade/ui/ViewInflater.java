@@ -357,13 +357,13 @@ public class ViewInflater {
       return 0;
     }
     if (value.equals("match_parent")) {
-      return LayoutParams.FILL_PARENT;
+      return LayoutParams.MATCH_PARENT;
     }
     if (value.equals("wrap_content")) {
       return LayoutParams.WRAP_CONTENT;
     }
     if (value.equals("fill_parent")) {
-      return LayoutParams.FILL_PARENT;
+      return LayoutParams.MATCH_PARENT;
     }
     return (int) getFontSize(value);
   }
@@ -569,7 +569,7 @@ public class ViewInflater {
     } else if (value.startsWith("@")) {
       setInteger(view, "backgroundResource", getInteger(view, value));
     } else {
-      view.setBackgroundDrawable(getDrawable(value));
+      view.setBackground(getDrawable(value));
     }
   }
 
@@ -577,7 +577,7 @@ public class ViewInflater {
     try {
       Uri uri = Uri.parse(value);
       if ("file".equals(uri.getScheme())) {
-        BitmapDrawable bd = new BitmapDrawable(uri.getPath());
+        BitmapDrawable bd = new BitmapDrawable(mContext.getResources(), uri.getPath());
         return bd;
       }
     } catch (Exception e) {

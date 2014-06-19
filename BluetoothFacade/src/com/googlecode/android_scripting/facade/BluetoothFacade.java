@@ -204,7 +204,7 @@ public class BluetoothFacade extends RpcReceiver {
     mDevice = mBluetoothAdapter.getRemoteDevice(address);
     mSocket = mDevice.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
 
-    // Register a broadcast receiver to bypass manually pressing "confirm" on screen
+    // Register a broadcast receiver to bypass manual confirmation
     BluetoothPairingReceiver mBtReceiver = new BluetoothPairingReceiver();
     IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
     mService.registerReceiver(mBtReceiver, filter);
@@ -230,7 +230,7 @@ public class BluetoothFacade extends RpcReceiver {
     BluetoothServerSocket mServerSocket;
     mServerSocket =
         mBluetoothAdapter.listenUsingRfcommWithServiceRecord(SDP_NAME, UUID.fromString(uuid));
-    // Register a broadcast receiver to bypass manually pressing "confirm" on screen
+    // Register a broadcast receiver to bypass manual confirmation
     BluetoothPairingReceiver mBtReceiver = new BluetoothPairingReceiver();
     IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
     mService.registerReceiver(mBtReceiver, filter);

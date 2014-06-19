@@ -118,12 +118,12 @@ public abstract class Main extends Activity {
   protected void initializeViews() {
     mLayout = new LinearLayout(this);
     mLayout.setOrientation(LinearLayout.VERTICAL);
-    mLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+    mLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     mLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
     mButton = new Button(this);
     MarginLayoutParams marginParams =
-        new MarginLayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+        new MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
     final float scale = getResources().getDisplayMetrics().density;
     int marginPixels = (int) (MARGIN_DIP * scale + 0.5f);
     marginParams.setMargins(marginPixels, marginPixels, marginPixels, marginPixels);

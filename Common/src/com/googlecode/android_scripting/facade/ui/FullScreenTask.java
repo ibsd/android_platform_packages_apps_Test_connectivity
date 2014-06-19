@@ -83,10 +83,10 @@ public class FullScreenTask extends FutureActivityTask<Object> implements OnClic
     result.setOrientation(LinearLayout.VERTICAL);
     TextView text = new TextView(getActivity());
     text.setText("Sample Layout");
-    result.addView(text, LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+    result.addView(text, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
     Button b = new Button(getActivity());
     b.setText("OK");
-    result.addView(b, LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+    result.addView(b, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
     return result;
   }
 

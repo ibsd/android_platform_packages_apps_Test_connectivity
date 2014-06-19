@@ -17,7 +17,6 @@
 package com.googlecode.android_scripting.facade;
 
 import com.google.common.collect.Maps;
-import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
@@ -50,16 +49,7 @@ public class FacadeConfiguration {
   private static int sSdkLevel;
 
   static {
-
-    if (android.os.Build.VERSION.SDK == null) {
-      sSdkLevel = 8; // For documentation purposes.
-    } else {
-      try {
-        sSdkLevel = Integer.parseInt(android.os.Build.VERSION.SDK);
-      } catch (NumberFormatException e) {
-        Log.e(e);
-      }
-    }
+    sSdkLevel = android.os.Build.VERSION.SDK_INT;
 
     sFacadeClassList = new HashSet<Class<? extends RpcReceiver>>();
     sFacadeClassList.add(AndroidFacade.class);

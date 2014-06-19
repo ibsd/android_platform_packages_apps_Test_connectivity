@@ -22,7 +22,6 @@ import com.googlecode.android_scripting.rpc.MethodDescriptor;
 import com.googlecode.android_scripting.rpc.RpcError;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -38,7 +37,7 @@ import java.util.Map;
 public class JsonRpcServer extends SimpleServer {
 
   private final RpcReceiverManagerFactory mRpcReceiverManagerFactory;
-  private final String mHandshake;
+//  private final String mHandshake;
 
   /**
    * Construct a {@link JsonRpcServer} connected to the provided {@link RpcReceiverManager}.
@@ -48,7 +47,7 @@ public class JsonRpcServer extends SimpleServer {
    *          the secret handshake required for authorization to use this server
    */
   public JsonRpcServer(RpcReceiverManagerFactory managerFactory, String handshake) {
-    mHandshake = handshake;
+//    mHandshake = handshake;
     mRpcReceiverManagerFactory = managerFactory;
   }
 
@@ -78,10 +77,6 @@ public class JsonRpcServer extends SimpleServer {
         receiverManager = mRpcReceiverManagerFactory.create(UID);
       }
     }
-    /*RpcReceiverManager receiverManager = mRpcReceiverManagerFactory.create();
-    BufferedReader reader =
-        new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);
-    PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);*/
     //boolean passedAuthentication = false;
     String data;
     while ((data = reader.readLine()) != null) {
@@ -118,12 +113,12 @@ public class JsonRpcServer extends SimpleServer {
     }
   }
 
-  private boolean checkHandshake(String method, JSONArray params) throws JSONException {
-    if (!method.equals("_authenticate") || !mHandshake.equals(params.getString(0))) {
-      return false;
-    }
-    return true;
-  }
+//  private boolean checkHandshake(String method, JSONArray params) throws JSONException {
+//    if (!method.equals("_authenticate") || !mHandshake.equals(params.getString(0))) {
+//      return false;
+//    }
+//    return true;
+//  }
 
   private void send(PrintWriter writer, JSONObject result, int UID) {
     writer.write(result + "\n");

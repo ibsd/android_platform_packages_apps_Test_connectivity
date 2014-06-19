@@ -1,6 +1,7 @@
 package net.londatiga.android;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
@@ -134,7 +135,9 @@ public class QuickAction extends CustomPopupWindow {
     int rootWidth = mRoot.getMeasuredWidth();
     int rootHeight = mRoot.getMeasuredHeight();
 
-    int screenWidth = windowManager.getDefaultDisplay().getWidth();
+    Point size = new Point();
+    windowManager.getDefaultDisplay().getSize(size);
+    int screenWidth = size.x;
     // int screenHeight = windowManager.getDefaultDisplay().getHeight();
 
     int xPos = (screenWidth - rootWidth) / 2;

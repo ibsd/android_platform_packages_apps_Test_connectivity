@@ -327,10 +327,16 @@ public abstract class SimpleServer {
           }
         }else if(cmd.equals("terminate")) {
           Log.d("Terminate an existing session");
-          mConnectionThreads.get(uid).interrupt();
-          mConnectionThreads.remove(uid);
-          result.put("uid", uid);
-          result.put("status",true);
+          if(!mConnectionThreads.containsKey(uid)) {
+            result.put("uid", uid);
+            result.put("status",false);
+            result.put("error", "Termination error: session does not exist.");
+          }else{
+            mConnectionThreads.get(uid).interrupt();
+            mConnectionThreads.remove(uid);
+            result.put("uid", uid);
+            result.put("status",true);
+          }
         }else {
           result.put("uid", uid);
           result.put("status",false);

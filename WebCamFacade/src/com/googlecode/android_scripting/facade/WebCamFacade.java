@@ -308,7 +308,7 @@ public class WebCamFacade extends RpcReceiver {
         getActivity().setContentView(view);
         getActivity().getWindow().setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        view.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        //view.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         view.getHolder().addCallback(new Callback() {
           @Override
           public void surfaceDestroyed(SurfaceHolder holder) {

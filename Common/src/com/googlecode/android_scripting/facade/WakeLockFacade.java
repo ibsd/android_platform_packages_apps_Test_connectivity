@@ -16,9 +16,9 @@
 
 package com.googlecode.android_scripting.facade;
 
-import android.app.Service;
 import android.content.Context;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -38,17 +38,16 @@ public class WakeLockFacade extends RpcReceiver {
 
   private final static String WAKE_LOCK_TAG =
       "com.googlecode.android_scripting.facade.PowerManagerFacade";
+  private final PowerManager mmPowerManager;
 
   private enum WakeLockType {
     FULL, PARTIAL, BRIGHT, DIM
   }
 
   private class WakeLockManager {
-    private final PowerManager mmPowerManager;
     private final Map<WakeLockType, WakeLock> mmLocks = new HashMap<WakeLockType, WakeLock>();
 
-    public WakeLockManager(Service service) {
-      mmPowerManager = (PowerManager) service.getSystemService(Context.POWER_SERVICE);
+    public WakeLockManager(PowerManager mmPowerManager) {
       addWakeLock(WakeLockType.PARTIAL, PowerManager.PARTIAL_WAKE_LOCK);
       addWakeLock(WakeLockType.FULL, PowerManager.FULL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE);
       addWakeLock(WakeLockType.BRIGHT, PowerManager.SCREEN_BRIGHT_WAKE_LOCK
@@ -83,7 +82,13 @@ public class WakeLockFacade extends RpcReceiver {
 
   public WakeLockFacade(FacadeManager manager) {
     super(manager);
-    mManager = new WakeLockManager(manager.getService());
+    mmPowerManager = (PowerManager) manager.getService().getSystemService(Context.POWER_SERVICE);
+    mManager = new WakeLockManager(mmPowerManager);
+  }
+
+  @Rpc(description = "Issue a request to put the device to sleep right away.")
+  public void goToSleepNow() {
+    mmPowerManager.goToSleep(SystemClock.uptimeMillis());
   }
 
   @Rpc(description = "Acquires a full wake lock (CPU on, screen bright, keyboard bright).")
