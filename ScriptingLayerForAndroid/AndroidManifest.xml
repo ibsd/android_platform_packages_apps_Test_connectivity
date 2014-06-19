@@ -163,5 +163,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <receiver android:name=".facade.BluetoothFacade$BluetoothPairingReceiver">
+            <intent-filter android:priority="100">
+                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
