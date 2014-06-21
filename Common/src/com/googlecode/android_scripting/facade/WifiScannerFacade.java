@@ -91,7 +91,7 @@ public class WifiScannerFacade extends RpcReceiver {
       Log.d("onSuccess " + mEventType + " " + mIndex);
       mResults.putString("Type", "onSuccess");
       mResults.putLong("Realtime", SystemClock.elapsedRealtime());
-      mEventFacade.postEvent(mEventType + mIndex + "onSuccess", mResults.clone());
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
       mResults.clear();
     }
 
@@ -101,15 +101,16 @@ public class WifiScannerFacade extends RpcReceiver {
       mResults.putString("Type", "onFailure");
       mResults.putInt("Reason", reason);
       mResults.putString("Description", description);
-      mEventFacade.postEvent(mEventType + mIndex + "onFailue", mResults.clone());
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
       mResults.clear();
     }
 
     public void reportResult(ScanResult[] results, String type) {
       Log.d("reportResult "+ mEventType + " "+ mIndex);
       mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
+      mResults.putString("Type", type);
       mResults.putParcelableArray("Results", results);
-      mEventFacade.postEvent(mEventType + mIndex + type, mResults.clone());
+      mEventFacade.postEvent(mEventType + mIndex, mResults.clone());
       mResults.clear();
     }
   }
@@ -159,7 +160,7 @@ public class WifiScannerFacade extends RpcReceiver {
       Log.d("onPeriodChanged " + mEventType + " " + mIndex);
       mScanResults.putString("Type", "onPeriodChanged");
       mScanResults.putInt("NewPeriod", periodInMs);
-      mEventFacade.postEvent(mEventType + mIndex + "onPeriodChanged", mScanResults.clone());
+      mEventFacade.postEvent(mEventType + mIndex, mScanResults.clone());
       mScanResults.clear();
     }
 
@@ -301,7 +302,7 @@ public class WifiScannerFacade extends RpcReceiver {
   /**
    * Stops a WifiScanner scan
    * @param listener_mIndex the id of the scan listener whose scan to stop
-   * @throws Exception 
+   * @throws Exception
    */
   @Rpc(description = "Stops an ongoing periodic WifiScanner scan")
   @RpcStopEvent("WifiScannerScan")
@@ -342,7 +343,7 @@ public class WifiScannerFacade extends RpcReceiver {
   /**
    * Stops tracking wifi changes
    * @param listener_index the id of the change listener whose track to stop
-   * @throws Exception 
+   * @throws Exception
    */
   @Rpc(description = "Stops tracking wifi changes")
   public void stopTrackingChange(@RpcParameter(name = "listener") Integer listener_index) throws Exception {
