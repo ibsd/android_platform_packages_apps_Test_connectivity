@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.webcam;
 
 import java.io.BufferedReader;
 import java.io.OutputStream;

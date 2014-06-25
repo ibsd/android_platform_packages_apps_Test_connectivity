@@ -1,4 +1,4 @@
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.webcam;
 
 interface JpegProvider {
   public byte[] getJpeg();
