@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.googlecode.android_scripting.bluetooth.BluetoothA2dpFacade;
 import com.googlecode.android_scripting.bluetooth.BluetoothConnectionFacade;
 import com.googlecode.android_scripting.bluetooth.BluetoothFacade;
+import com.googlecode.android_scripting.bluetooth.BluetoothHidFacade;
 import com.googlecode.android_scripting.bluetooth.BluetoothHspFacade;
 import com.googlecode.android_scripting.bluetooth.BluetoothLeAdvertiseFacade;
 import com.googlecode.android_scripting.bluetooth.BluetoothLeScanFacade;
@@ -95,6 +96,7 @@ public class FacadeConfiguration {
       sFacadeClassList.add(BluetoothConnectionFacade.class);
       sFacadeClassList.add(BluetoothA2dpFacade.class);
       sFacadeClassList.add(BluetoothHspFacade.class);
+      sFacadeClassList.add(BluetoothHidFacade.class);
     }
 
     if (sSdkLevel >= 7) {
