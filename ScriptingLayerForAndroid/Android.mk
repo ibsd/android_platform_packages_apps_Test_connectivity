@@ -14,7 +14,7 @@ LOCAL_AAPT_FLAGS := --auto-add-overlay
 LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := libGoogleAnalytics:../Common/libs/libGoogleAnalytics.jar
 
 LOCAL_STATIC_JAVA_LIBRARIES := guava android-common libGoogleAnalytics locale_platform
-LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common sl4a.BluetoothFacade
+LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.SignalStrengthFacade sl4a.TextToSpeechFacade sl4a.WebCamFacade
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.InterpreterForAndroid sl4a.ScriptingLayer sl4a.QuickAction
 

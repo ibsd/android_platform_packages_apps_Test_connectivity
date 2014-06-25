@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.bluetooth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +34,8 @@ import android.os.ParcelUuid;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcMinSdk;

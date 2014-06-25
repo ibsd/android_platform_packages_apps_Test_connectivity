@@ -26,7 +26,8 @@ NC='\e[0m' # No Color
 echo -e "Welcome to ${r}U${brn}N${y}I${g}C${lb}O${cy}R${p}N${NC} build system for ${g}sl4a${NC}"
 
 #List of sl4a dependency libs to be built in order
-declare -a lib_list=("Utils" "Common" "BluetoothFacade" "SignalStrengthFacade" "TextToSpeechFacade" "WebCamFacade" "InterpreterForAndroid" "ScriptingLayer" "QuickAction")
+declare -a lib_list=("Utils" "Common" "SignalStrengthFacade" "TextToSpeechFacade" "WebCamFacade"
+                     "InterpreterForAndroid" "ScriptingLayer" "QuickAction")
 
 declare -a test_list=("Utils" "Common")
 

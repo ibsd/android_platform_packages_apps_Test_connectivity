@@ -87,6 +87,7 @@ public class BluetoothDeviceList extends ListActivity {
       mmDeviceList = new ArrayList<DeviceInfo>();
     }
 
+    @Override
     public void addDevice(String name, String address) {
       mmDeviceList.add(new DeviceInfo(name, address));
       notifyDataSetChanged();

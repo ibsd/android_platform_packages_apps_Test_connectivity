@@ -14,20 +14,17 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.bluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 
 import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.MainThread;
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
@@ -43,8 +40,6 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64Codec;
 
@@ -54,82 +49,23 @@ import org.apache.commons.codec.binary.Base64Codec;
  */
 // Discovery functions added by Eden Sayag
 
-
-
 @RpcMinSdk(5)
-public class BluetoothFacade extends RpcReceiver {
+public class BluetoothRfcommFacade extends RpcReceiver {
 
   // UUID for SL4A.
   private static final String DEFAULT_UUID = "457807c0-4897-11df-9879-0800200c9a66";
   private static final String SDP_NAME = "SL4A";
-
   private final Service mService;
+  private final BluetoothPairingHelper mPairingReceiver;
+  private final BluetoothAdapter mBluetoothAdapter;
   private Map<String, BluetoothConnection>
           connections = new HashMap<String, BluetoothConnection>();
-  private AndroidFacade mAndroidFacade;
-  private BluetoothAdapter mBluetoothAdapter;
-  private final ConcurrentHashMap<String, BluetoothDevice> mDiscoveredDevices;
-  private final BroadcastReceiver mReceiver;
 
-  public static class BluetoothPairingReceiver extends BroadcastReceiver {
-    public BluetoothPairingReceiver() {
-      super();
-    }
-    /**
-     * Blindly confirm passkey
-     */
-    @Override
-    public void onReceive(Context c, Intent intent) {
-      String action = intent.getAction();
-      int type = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR);
-      Log.d("Bluetooth pairing intent received: " + action + " with type " + type);
-      BluetoothDevice mBtDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-      if(action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
-        Log.d("Processing Action Paring Request.");
-        if(type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION) {
-          Log.d("Confirming connection");
-          mBtDevice.setPairingConfirmation(true);
-          abortBroadcast(); // Abort the broadcast so Settings app doesn't get it.
-        }
-      }
-    }
-  }
-
-  public BluetoothFacade(FacadeManager manager) {
+  public BluetoothRfcommFacade(FacadeManager manager) {
     super(manager);
-    mAndroidFacade = manager.getReceiver(AndroidFacade.class);
-    mBluetoothAdapter = MainThread.run(manager.getService(), new Callable<BluetoothAdapter>() {
-      @Override
-      public BluetoothAdapter call() throws Exception {
-        return BluetoothAdapter.getDefaultAdapter();
-      }
-    });
-    mDiscoveredDevices = new ConcurrentHashMap<String, BluetoothDevice>();
     mService = manager.getService();
-    mReceiver = new BroadcastReceiver() {
-      public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        // When discovery finds a device
-        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-          // Get the BluetoothDevice object from the Intent
-          BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-          if (mDiscoveredDevices.containsKey(device.getAddress())) {
-            mDiscoveredDevices.put(device.getAddress(), device);
-          }
-        }
-      }
-    };
-  }
-
-  @Rpc(description = "Returns active Bluetooth connections.")
-  public Map<String, String> bluetoothActiveConnections() {
-    Map<String, String> out = new HashMap<String, String>();
-    for (Map.Entry<String, BluetoothConnection> entry : connections.entrySet()) {
-      if (entry.getValue().isConnected()) {
-        out.put(entry.getKey(), entry.getValue().getRemoteBluetoothAddress());
-      }
-    }
-    return out;
+    mPairingReceiver = new BluetoothPairingHelper();
+    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
   }
 
   private BluetoothConnection getConnection(String connID) throws IOException {
@@ -145,8 +81,116 @@ public class BluetoothFacade extends RpcReceiver {
     return conn;
   }
 
+  private String addConnection(BluetoothConnection conn) {
+    String uuid = UUID.randomUUID().toString();
+    connections.put(uuid, conn);
+    conn.setUUID(uuid);
+    return uuid;
+  }
+
+  @Rpc(description = "Connect to a device over Bluetooth. "
+                   + "Blocks until the connection is established or fails.",
+       returns = "True if the connection was established successfully.")
+  public String bluetoothRfcommConnect(
+      @RpcParameter(name = "address", description = "The mac address of the device to connect to.")
+      String address,
+      @RpcParameter(name = "uuid",
+      description = "The UUID passed here must match the UUID used by the server device.")
+      @RpcDefault(DEFAULT_UUID)
+      String uuid)
+      throws IOException {
+    BluetoothDevice mDevice;
+    BluetoothSocket mSocket;
+    BluetoothConnection conn;
+    mDevice = mBluetoothAdapter.getRemoteDevice(address);
+    mSocket = mDevice.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
+
+    // Register a broadcast receiver to bypass manual confirmation
+    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+    mService.registerReceiver(mPairingReceiver, filter);
+
+    // Always cancel discovery because it will slow down a connection.
+    mBluetoothAdapter.cancelDiscovery();
+    mSocket.connect();
+    conn = new BluetoothConnection(mSocket);
+
+    mService.unregisterReceiver(mPairingReceiver);
+    return addConnection(conn);
+  }
+
+  @Rpc(description = "Returns active Bluetooth connections.")
+  public Map<String, String> bluetoothRfcommActiveConnections() {
+    Map<String, String> out = new HashMap<String, String>();
+    for (Map.Entry<String, BluetoothConnection> entry : connections.entrySet()) {
+      if (entry.getValue().isConnected()) {
+        out.put(entry.getKey(), entry.getValue().getRemoteBluetoothAddress());
+      }
+    }
+    return out;
+  }
+
+  @Rpc(description = "Returns the name of the connected device.")
+  public String bluetoothRfcommGetConnectedDeviceName(
+      @RpcParameter(name = "connID", description = "Connection id")
+      @RpcOptional @RpcDefault("")
+      String connID)
+      throws IOException {
+    BluetoothConnection conn = getConnection(connID);
+    return conn.getConnectedDeviceName();
+  }
+
+  @Rpc(description = "Listens for and accepts a Bluetooth connection."
+                   + "Blocks until the connection is established or fails.")
+  public String bluetoothRfcommAccept(
+      @RpcParameter(name = "uuid") @RpcDefault(DEFAULT_UUID) String uuid,
+      @RpcParameter(name = "timeout",
+                    description = "How long to wait for a new connection, 0 is wait for ever")
+      @RpcDefault("0") Integer timeout)
+      throws IOException {
+    Log.d("Accept bluetooth connection");
+    BluetoothServerSocket mServerSocket;
+    mServerSocket =
+        mBluetoothAdapter.listenUsingRfcommWithServiceRecord(SDP_NAME, UUID.fromString(uuid));
+    // Register a broadcast receiver to bypass manual confirmation
+    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+    mService.registerReceiver(mPairingReceiver, filter);
+
+    BluetoothSocket mSocket = mServerSocket.accept(timeout.intValue());
+    BluetoothConnection conn = new BluetoothConnection(mSocket, mServerSocket);
+    mService.unregisterReceiver(mPairingReceiver);
+    return addConnection(conn);
+  }
+
+  @Rpc(description = "Sends ASCII characters over the currently open Bluetooth connection.")
+  public void bluetoothRfcommWrite(@RpcParameter(name = "ascii") String ascii,
+      @RpcParameter(name = "connID", description = "Connection id") @RpcDefault("") String connID)
+      throws IOException {
+    BluetoothConnection conn = getConnection(connID);
+    try {
+      conn.write(ascii);
+    } catch (IOException e) {
+      connections.remove(conn.getUUID());
+      throw e;
+    }
+  }
+
+  @Rpc(description = "Read up to bufferSize ASCII characters.")
+  public String bluetoothRfcommRead(
+      @RpcParameter(name = "bufferSize") @RpcDefault("4096") Integer bufferSize,
+      @RpcParameter(name = "connID", description = "Connection id") @RpcOptional @RpcDefault("")
+      String connID)
+      throws IOException {
+    BluetoothConnection conn = getConnection(connID);
+    try {
+      return conn.read(bufferSize);
+    } catch (IOException e) {
+      connections.remove(conn.getUUID());
+      throw e;
+    }
+  }
+
   @Rpc(description = "Send bytes over the currently open Bluetooth connection.")
-  public void bluetoothWriteBinary(
+  public void bluetoothRfcommWriteBinary(
       @RpcParameter(name = "base64",
                     description = "A base64 encoded String of the bytes to be sent.")
       String base64,
@@ -164,7 +208,7 @@ public class BluetoothFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Read up to bufferSize bytes and return a chunked, base64 encoded string.")
-  public String bluetoothReadBinary(
+  public String bluetoothRfcommReadBinary(
       @RpcParameter(name = "bufferSize") @RpcDefault("4096") Integer bufferSize,
       @RpcParameter(name = "connID", description = "Connection id")
       @RpcDefault("") @RpcOptional
@@ -180,98 +224,8 @@ public class BluetoothFacade extends RpcReceiver {
     }
   }
 
-  private String addConnection(BluetoothConnection conn) {
-    String uuid = UUID.randomUUID().toString();
-    connections.put(uuid, conn);
-    conn.setUUID(uuid);
-    return uuid;
-  }
-
-  @Rpc(description = "Connect to a device over Bluetooth. "
-                   + "Blocks until the connection is established or fails.",
-       returns = "True if the connection was established successfully.")
-  public String bluetoothConnect(
-      @RpcParameter(name = "address", description = "The mac address of the device to connect to.")
-      String address,
-      @RpcParameter(name = "uuid",
-      description = "The UUID passed here must match the UUID used by the server device.")
-      @RpcDefault(DEFAULT_UUID)
-      String uuid)
-      throws IOException {
-    BluetoothDevice mDevice;
-    BluetoothSocket mSocket;
-    BluetoothConnection conn;
-    mDevice = mBluetoothAdapter.getRemoteDevice(address);
-    mSocket = mDevice.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
-
-    // Register a broadcast receiver to bypass manual confirmation
-    BluetoothPairingReceiver mBtReceiver = new BluetoothPairingReceiver();
-    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
-    mService.registerReceiver(mBtReceiver, filter);
-
-    // Always cancel discovery because it will slow down a connection.
-    mBluetoothAdapter.cancelDiscovery();
-    mSocket.connect();
-    conn = new BluetoothConnection(mSocket);
-
-    mService.unregisterReceiver(mBtReceiver);
-    return addConnection(conn);
-  }
-
-  @Rpc(description = "Listens for and accepts a Bluetooth connection."
-                   + "Blocks until the connection is established or fails.")
-  public String bluetoothAccept(
-      @RpcParameter(name = "uuid") @RpcDefault(DEFAULT_UUID) String uuid,
-      @RpcParameter(name = "timeout",
-                    description = "How long to wait for a new connection, 0 is wait for ever")
-      @RpcDefault("0") Integer timeout)
-      throws IOException {
-    Log.d("Accept bluetooth connection");
-    BluetoothServerSocket mServerSocket;
-    mServerSocket =
-        mBluetoothAdapter.listenUsingRfcommWithServiceRecord(SDP_NAME, UUID.fromString(uuid));
-    // Register a broadcast receiver to bypass manual confirmation
-    BluetoothPairingReceiver mBtReceiver = new BluetoothPairingReceiver();
-    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
-    mService.registerReceiver(mBtReceiver, filter);
-
-    BluetoothSocket mSocket = mServerSocket.accept(timeout.intValue());
-    BluetoothConnection conn = new BluetoothConnection(mSocket, mServerSocket);
-    mService.unregisterReceiver(mBtReceiver);
-    return addConnection(conn);
-  }
-
-  @Rpc(description = "Requests that the device be discoverable for Bluetooth connections.")
-  public void bluetoothMakeDiscoverable(
-      @RpcParameter(name = "duration",
-      description = "period of time, in seconds, during which the device should be discoverable")
-      @RpcDefault("300")
-      Integer duration) {
-    Log.d("Making discoverable for "+duration+" seconds.\n");
-    mBluetoothAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, duration);
-  }
-
-  @Rpc(description = "Requests that the device be not discoverable.")
-  public void bluetoothMakeUndiscoverable() {
-    Log.d("Making undiscoverable\n");
-    mBluetoothAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_NONE);
-  }
-
-  @Rpc(description = "Sends ASCII characters over the currently open Bluetooth connection.")
-  public void bluetoothWrite(@RpcParameter(name = "ascii") String ascii,
-      @RpcParameter(name = "connID", description = "Connection id") @RpcDefault("") String connID)
-      throws IOException {
-    BluetoothConnection conn = getConnection(connID);
-    try {
-      conn.write(ascii);
-    } catch (IOException e) {
-      connections.remove(conn.getUUID());
-      throw e;
-    }
-  }
-
   @Rpc(description = "Returns True if the next read is guaranteed not to block.")
-  public Boolean bluetoothReadReady(
+  public Boolean bluetoothRfcommReadReady(
       @RpcParameter(name = "connID", description = "Connection id") @RpcDefault("") @RpcOptional
       String connID)
       throws IOException {
@@ -284,23 +238,8 @@ public class BluetoothFacade extends RpcReceiver {
     }
   }
 
-  @Rpc(description = "Read up to bufferSize ASCII characters.")
-  public String bluetoothRead(
-      @RpcParameter(name = "bufferSize") @RpcDefault("4096") Integer bufferSize,
-      @RpcParameter(name = "connID", description = "Connection id") @RpcOptional @RpcDefault("")
-      String connID)
-      throws IOException {
-    BluetoothConnection conn = getConnection(connID);
-    try {
-      return conn.read(bufferSize);
-    } catch (IOException e) {
-      connections.remove(conn.getUUID());
-      throw e;
-    }
-  }
-
   @Rpc(description = "Read the next line.")
-  public String bluetoothReadLine(
+  public String bluetoothRfcommReadLine(
       @RpcParameter(name = "connID", description = "Connection id") @RpcOptional @RpcDefault("")
       String connID)
       throws IOException {
@@ -313,99 +252,8 @@ public class BluetoothFacade extends RpcReceiver {
     }
   }
 
-  @Rpc(description = "Queries a remote device for it's name or null if it can't be resolved")
-  public String bluetoothGetRemoteDeviceName(
-      @RpcParameter(name = "address", description = "Bluetooth Address For Target Device")
-      String address) {
-    try {
-      BluetoothDevice mDevice;
-      mDevice = mBluetoothAdapter.getRemoteDevice(address);
-      return mDevice.getName();
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  @Rpc(description = "Gets the Bluetooth Visible device name")
-  public String bluetoothGetLocalName() {
-    return mBluetoothAdapter.getName();
-  }
-
-  @Rpc(description = "Sets the Bluetooth Visible device name, returns True on success")
-  public boolean bluetoothSetLocalName(
-      @RpcParameter(name = "name", description = "New local name") String name) {
-    return mBluetoothAdapter.setName(name);
-  }
-
-  @Rpc(description = "Gets the scan mode for the local dongle.\r\n" + "Return values:\r\n"
-      + "\t-1 when Bluetooth is disabled.\r\n" + "\t0 if non discoverable and non connectable.\r\n"
-      + "\r1 connectable non discoverable." + "\r3 connectable and discoverable.")
-  public int bluetoothGetScanMode() {
-    if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF
-        || mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-      return -1;
-    }
-
-    switch (mBluetoothAdapter.getScanMode()) {
-    case BluetoothAdapter.SCAN_MODE_NONE:
-      return 0;
-    case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
-      return 1;
-    case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
-      return 3;
-    default:
-      return mBluetoothAdapter.getScanMode() - 20;
-    }
-  }
-
-  @Rpc(description = "Returns the name of the connected device.")
-  public String bluetoothGetConnectedDeviceName(
-      @RpcParameter(name = "connID", description = "Connection id")
-      @RpcOptional @RpcDefault("")
-      String connID)
-      throws IOException {
-    BluetoothConnection conn = getConnection(connID);
-    return conn.getConnectedDeviceName();
-  }
-
-  @Rpc(description = "Checks Bluetooth state.", returns = "True if Bluetooth is enabled.")
-  public Boolean checkBluetoothState() {
-    return mBluetoothAdapter.isEnabled();
-  }
-
-  @Rpc(description = "Toggle Bluetooth on and off.", returns = "True if Bluetooth is enabled.")
-  public Boolean toggleBluetoothState(
-      @RpcParameter(name = "enabled") @RpcOptional
-      Boolean enabled,
-      @RpcParameter(name = "prompt",
-                    description = "Prompt the user to confirm changing the Bluetooth state.")
-      @RpcDefault("false")
-      Boolean prompt
-      ) {
-    if (enabled == null) {
-      enabled = !checkBluetoothState();
-    }
-    if (enabled) {
-      if (prompt) {
-        Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        // TODO(damonkohler): Use the result to determine if this was successful. At any rate, keep
-        // using startActivityForResult in order to synchronize this call.
-        mAndroidFacade.startActivityForResult(intent);
-      } else {
-        // TODO(damonkohler): Make this synchronous as well.
-        mBluetoothAdapter.enable();
-      }
-    } else {
-      // TODO(damonkohler): Add support for prompting on disable.
-      // TODO(damonkohler): Make this synchronous as well.
-      shutdown();
-      mBluetoothAdapter.disable();
-    }
-    return enabled;
-  }
-
   @Rpc(description = "Stops Bluetooth connection.")
-  public void bluetoothStop(
+  public void bluetoothRfcommStop(
       @RpcParameter
       (name = "connID", description = "Connection id") @RpcOptional @RpcDefault("")
       String connID) {
@@ -423,31 +271,6 @@ public class BluetoothFacade extends RpcReceiver {
 
     conn.stop();
     connections.remove(conn.getUUID());
-  }
-
-  @Rpc(description = "Returns the hardware address of the local Bluetooth adapter. ")
-  public String bluetoothGetLocalAddress() {
-    return mBluetoothAdapter.getAddress();
-  }
-
-  @Rpc(description = "Start the remote device discovery process. ",
-       returns = "true on success, false on error")
-  public Boolean bluetoothDiscoveryStart() {
-    mService.registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-    return mBluetoothAdapter.startDiscovery();
-  }
-
-  @Rpc(description = "Cancel the current device discovery process.",
-       returns = "true on success, false on error")
-  public Boolean bluetoothDiscoveryCancel() {
-    mService.unregisterReceiver(mReceiver);
-    return mBluetoothAdapter.cancelDiscovery();
-  }
-
-  @Rpc(description =
-       "If the local Bluetooth adapter is currently in the device discovery process.")
-  public Boolean bluetoothIsDiscovering() {
-    return mBluetoothAdapter.isDiscovering();
   }
 
   @Override

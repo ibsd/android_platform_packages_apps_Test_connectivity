@@ -25,6 +25,8 @@ import android.content.IntentFilter;
 
 import java.util.Set;
 
+import com.googlecode.android_scripting.Log;
+
 public class BluetoothDiscoveryHelper {
 
   public static interface BluetoothDiscoveryListener {
@@ -53,6 +55,7 @@ public class BluetoothDiscoveryHelper {
       if (BluetoothDevice.ACTION_FOUND.equals(action)) {
         // Get the BluetoothDevice object from the Intent.
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        Log.d("Found device " + device.getAliasName());
         // If it's already paired, skip it, because it's been listed already.
         if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
           mListener.addDevice(device.getName(), device.getAddress());
@@ -75,12 +78,9 @@ public class BluetoothDiscoveryHelper {
       mListener.addBondedDevice(device.getName(), device.getAddress());
     }
 
-    final IntentFilter deviceFoundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-    mContext.registerReceiver(mReceiver, deviceFoundFilter);
-
-    final IntentFilter discoveryFinishedFilter =
-        new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-    mContext.registerReceiver(mReceiver, discoveryFinishedFilter);
+    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+    filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+    mContext.registerReceiver(mReceiver, filter);
 
     if (!bluetoothAdapter.isEnabled()) {
       bluetoothAdapter.enable();

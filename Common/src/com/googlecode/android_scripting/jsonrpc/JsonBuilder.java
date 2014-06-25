@@ -18,6 +18,7 @@ package com.googlecode.android_scripting.jsonrpc;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -84,6 +85,10 @@ public class JsonBuilder {
         if (data instanceof Set<?>) {
             List<Object> items = new ArrayList<Object>((Set<?>) data);
             return buildJsonList(items);
+        }
+        if (data instanceof Collection<?>) {
+          List<Object> items = new ArrayList<Object>((Collection<?>) data);
+          return buildJsonList(items);
         }
         if (data instanceof List<?>) {
             return buildJsonList((List<?>) data);
@@ -152,8 +157,8 @@ public class JsonBuilder {
 
     private static Object buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("macAddress", data.getAddress());
-        deviceInfo.put("bondState", data.getBondState());
+        deviceInfo.put("address", data.getAddress());
+        deviceInfo.put("state", data.getBondState());
         deviceInfo.put("name", data.getName());
         deviceInfo.put("type", data.getType());
         return deviceInfo;
