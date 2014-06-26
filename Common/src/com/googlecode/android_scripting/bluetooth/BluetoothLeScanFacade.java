@@ -16,6 +16,7 @@
 
 package com.googlecode.android_scripting.bluetooth;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,9 +60,11 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     private static int ScanSettingsCount;
     private final Service mService;
     private final BluetoothLeScanner mScanner;
+    private android.bluetooth.le.ScanSettings.Builder mScanSettingsBuilder;
+    private Builder mScanFilterBuilder;
     private final HashMap<Integer, myScanCallback> mScanCallbackList;
-    private final HashMap<Integer, ArrayList<Builder>> mScanFilterList;
-    private final HashMap<Integer, android.bluetooth.le.ScanSettings.Builder> mScanSettingsList;
+    private final HashMap<Integer, ArrayList<ScanFilter>> mScanFilterList;
+    private final HashMap<Integer, ScanSettings> mScanSettingsList;
 
     public BluetoothLeScanFacade(FacadeManager manager) {
         super(manager);
@@ -75,10 +78,11 @@ public class BluetoothLeScanFacade extends RpcReceiver {
                 });
         mScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mEventFacade = manager.getReceiver(EventFacade.class);
-        mScanFilterList = new HashMap<Integer, ArrayList<Builder>>();
-        mScanSettingsList = new HashMap<Integer, android.bluetooth.le.ScanSettings.Builder>();
+        mScanFilterList = new HashMap<Integer, ArrayList<ScanFilter>>();
+        mScanSettingsList = new HashMap<Integer, ScanSettings>();
         mScanCallbackList = new HashMap<Integer, myScanCallback>();
-
+        mScanFilterBuilder = new Builder();
+        mScanSettingsBuilder = new android.bluetooth.le.ScanSettings.Builder();
     }
 
     /**
@@ -87,7 +91,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer myScanCallback.index
      */
     @Rpc(description = "Generate a new myScanCallback Object")
-    public Integer createScanCallback() {
+    public Integer genScanCallback() {
         ScanCallbackCount += 1;
         int index = ScanCallbackCount;
         myScanCallback mScan = new myScanCallback(index);
@@ -101,11 +105,26 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer index
      */
     @Rpc(description = "Generate a new Filter list")
-    public Integer createFilterList() {
+    public Integer genFilterList() {
         FilterListCount += 1;
         int index = FilterListCount;
-        mScanFilterList.put(index, new ArrayList<Builder>());
+        mScanFilterList.put(index, new ArrayList<ScanFilter>());
         return index;
+    }
+    
+    /**
+     * Constructs a new filter list array and returns its index
+     *
+     * @return Integer index
+     */
+    @Rpc(description = "Generate a new Filter list")
+    public Integer buildScanFilter(
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex
+            ) {
+        mScanFilterList.get(filterIndex).add(mScanFilterBuilder.build());
+        mScanFilterBuilder = new Builder();
+        return mScanFilterList.get(filterIndex).size()-1;
     }
 
     /**
@@ -114,10 +133,11 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer index
      */
     @Rpc(description = "Generate a new scan settings Object")
-    public Integer createScanSetting() {
+    public Integer buildScanSetting() {
         ScanSettingsCount += 1;
         int index = ScanSettingsCount;
-        mScanSettingsList.put(index, new android.bluetooth.le.ScanSettings.Builder());
+        mScanSettingsList.put(index, mScanSettingsBuilder.build());
+        mScanSettingsBuilder = new android.bluetooth.le.ScanSettings.Builder();
         return index;
     }
 
@@ -135,8 +155,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanSettingsList.get(index) != null) {
             mScanSettingsList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -155,8 +174,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mScanner.stopScan(mScanCallbackList.get(index));
             mScanCallbackList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -174,8 +192,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanFilterList.get(index) != null) {
             mScanFilterList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -195,8 +212,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             myScanCallback mScanCallback = mScanCallbackList.get(index);
             mScanner.stopScan(mScanCallback);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -218,22 +234,16 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             ) throws Exception {
         Log.d("bluetooth_le_scan starting a background scan");
         ArrayList<ScanFilter> mScanFilters = new ArrayList<ScanFilter>();
+        mScanFilters.add(new ScanFilter.Builder().build());
         ScanSettings mScanSettings = new ScanSettings.Builder().build();
         if (mScanFilterList.get(filterListIndex) != null) {
-            ArrayList<Builder> mFilterList = mScanFilterList.get(filterListIndex);
-            if (mFilterList.size() == 0) { // then use the default filter
-                mScanFilters.add(new ScanFilter.Builder().build());
-            } else {
-                for (Builder unbuiltScanFilter : mFilterList) {
-                    mScanFilters.add(unbuiltScanFilter.build());
-                }
-            }
+            mScanFilters = mScanFilterList.get(filterListIndex);
         } else {
             throw new Exception("Invalid filterListIndex input:"
                     + Integer.toString(filterListIndex));
         }
         if (mScanSettingsList.get(scanSettingsIndex) != null) {
-            mScanSettings = mScanSettingsList.get(scanSettingsIndex).build();
+            mScanSettings = mScanSettingsList.get(scanSettingsIndex);
         } else if (!mScanSettingsList.isEmpty()) {
             throw new Exception("Invalid scanSettingsIndex input:"
                     + Integer.toString(scanSettingsIndex));
@@ -241,7 +251,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanCallbackList.get(callbackIndex) != null) {
             mScanner.startScan(mScanFilters, mScanSettings, mScanCallbackList.get(callbackIndex));
         } else {
-            throw new Exception("Invalid filterListIndex input:"
+            throw new Exception("Invalid filterListIndex input:" 
                     + Integer.toString(filterListIndex));
         }
     }
@@ -261,8 +271,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanCallbackList.get(callbackIndex) != null) {
             return mBluetoothAdapter
                     .getBluetoothLeScanner().getBatchScanResults(
-                            mScanCallbackList.get(callbackIndex),
-                            flush);
+                            mScanCallbackList.get(callbackIndex), flush);
         } else {
             throw new Exception("Invalid callbackIndex input:"
                     + Integer.toString(callbackIndex));
@@ -272,7 +281,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     /**
      * Set scanSettings for ble scan. Note: You have to set all variables at once.
      *
-     * @param index the index of the ScanSettings
      * @param callbackType Bluetooth LE scan callback type
      * @param reportDelayNanos Time of delay for reporting the scan result
      * @param scanMode Bluetooth LE scan mode.
@@ -281,8 +289,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      */
     @Rpc(description = "Set a new Scan Setting for ble scanning")
     public void setScanSettings(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "callbackType")
             Integer callbackType,
             @RpcParameter(name = "reportDelayNanos")
@@ -290,198 +296,492 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "scanMode")
             Integer scanMode,
             @RpcParameter(name = "scanResultType")
-            Integer scanResultType) throws Exception {
+            Integer scanResultType) {
+        mScanSettingsBuilder.setCallbackType(callbackType);
+        mScanSettingsBuilder.setCallbackType(scanMode);
+        mScanSettingsBuilder.setCallbackType(scanResultType);
+    }
+
+    /**
+     * Get ScanSetting's callback type
+     *
+     * @param index the ScanSetting object to use
+     * @return the ScanSetting's callback type
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanSetting's callback type")
+    public Integer getScanSettingsCallbackType(
+            @RpcParameter(name = "index")
+            Integer index
+            ) throws Exception {
         if (mScanSettingsList.get(index) != null) {
-            android.bluetooth.le.ScanSettings.Builder mBuilder = mScanSettingsList.get(index);
-            mBuilder.setCallbackType(callbackType);
-            mBuilder.setCallbackType(scanMode);
-            mBuilder.setCallbackType(scanResultType);
+            ScanSettings mScanSettings = mScanSettingsList.get(index);
+            return mScanSettings.getCallbackType();
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanSetting's report delay nanos
+     *
+     * @param index the ScanSetting object to use
+     * @return the ScanSetting's report delay in nanoseconds
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanSetting's report delay nanos")
+    public Long getScanSettingsReportDelayNanos(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mScanSettingsList.get(index) != null) {
+            ScanSettings mScanSettings = mScanSettingsList.get(index);
+            return mScanSettings.getReportDelayNanos();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanSetting's scan mode
+     *
+     * @param index the ScanSetting object to use
+     * @return the ScanSetting's scan mode
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanSetting's scan mode")
+    public Integer getScanSettingsScanMode(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mScanSettingsList.get(index) != null) {
+            ScanSettings mScanSettings = mScanSettingsList.get(index);
+            return mScanSettings.getScanMode();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanSetting's scan result type
+     *
+     * @param index the ScanSetting object to use
+     * @return the ScanSetting's scan result type
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanSetting's scan result type")
+    public Integer getScanSettingsScanResultType(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mScanSettingsList.get(index) != null) {
+            ScanSettings mScanSettings = mScanSettingsList.get(index);
+            return mScanSettings.getScanResultType();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's Manufacturer Id
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's manufacturer id
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's Manufacturer Id")
+    public Integer getScanFilterManufacturerId(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index)
+                        .get(filterIndex).getManufacturerId();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's device address
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's device address
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's device address")
+    public String getScanFilterDeviceAddress(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getDeviceAddress();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's local name
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's local name
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's local name")
+    public String getScanFilterLocalName(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getLocalName();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's manufacturer data
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's manufacturer data
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's manufacturer data")
+    public byte[] getScanFilterManufacturerData(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index)
+                        .get(filterIndex).getManufacturerData();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's manufacturer data mask
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's manufacturer data mask
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's manufacturer data mask")
+    public byte[] getScanFilterManufacturerDataMask(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getManufacturerDataMask();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's max rssi
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's max rssi
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanSetting's scan result type")
+    public Integer getScanFilterMaxRssi(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index)
+                        .get(filterIndex).getMaxRssi();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's min rssi
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's mix rssi
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's min rssi")
+    public Integer getScanFilterMinRssi(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getMinRssi();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's service data
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's service data
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's service data")
+    public byte[] getScanFilterServiceData(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getServiceData();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's service data mask
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's service data mask
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's service data mask")
+    public byte[] getScanFilterServiceDataMask(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                return mScanFilterList.get(index).get(filterIndex).getServiceDataMask();
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's service uuid
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's service uuid
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's service uuid")
+    public String getScanFilterServiceUuid(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                if (mScanFilterList.get(index).get(filterIndex).getServiceUuid() != null) {
+                    return mScanFilterList.get(index).get(filterIndex).getServiceUuid().toString();
+                } else {
+                    throw new Exception("No Service Uuid set for filter:"
+                            + Integer.toString(filterIndex));
+                }
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ScanFilter's service uuid mask
+     *
+     * @param index the ScanFilter object to use
+     * @return the ScanFilter's service uuid mask
+     * @throws Exception
+     */
+    @Rpc(description = "Get ScanFilter's service uuid mask")
+    public String getScanFilterServiceUuidMask(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "filterIndex")
+            Integer filterIndex)
+            throws Exception {
+        if (mScanFilterList.get(index) != null) {
+            if (mScanFilterList.get(index).get(filterIndex) != null) {
+                if (mScanFilterList.get(index).get(filterIndex).getServiceUuidMask() != null) {
+                    return mScanFilterList.get(index).get(filterIndex).getServiceUuidMask()
+                            .toString();
+                } else {
+                    throw new Exception("No Service Uuid Mask set for filter:"
+                            + Integer.toString(filterIndex));
+                }
+            } else {
+                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
     /**
      * Add filter "macAddress" to existing ScanFilter
      *
-     * @param index the index of the ScanFilter
-     * @param filterIndex Integer the filter to add to
      * @param macAddress the macAddress to filter against
      * @throws Exception
      */
     @Rpc(description = "Add filter \"macAddress\" to existing ScanFilter")
     public void setScanFilterMacAddress(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "macAddress")
             String macAddress
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList.get(index).get(filterIndex).setMacAddress(macAddress);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+            mScanFilterBuilder.setMacAddress(macAddress);
     }
 
     /**
      * Add filter "manufacturereDataId and/or manufacturerData" to existing ScanFilter
      *
-     * @param index the index of the myScan
-     * @param filterIndex Integer the filter to add to
      * @param manufacturerDataId the manufacturer data id to filter against
      * @param manufacturerDataMask the manufacturere data mask to filter against
      * @throws Exception
      */
     @Rpc(description = "Add filter \"manufacturereDataId and/or manufacturerData\" to existing ScanFilter")
     public void setScanFiltermanufacturerData(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "manufacturerDataId")
             Integer manufacturerDataId,
             @RpcParameter(name = "manufacturerData")
-            byte[] manufacturerData,
+            Long manufacturerData,
             @RpcParameter(name = "manufacturerDataMask")
             @RpcOptional
-            byte[] manufacturerDataMask
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            if (manufacturerDataMask != null) {
-                mScanFilterList.get(index).get(filterIndex).setManufacturerData(manufacturerDataId,
-                        manufacturerData, manufacturerDataMask);
-            } else {
-                mScanFilterList.get(index).get(filterIndex).setManufacturerData(manufacturerDataId,
-                        manufacturerData);
-            }
+            Long manufacturerDataMask
+            ){
+        if (manufacturerDataMask != null) {
+            mScanFilterBuilder.setManufacturerData(manufacturerDataId,
+                    BigInteger.valueOf(manufacturerData).toByteArray(),
+                    BigInteger.valueOf(manufacturerDataMask).toByteArray());
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            mScanFilterBuilder.setManufacturerData(manufacturerDataId,
+                    BigInteger.valueOf(manufacturerData).toByteArray());
         }
     }
 
     /**
      * Add filter "minRssi and maxRssi" to existing ScanFilter
      *
-     * @param index the index of the myScan
-     * @param filterIndex Integer the filter to add to
      * @param minRssi the min rssi to filter against
      * @param maxRssi the max rssi to filter against
      * @throws Exception
      */
     @Rpc(description = "Add filter \"minRssi and maxRssi\" to existing ScanFilter")
     public void setScanFilterRssiRange(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "minRssi")
             Integer minRssi,
             @RpcParameter(name = "maxRssi")
             Integer maxRssi
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList.get(index).get(filterIndex).setRssiRange(minRssi, maxRssi);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+            mScanFilterBuilder.setRssiRange(minRssi, maxRssi);
     }
 
     /**
      * Add filter "serviceData and serviceDataMask" to existing ScanFilter
      *
-     * @param index the index of the myScan
-     * @param filterIndex Integer the filter to add to
      * @param serviceData the service data to filter against
      * @param serviceDataMask the servie data mask to filter against
      * @throws Exception
      */
     @Rpc(description = "Add filter \"serviceData and serviceDataMask\" to existing ScanFilter ")
     public void setScanFilterServiceData(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "serviceData")
-            byte[] serviceData,
+            Long serviceData,
             @RpcParameter(name = "serviceDataMask")
             @RpcOptional
-            byte[] serviceDataMask
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            if (serviceData != null) {
-                mScanFilterList.get(index).get(filterIndex)
-                        .setServiceData(serviceData, serviceDataMask);
-            } else {
-                mScanFilterList.get(index).get(filterIndex).setServiceData(serviceData);
-            }
+            Long serviceDataMask
+            ) {
+        if (serviceDataMask != null) {
+            mScanFilterBuilder
+                    .setServiceData(BigInteger.valueOf(serviceData).toByteArray(), 
+                            BigInteger.valueOf(serviceDataMask).toByteArray());
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            mScanFilterBuilder.setServiceData(BigInteger.valueOf(serviceData).toByteArray());
         }
     }
 
     /**
      * Add filter "serviceUuid and/or serviceMask" to existing ScanFilter
      *
-     * @param index the index of the myScan
-     * @param filterIndex Integer the filter to add to
      * @param serviceUuid the service uuid to filter against
      * @param serviceMask the service mask to filter against
      * @throws Exception
      */
     @Rpc(description = "Add filter \"serviceUuid and/or serviceMask\" to existing ScanFilter")
     public void setScanFilterServiceUuid(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "serviceUuid")
             String serviceUuid,
             @RpcParameter(name = "serviceMask")
             @RpcOptional
             String serviceMask
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList
-                    .get(index)
-                    .get(filterIndex)
+            ) {
+            mScanFilterBuilder
                     .setServiceUuid(ParcelUuid.fromString(serviceUuid),
                             ParcelUuid.fromString(serviceMask));
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
     }
 
     /**
      * Add filter "name" to existing ScanFilter
      *
-     * @param index the index of the myScan
-     * @param filterIndex Integer the filter to add to
      * @param name the name to filter against
      * @throws Exception
      */
     @Rpc(description = "Remove a scanFilter from the scanFilterList")
     public void setScanFilterName(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex,
             @RpcParameter(name = "name")
             String name
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList.get(index).get(filterIndex).setName(name);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+            mScanFilterBuilder.setName(name);
     }
 
     /**
@@ -501,8 +801,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanFilterList.get(index) != null) {
             mScanFilterList.get(index).remove(filterIndex);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -534,9 +833,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mResults.putInt("ID", index);
             mResults.putString("Type", "onAdvertisementUpdate");
             mResults.putParcelable("Result", result);
-            mEventFacade.postEvent(
-                    mEventType + index + "onAdvertisementUpdate",
-                    mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onAdvertisementUpdate", mResults.clone());
             mResults.clear();
         }
 
@@ -546,8 +843,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
                     + index);
             mResults.putInt("ID", index);
             mResults.putString("Type", "onAdvertisementFound");
-            mEventFacade.postEvent(mEventType + index + "onAdvertisementFound",
-                    mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onAdvertisementFound", mResults.clone());
             mResults.clear();
         }
 
@@ -557,8 +853,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mResults.putInt("ID", index);
             mResults.putString("Type", "onAdvertisementLost");
             mResults.putParcelable("Result", result);
-            mEventFacade.postEvent(mEventType + index + "onAdvertisementLost",
-                    mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onAdvertisementLost", mResults.clone());
             mResults.clear();
         }
 
@@ -569,8 +864,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mResults.putInt("ID", index);
             mResults.putString("Type", "onBatchScanResults");
             mResults.putParcelableList("Results", results);
-            mEventFacade.postEvent(mEventType + index + "onBatchScanResult",
-                    mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onBatchScanResult", mResults.clone());
             mResults.clear();
         }
 
@@ -581,8 +875,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanCallbackList.isEmpty() == false) {
             for (myScanCallback mScanCallback : mScanCallbackList.values()) {
                 if (mScanCallback != null) {
-                    mBluetoothAdapter.getBluetoothLeScanner().stopScan(
-                            mScanCallback);
+                    mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
                 }
             }
         }
@@ -590,5 +883,4 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanFilterList.clear();
         mScanSettingsList.clear();
     }
-
 }

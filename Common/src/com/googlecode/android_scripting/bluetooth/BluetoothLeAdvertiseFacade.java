@@ -16,6 +16,7 @@
 
 package com.googlecode.android_scripting.bluetooth;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,11 +54,14 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     private BluetoothAdapter mBluetoothAdapter;
     private static int BleAdvertiseCallbackCount;
     private static int BleAdvertiseSettingsCount;
+    private static int BleAdvertiseDataCount;
     private final HashMap<Integer, myAdvertiseCallback> mAdvertiseCallbackList;
     private final BluetoothLeAdvertiser mAdvertise;
     private final Service mService;
-    private final HashMap<Integer, Builder> mAdvertiseDataList;
-    private final HashMap<Integer, android.bluetooth.le.AdvertiseSettings.Builder> mAdvertiseSettingsList;
+    private Builder mAdvertiseDataBuilder;
+    private android.bluetooth.le.AdvertiseSettings.Builder mAdvertiseSettingsBuilder;
+    private final HashMap<Integer, AdvertisementData> mAdvertiseDataList;
+    private final HashMap<Integer, AdvertiseSettings> mAdvertiseSettingsList;
 
     public BluetoothLeAdvertiseFacade(FacadeManager manager) {
         super(manager);
@@ -72,8 +76,10 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         mEventFacade = manager.getReceiver(EventFacade.class);
         mAdvertiseCallbackList = new HashMap<Integer, myAdvertiseCallback>();
         mAdvertise = mBluetoothAdapter.getBluetoothLeAdvertiser();
-        mAdvertiseDataList = new HashMap<Integer, Builder>();
-        mAdvertiseSettingsList = new HashMap<Integer, android.bluetooth.le.AdvertiseSettings.Builder>();
+        mAdvertiseDataList = new HashMap<Integer, AdvertisementData>();
+        mAdvertiseSettingsList = new HashMap<Integer, AdvertiseSettings>();
+        mAdvertiseDataBuilder = new Builder();
+        mAdvertiseSettingsBuilder = new android.bluetooth.le.AdvertiseSettings.Builder();
     }
 
     /**
@@ -97,26 +103,27 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @return index
      */
     @Rpc(description = "Constructs a new Builder obj for AdvertiseData and returns its index")
-    public Integer genBleAdvertiseData() {
-        int index = BleAdvertiseCallbackCount;
-        Builder mData = new Builder();
+    public Integer buildAdvertisementData() {
+        BleAdvertiseDataCount += 1;
+        int index = BleAdvertiseDataCount;
         mAdvertiseDataList.put(index,
-                mData);
+                mAdvertiseDataBuilder.build());
+        mAdvertiseDataBuilder = new Builder();
         return index;
     }
 
     /**
-     * Constructs a AdvertisementSettings obj and returns its index
+     * Constructs a Advertise Settings obj and returns its index
      *
      * @return index
      */
-    @Rpc(description = "Constructs a new android.bluetooth.le.AdvertiseSettings.Builder obj for AdvertiseSettings and returns its index")
-    public Integer genBleAdvertiseSettings() {
+    @Rpc(description = "Constructs a new Builder obj for AdvertiseData and returns its index")
+    public Integer buildAdvertisementSettings() {
         BleAdvertiseSettingsCount += 1;
         int index = BleAdvertiseSettingsCount;
-        android.bluetooth.le.AdvertiseSettings.Builder mSettings = new android.bluetooth.le.AdvertiseSettings.Builder();
         mAdvertiseSettingsList.put(index,
-                mSettings);
+                mAdvertiseSettingsBuilder.build());
+        mAdvertiseSettingsBuilder = new android.bluetooth.le.AdvertiseSettings.Builder();
         return index;
     }
 
@@ -133,8 +140,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         if (mAdvertiseCallbackList.get(index) != null) {
             mAdvertiseCallbackList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -151,8 +157,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         if (mAdvertiseSettingsList.get(index) != null) {
             mAdvertiseSettingsList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -169,8 +174,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         if (mAdvertiseDataList.get(index) != null) {
             mAdvertiseDataList.remove(index);
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -190,8 +194,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertise.stopAdvertising(mAdvertiseCallbackList
                     .get(index));
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
@@ -214,16 +217,14 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         AdvertisementData mData = new AdvertisementData.Builder().build();
         AdvertiseSettings mSettings = new AdvertiseSettings.Builder().build();
         if (mAdvertiseDataList.get(dataIndex) != null) {
-            mData = mAdvertiseDataList.get(dataIndex).build();
+            mData = mAdvertiseDataList.get(dataIndex);
         } else {
-            throw new Exception("Invalid dataIndex input:"
-                    + Integer.toString(dataIndex));
+            throw new Exception("Invalid dataIndex input:" + Integer.toString(dataIndex));
         }
         if (mAdvertiseSettingsList.get(settingsIndex) != null) {
-            mSettings = mAdvertiseSettingsList.get(settingsIndex).build();
+            mSettings = mAdvertiseSettingsList.get(settingsIndex);
         } else {
-            throw new Exception("Invalid settingsIndex input:"
-                    + Integer.toString(settingsIndex));
+            throw new Exception("Invalid settingsIndex input:" + Integer.toString(settingsIndex));
         }
         if (mAdvertiseCallbackList.get(callbackIndex) != null) {
             Log.d("bluetooth_le starting a background scan on callback index: "
@@ -231,178 +232,297 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertise
                     .startAdvertising(mSettings, mData, mAdvertiseCallbackList.get(callbackIndex));
         } else {
-            throw new Exception("Invalid callbackIndex input:"
-                    + Integer.toString(callbackIndex));
+            throw new Exception("Invalid callbackIndex input" + Integer.toString(callbackIndex));
         }
     }
 
     /**
      * Set ble advertisement data include tx power level
      *
-     * @param index the advertise data object to start advertising on
      * @param includeTxPowerLevel boolean whether to include the tx power level or not in the
      *            advertisement
      * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data include tx power level")
-    public void setAdvertisementDataAdvertisementDataIncludeTxPowerLevel(
-            @RpcParameter(name = "index")
-            Integer index,
+    public void setAdvertisementDataIncludeTxPowerLevel(
             @RpcParameter(name = "includeTxPowerLevel")
             Boolean includeTxPowerLevel
-            ) throws Exception {
-        if (mAdvertiseDataList.get(index) != null) {
-            mAdvertiseDataList.get(index).setIncludeTxPowerLevel(includeTxPowerLevel);
+            ) {
+        mAdvertiseDataBuilder.setIncludeTxPowerLevel(includeTxPowerLevel);
+    }
+
+    /**
+     * Get ble advertisement settings mode
+     *
+     * @param index the advertise settings object to use
+     * @return the mode of the advertise settings object
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement settings mode")
+    public int getAdvertisementSettingsMode(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseSettingsList.get(index) != null) {
+            AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
+            return mSettings.getMode();
         } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement settings tx power level
+     *
+     * @param index the advertise settings object to use
+     * @return the tx power level of the advertise settings object
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement settings tx power level")
+    public int getAdvertisementSettingsTxPowerLevel(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseSettingsList.get(index) != null) {
+            AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
+            return mSettings.getTxPowerLevel();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement settings type
+     *
+     * @param index the advertise settings object to use
+     * @return the type of the advertise settings object
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement settings type")
+    public int getAdvertisementSettingsType(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseSettingsList.get(index) != null) {
+            AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
+            return mSettings.getType();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement data include tx power level
+     *
+     * @param index the advertise data object to use
+     * @return True if include tx power level, false otherwise
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement data include tx power level")
+    public Boolean getAdvertisementDataIncludeTxPowerLevel(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            return mData.getIncludeTxPowerLevel();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement data manufacturer id
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's manufacturer id.
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement data manufacturer id")
+    public Integer getAdvertisementDataManufactrereId(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            return mData.getManufacturerId();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+
+        }
+    }
+
+    /**
+     * Get ble advertisement Manufacturer Specific Data
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's manufacturer specific data.
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement Manufacturer Specific Data")
+    public byte[] getAdvertisementDataManufacturerSpecificData(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            return mData.getManufacturerSpecificData();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement Service Data
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's service data
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement Service Data")
+    public byte[] getAdvertisementDataServiceData(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            return mData.getServiceData();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement Service Data Uuid
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's service data uuid
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement Service Data Uuid")
+    public String getAdvertisementDataServiceDataUuid(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            if (mData.getServiceDataUuid() != null) {
+                return mData.getServiceDataUuid().toString();
+            } else {
+                throw new Exception("Service Data Uuid not set for input "
+                        + "AdvertisementData: " + index);
+            }
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
+     * Get ble advertisement Service Uuids
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's Service Uuids
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement Service Uuids")
+    public List<ParcelUuid> getAdvertisementDataServiceUuids(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertisementData mData = mAdvertiseDataList.get(index);
+            return mData.getServiceUuids();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
 
     /**
      * Set ble advertisement data service uuids
      *
-     * @param index the advertise data object to start advertising on
      * @param uuidList
      * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data service uuids")
     public void setAdvertisementDataSetServiceUuids(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "uuidList")
             List<String> uuidList
-            ) throws Exception {
-        if (mAdvertiseDataList.get(index) != null) {
-            ArrayList<ParcelUuid> mUuids = new ArrayList<ParcelUuid>();
-            for (String uuid : uuidList) {
-                mUuids.add(ParcelUuid.fromString(uuid));
-            }
-            mAdvertiseDataList.get(index).setServiceUuids(mUuids);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
+            ) {
+        ArrayList<ParcelUuid> mUuids = new ArrayList<ParcelUuid>();
+        for (String uuid : uuidList) {
+            mUuids.add(ParcelUuid.fromString(uuid));
         }
+        mAdvertiseDataBuilder.setServiceUuids(mUuids);
     }
 
     /**
      * Set ble advertise data service uuids
      *
-     * @param index the advertise data object index
      * @param serviceDataUuid
      * @param serviceData
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data service uuids")
     public void setAdvertisementDataSetServiceData(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "serviceDataUuid")
             String serviceDataUuid,
             @RpcParameter(name = "serviceData")
-            byte[] serviceData
-            ) throws Exception {
-        if (mAdvertiseDataList.get(index) != null) {
-            mAdvertiseDataList.get(index).setServiceData(
-                    ParcelUuid.fromString(serviceDataUuid),
-                    serviceData);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            long serviceData
+            ) {
+        mAdvertiseDataBuilder.setServiceData(
+                ParcelUuid.fromString(serviceDataUuid),
+                BigInteger.valueOf(serviceData).toByteArray());
     }
 
     /**
      * Set ble advertise data manufacturer id
      *
-     * @param index the advertise data object index
      * @param manufacturerId the manufacturer id to set
      * @param manufacturerSpecificData the manufacturer specific data to set
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data manufacturerId")
     public void setAdvertisementDataManufacturerId(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "manufacturerId")
             Integer manufacturerId,
             @RpcParameter(name = "manufacturerSpecificData")
-            byte[] manufacturerSpecificData
-            ) throws Exception {
-        if (mAdvertiseDataList.get(index) != null) {
-            mAdvertiseDataList.get(index).setManufacturerData(manufacturerId,
-                    manufacturerSpecificData);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            long manufacturerSpecificData
+            ) {
+        mAdvertiseDataBuilder.setManufacturerData(manufacturerId,
+                BigInteger.valueOf(manufacturerSpecificData).toByteArray());
     }
 
     /**
      * Set ble advertise settings advertise mode
      *
-     * @param index the advertise settings object index
      * @param advertiseMode
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings advertise mode")
     public void setAdvertisementSettingAdvertiseMode(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "advertiseMode")
             Integer advertiseMode
-            ) throws Exception {
-        if (mAdvertiseSettingsList.get(index) != null) {
-            mAdvertiseSettingsList.get(index).setAdvertiseMode(advertiseMode);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+        mAdvertiseSettingsBuilder.setAdvertiseMode(advertiseMode);
     }
 
     /**
      * Set ble advertise settings tx power level
      *
-     * @param index the advertise settings object index
      * @param txPowerLevel the tx power level to set
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings tx power level")
     public void setAdvertisementSettingIncludeTxPowerLevel(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "includeTxPowerLevel")
             Integer txPowerLevel
-            ) throws Exception {
-        if (mAdvertiseSettingsList.get(index) != null) {
-            mAdvertiseSettingsList.get(index).setTxPowerLevel(
-                    txPowerLevel);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+        mAdvertiseSettingsBuilder.setTxPowerLevel(txPowerLevel);
     }
 
     /**
      * Set ble advertise settings the setting type
      *
-     * @param index the advertise settings object index
      * @param type the setting type
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings the setting type")
     public void setAdvertisementSettingType(
-            @RpcParameter(name = "index")
-            Integer index,
             @RpcParameter(name = "type")
             Integer type
-            ) throws Exception {
-        if (mAdvertiseSettingsList.get(index) != null) {
-            mAdvertiseSettingsList.get(index).setType(type);
-        } else {
-            throw new Exception("Invalid index input:"
-                    + Integer.toString(index));
-        }
+            ) {
+        mAdvertiseSettingsBuilder.setType(type);
     }
 
     private class myAdvertiseCallback extends AdvertiseCallback {
@@ -423,8 +543,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mResults.putInt("ID", index);
             mResults.putString("Type", "onSuccess");
             mResults.putParcelable("SettingsInEffect", settingsInEffect);
-            mEventFacade.postEvent(mEventType + index + "onSuccess",
-                    mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onSuccess", mResults.clone());
             mResults.clear();
         }
 
