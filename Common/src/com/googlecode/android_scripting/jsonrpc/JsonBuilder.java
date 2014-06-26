@@ -41,6 +41,7 @@ import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.gsm.GsmCellLocation;
@@ -111,6 +112,9 @@ public class JsonBuilder {
         if (data instanceof Map<?, ?>) {
             // TODO(damonkohler): I would like to make this a checked cast if possible.
             return buildJsonMap((Map<String, ?>) data);
+        }
+        if (data instanceof ParcelUuid) {
+          return data.toString();
         }
         if (data instanceof ScanResult) {
             return buildJsonScanResult((ScanResult) data);
@@ -336,7 +340,8 @@ public class JsonBuilder {
         return result;
     }
 
-    private static JSONObject buildJsonCellLocation(CellLocation cellLocation) throws JSONException {
+    private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
+        throws JSONException {
         JSONObject result = new JSONObject();
         if (cellLocation instanceof GsmCellLocation) {
             GsmCellLocation location = (GsmCellLocation) cellLocation;

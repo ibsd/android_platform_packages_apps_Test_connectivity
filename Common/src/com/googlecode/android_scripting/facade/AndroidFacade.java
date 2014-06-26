@@ -21,6 +21,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -34,7 +35,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.StatFs;
 import android.os.Vibrator;
-import android.text.ClipboardManager;
+import android.content.ClipboardManager;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.EditText;
@@ -55,8 +56,10 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -116,7 +119,6 @@ public class AndroidFacade extends RpcReceiver {
     mNotificationManager =
         (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
     mResources = manager.getAndroidFacadeResources();
-
   }
 
   ClipboardManager getClipboardManager() {
@@ -134,24 +136,6 @@ public class AndroidFacade extends RpcReceiver {
       }
     }
     return mClipboard;
-  }
-
-  /**
-   * Creates a new AndroidFacade that simplifies the interface to various Android APIs.
-   * 
-   * @param service
-   *          is the {@link Context} the APIs will run under
-   */
-
-  @Rpc(description = "Put text in the clipboard.")
-  public void setClipboard(@RpcParameter(name = "text") String text) {
-    getClipboardManager().setText(text);
-  }
-
-  @Rpc(description = "Read text from the clipboard.", returns = "The text in the clipboard.")
-  public String getClipboard() {
-    CharSequence text = getClipboardManager().getText();
-    return text == null ? null : text.toString();
   }
 
   Intent startActivityForResult(final Intent intent) {
@@ -185,7 +169,8 @@ public class AndroidFacade extends RpcReceiver {
 
   // TODO(damonkohler): Pull this out into proper argument deserialization and support
   // complex/nested types being passed in.
-  public static void putExtrasFromJsonObject(JSONObject extras, Intent intent) throws JSONException {
+  public static void putExtrasFromJsonObject(JSONObject extras,
+                                             Intent intent) throws JSONException {
     JSONArray names = extras.names();
     for (int i = 0; i < names.length(); i++) {
       String name = names.getString(i);
@@ -385,22 +370,34 @@ public class AndroidFacade extends RpcReceiver {
   // and startActivityForResult. It's probably better to just always use the ForResult version.
   // However, this makes the call always blocking. We'd need to add an extra boolean parameter to
   // indicate if we should wait for a result.
-  @Rpc(description = "Starts an activity and returns the result.", returns = "A Map representation of the result Intent.")
+  @Rpc(description = "Starts an activity and returns the result.",
+       returns = "A Map representation of the result Intent.")
   public Intent startActivityForResult(
-      @RpcParameter(name = "action") String action,
-      @RpcParameter(name = "uri") @RpcOptional String uri,
-      @RpcParameter(name = "type", description = "MIME type/subtype of the URI") @RpcOptional String type,
-      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent") @RpcOptional JSONObject extras,
-      @RpcParameter(name = "packagename", description = "name of package. If used, requires classname to be useful") @RpcOptional String packagename,
-      @RpcParameter(name = "classname", description = "name of class. If used, requires packagename to be useful") @RpcOptional String classname)
-      throws JSONException {
+      @RpcParameter(name = "action")
+      String action,
+      @RpcParameter(name = "uri")
+      @RpcOptional String uri,
+      @RpcParameter(name = "type", description = "MIME type/subtype of the URI")
+      @RpcOptional String type,
+      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent")
+      @RpcOptional JSONObject extras,
+      @RpcParameter(name = "packagename",
+                    description = "name of package. If used, requires classname to be useful")
+      @RpcOptional String packagename,
+      @RpcParameter(name = "classname",
+                    description = "name of class. If used, requires packagename to be useful")
+      @RpcOptional String classname
+      ) throws JSONException {
     final Intent intent = buildIntent(action, uri, type, extras, packagename, classname, null);
     return startActivityForResult(intent);
   }
 
-  @Rpc(description = "Starts an activity and returns the result.", returns = "A Map representation of the result Intent.")
+  @Rpc(description = "Starts an activity and returns the result.",
+       returns = "A Map representation of the result Intent.")
   public Intent startActivityForResultIntent(
-      @RpcParameter(name = "intent", description = "Intent in the format as returned from makeIntent") Intent intent) {
+      @RpcParameter(name = "intent",
+                    description = "Intent in the format as returned from makeIntent")
+      Intent intent) {
     return startActivityForResult(intent);
   }
 
@@ -442,31 +439,78 @@ public class AndroidFacade extends RpcReceiver {
   }
 
   /**
+   * Creates a new AndroidFacade that simplifies the interface to various Android APIs.
+   *
+   * @param service
+   *          is the {@link Context} the APIs will run under
+   */
+
+  @Rpc(description = "Put a text string in the clipboard.")
+  public void setTextClip(@RpcParameter(name = "text")
+                          String text,
+                          @RpcParameter(name = "label")
+                          @RpcOptional @RpcDefault(value = "copiedText")
+                          String label) {
+    getClipboardManager().setPrimaryClip(ClipData.newPlainText(label, text));
+  }
+
+  @Rpc(description = "Read all text strings copied by setTextClip from the clipboard.")
+  public List<String> getTextClip() {
+    ClipboardManager cm = getClipboardManager();
+    ArrayList<String> texts = new ArrayList<String>();
+    if(!cm.hasPrimaryClip()) {
+      return texts;
+    }
+    ClipData cd = cm.getPrimaryClip();
+    for(int i=0; i<cd.getItemCount(); i++) {
+      texts.add(cd.getItemAt(i).coerceToText(mService).toString());
+    }
+    return texts;
+  }
+
+  /**
    * packagename and classname, if provided, are used in a 'setComponent' call.
    */
   @Rpc(description = "Starts an activity.")
   public void startActivity(
-      @RpcParameter(name = "action") String action,
-      @RpcParameter(name = "uri") @RpcOptional String uri,
-      @RpcParameter(name = "type", description = "MIME type/subtype of the URI") @RpcOptional String type,
-      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent") @RpcOptional JSONObject extras,
-      @RpcParameter(name = "wait", description = "block until the user exits the started activity") @RpcOptional Boolean wait,
-      @RpcParameter(name = "packagename", description = "name of package. If used, requires classname to be useful") @RpcOptional String packagename,
-      @RpcParameter(name = "classname", description = "name of class. If used, requires packagename to be useful") @RpcOptional String classname)
-      throws Exception {
+      @RpcParameter(name = "action")
+      String action,
+      @RpcParameter(name = "uri")
+      @RpcOptional String uri,
+      @RpcParameter(name = "type", description = "MIME type/subtype of the URI")
+      @RpcOptional String type,
+      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent")
+      @RpcOptional JSONObject extras,
+      @RpcParameter(name = "wait", description = "block until the user exits the started activity")
+      @RpcOptional Boolean wait,
+      @RpcParameter(name = "packagename",
+                    description = "name of package. If used, requires classname to be useful")
+      @RpcOptional String packagename,
+      @RpcParameter(name = "classname",
+                    description = "name of class. If used, requires packagename to be useful")
+      @RpcOptional String classname
+      ) throws Exception {
     final Intent intent = buildIntent(action, uri, type, extras, packagename, classname, null);
     doStartActivity(intent, wait);
   }
 
   @Rpc(description = "Send a broadcast.")
   public void sendBroadcast(
-      @RpcParameter(name = "action") String action,
-      @RpcParameter(name = "uri") @RpcOptional String uri,
-      @RpcParameter(name = "type", description = "MIME type/subtype of the URI") @RpcOptional String type,
-      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent") @RpcOptional JSONObject extras,
-      @RpcParameter(name = "packagename", description = "name of package. If used, requires classname to be useful") @RpcOptional String packagename,
-      @RpcParameter(name = "classname", description = "name of class. If used, requires packagename to be useful") @RpcOptional String classname)
-      throws JSONException {
+      @RpcParameter(name = "action")
+      String action,
+      @RpcParameter(name = "uri")
+      @RpcOptional String uri,
+      @RpcParameter(name = "type", description = "MIME type/subtype of the URI")
+      @RpcOptional String type,
+      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent")
+      @RpcOptional JSONObject extras,
+      @RpcParameter(name = "packagename",
+                    description = "name of package. If used, requires classname to be useful")
+      @RpcOptional String packagename,
+      @RpcParameter(name = "classname",
+                    description = "name of class. If used, requires packagename to be useful")
+      @RpcOptional String classname
+      ) throws JSONException {
     final Intent intent = buildIntent(action, uri, type, extras, packagename, classname, null);
     try {
       mService.sendBroadcast(intent);
@@ -477,15 +521,25 @@ public class AndroidFacade extends RpcReceiver {
 
   @Rpc(description = "Create an Intent.", returns = "An object representing an Intent")
   public Intent makeIntent(
-      @RpcParameter(name = "action") String action,
-      @RpcParameter(name = "uri") @RpcOptional String uri,
-      @RpcParameter(name = "type", description = "MIME type/subtype of the URI") @RpcOptional String type,
-      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent") @RpcOptional JSONObject extras,
-      @RpcParameter(name = "categories", description = "a List of categories to add to the Intent") @RpcOptional JSONArray categories,
-      @RpcParameter(name = "packagename", description = "name of package. If used, requires classname to be useful") @RpcOptional String packagename,
-      @RpcParameter(name = "classname", description = "name of class. If used, requires packagename to be useful") @RpcOptional String classname,
-      @RpcParameter(name = "flags", description = "Intent flags") @RpcOptional Integer flags)
-      throws JSONException {
+      @RpcParameter(name = "action")
+      String action,
+      @RpcParameter(name = "uri")
+      @RpcOptional String uri,
+      @RpcParameter(name = "type", description = "MIME type/subtype of the URI")
+      @RpcOptional String type,
+      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent")
+      @RpcOptional JSONObject extras,
+      @RpcParameter(name = "categories", description = "a List of categories to add to the Intent")
+      @RpcOptional JSONArray categories,
+      @RpcParameter(name = "packagename",
+                    description = "name of package. If used, requires classname to be useful")
+      @RpcOptional String packagename,
+      @RpcParameter(name = "classname",
+                    description = "name of class. If used, requires packagename to be useful")
+      @RpcOptional String classname,
+      @RpcParameter(name = "flags", description = "Intent flags")
+      @RpcOptional Integer flags
+      ) throws JSONException {
     Intent intent = buildIntent(action, uri, type, extras, packagename, classname, categories);
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     if (flags != null) {
@@ -496,22 +550,30 @@ public class AndroidFacade extends RpcReceiver {
 
   @Rpc(description = "Start Activity using Intent")
   public void startActivityIntent(
-      @RpcParameter(name = "intent", description = "Intent in the format as returned from makeIntent") Intent intent,
-      @RpcParameter(name = "wait", description = "block until the user exits the started activity") @RpcOptional Boolean wait)
-      throws Exception {
+      @RpcParameter(name = "intent",
+                    description = "Intent in the format as returned from makeIntent")
+      Intent intent,
+      @RpcParameter(name = "wait",
+                    description = "block until the user exits the started activity")
+      @RpcOptional Boolean wait
+      ) throws Exception {
     doStartActivity(intent, wait);
   }
 
   @Rpc(description = "Send Broadcast Intent")
   public void sendBroadcastIntent(
-      @RpcParameter(name = "intent", description = "Intent in the format as returned from makeIntent") Intent intent)
-      throws Exception {
+      @RpcParameter(name = "intent",
+                    description = "Intent in the format as returned from makeIntent")
+      Intent intent
+      ) throws Exception {
     mService.sendBroadcast(intent);
   }
 
   @Rpc(description = "Vibrates the phone or a specified duration in milliseconds.")
   public void vibrate(
-      @RpcParameter(name = "duration", description = "duration in milliseconds") @RpcDefault("300") Integer duration) {
+      @RpcParameter(name = "duration", description = "duration in milliseconds")
+      @RpcDefault("300")
+      Integer duration) {
     mVibrator.vibrate(duration);
   }
 
@@ -571,29 +633,41 @@ public class AndroidFacade extends RpcReceiver {
   @Rpc(description = "Queries the user for a text input.")
   @RpcDeprecated(value = "dialogGetInput", release = "r3")
   public String getInput(
-      @RpcParameter(name = "title", description = "title of the input box") @RpcDefault("SL4A Input") final String title,
-      @RpcParameter(name = "message", description = "message to display above the input box") @RpcDefault("Please enter value:") final String message) {
+      @RpcParameter(name = "title", description = "title of the input box")
+      @RpcDefault("SL4A Input")
+      final String title,
+      @RpcParameter(name = "message", description = "message to display above the input box")
+      @RpcDefault("Please enter value:")
+      final String message) {
     return getInputFromAlertDialog(title, message, false);
   }
 
   @Rpc(description = "Queries the user for a password.")
   @RpcDeprecated(value = "dialogGetPassword", release = "r3")
   public String getPassword(
-      @RpcParameter(name = "title", description = "title of the input box") @RpcDefault("SL4A Password Input") final String title,
-      @RpcParameter(name = "message", description = "message to display above the input box") @RpcDefault("Please enter password:") final String message) {
+      @RpcParameter(name = "title", description = "title of the input box")
+      @RpcDefault("SL4A Password Input")
+      final String title,
+      @RpcParameter(name = "message", description = "message to display above the input box")
+      @RpcDefault("Please enter password:")
+      final String message) {
     return getInputFromAlertDialog(title, message, true);
   }
 
   @Rpc(description = "Displays a notification that will be canceled when the user clicks on it.")
   public void notify(@RpcParameter(name = "title", description = "title") String title,
       @RpcParameter(name = "message") String message) {
-    Notification notification =
-        new Notification(mResources.getLogo48(), message, System.currentTimeMillis());
     // This contentIntent is a noop.
     PendingIntent contentIntent = PendingIntent.getService(mService, 0, new Intent(), 0);
-    notification.setLatestEventInfo(mService, title, message, contentIntent);
+    Notification.Builder builder = new Notification.Builder(mService);
+    builder.setSmallIcon(mResources.getLogo48())
+           .setTicker(message)
+           .setWhen(System.currentTimeMillis())
+           .setContentTitle(title)
+           .setContentText(message)
+           .setContentIntent(contentIntent);
+    Notification notification = builder.build();
     notification.flags = Notification.FLAG_AUTO_CANCEL;
-
     // Get a unique notification id from the application.
     final int notificationId = NotificationIdFactory.create();
     mNotificationManager.notify(notificationId, notification);
@@ -606,10 +680,12 @@ public class AndroidFacade extends RpcReceiver {
 
   @Rpc(description = "Launches an activity that sends an e-mail message to a given recipient.")
   public void sendEmail(
-      @RpcParameter(name = "to", description = "A comma separated list of recipients.") final String to,
+      @RpcParameter(name = "to", description = "A comma separated list of recipients.")
+      final String to,
       @RpcParameter(name = "subject") final String subject,
       @RpcParameter(name = "body") final String body,
-      @RpcParameter(name = "attachmentUri") @RpcOptional final String attachmentUri) {
+      @RpcParameter(name = "attachmentUri")
+      @RpcOptional final String attachmentUri) {
     final Intent intent = new Intent(android.content.Intent.ACTION_SEND);
     intent.setType("plain/text");
     intent.putExtra(android.content.Intent.EXTRA_EMAIL, to.split(","));
@@ -652,7 +728,7 @@ public class AndroidFacade extends RpcReceiver {
     return null;
   }
 
-  @Rpc(description = "Checks if version of SL4A is greater than or equal to the specified version.")
+  @Rpc(description = "Checks if SL4A's version is >= to the specified version.")
   public boolean requiredVersion(@RpcParameter(name = "requiredVersion") final Integer version) {
     boolean result = false;
     int packageVersion = getPackageVersionCode("com.googlecode.android_scripting");
@@ -668,9 +744,9 @@ public class AndroidFacade extends RpcReceiver {
   }
 
   /**
-   * 
+   *
    * Map returned:
-   * 
+   *
    * <pre>
    *   TZ = Timezone
    *     id = Timezone ID
@@ -678,7 +754,7 @@ public class AndroidFacade extends RpcReceiver {
    *     offset = Offset from UTC (in ms)
    *   SDK = SDK Version
    *   download = default download path
-   *   appcache = Location of application cache 
+   *   appcache = Location of application cache
    *   sdcard = Space on sdcard
    *     availblocks = Available blocks
    *     blockcount = Total Blocks
@@ -695,14 +771,14 @@ public class AndroidFacade extends RpcReceiver {
     zone.put("display", tz.getDisplayName());
     zone.put("offset", tz.getOffset((new Date()).getTime()));
     result.put("TZ", zone);
-    result.put("SDK", android.os.Build.VERSION.SDK);
+    result.put("SDK", android.os.Build.VERSION.SDK_INT);
     result.put("download", FileUtils.getExternalDownload().getAbsolutePath());
     result.put("appcache", mService.getCacheDir().getAbsolutePath());
     try {
       StatFs fs = new StatFs("/sdcard");
-      space.put("availblocks", fs.getAvailableBlocks());
-      space.put("blocksize", fs.getBlockSize());
-      space.put("blockcount", fs.getBlockCount());
+      space.put("availblocks", fs.getAvailableBlocksLong());
+      space.put("blocksize", fs.getBlockSizeLong());
+      space.put("blockcount", fs.getBlockCountLong());
     } catch (Exception e) {
       space.put("exception", e.toString());
     }
@@ -712,7 +788,8 @@ public class AndroidFacade extends RpcReceiver {
 
   @Rpc(description = "Get list of constants (static final fields) for a class")
   public Bundle getConstants(
-      @RpcParameter(name = "classname", description = "Class to get constants from") String classname)
+      @RpcParameter(name = "classname", description = "Class to get constants from")
+      String classname)
       throws Exception {
     Bundle result = new Bundle();
     int flags = Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC;

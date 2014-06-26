@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.ParcelUuid;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
@@ -146,6 +147,11 @@ public class BluetoothFacade extends RpcReceiver {
   @Rpc(description = "Returns the hardware address of the local Bluetooth adapter. ")
   public String bluetoothGetLocalAddress() {
     return mBluetoothAdapter.getAddress();
+  }
+
+  @Rpc(description = "Returns the UUIDs supported by local Bluetooth adapter.")
+  public ParcelUuid[] bluetoothGetLocalUuids() {
+    return mBluetoothAdapter.getUuids();
   }
 
   @Rpc(description = "Gets the scan mode for the local dongle.\r\n" + "Return values:\r\n"
