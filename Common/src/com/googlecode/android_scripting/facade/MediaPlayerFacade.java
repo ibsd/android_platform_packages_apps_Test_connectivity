@@ -108,7 +108,7 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
   }
 
   @Rpc(description = "Open a media file", returns = "true if play successful")
-  public synchronized boolean mediaPlay(
+  public synchronized boolean mediaPlayOpen(
       @RpcParameter(name = "url", description = "url of media resource") String url,
       @RpcParameter(name = "tag", description = "string identifying resource") @RpcDefault(value = "default") String tag,
       @RpcParameter(name = "play", description = "start playing immediately") @RpcDefault(value = "true") Boolean play) {

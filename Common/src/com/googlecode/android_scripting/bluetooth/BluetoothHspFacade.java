@@ -1,5 +1,7 @@
 package com.googlecode.android_scripting.bluetooth;
 
+import java.util.List;
+
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,12 +16,9 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
-
 public class BluetoothHspFacade extends RpcReceiver {
-  static final ParcelUuid[] HSP_UUIDS = {
-    BluetoothUuid.HSP,
-    BluetoothUuid.Handsfree,
-  };
+  static final ParcelUuid[] HSP_UUIDS = { BluetoothUuid.HSP,
+      BluetoothUuid.Handsfree, };
 
   private final Service mService;
   private final BluetoothAdapter mBluetoothAdapter;
@@ -31,7 +30,8 @@ public class BluetoothHspFacade extends RpcReceiver {
     super(manager);
     mService = manager.getService();
     mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    mBluetoothAdapter.getProfileProxy(mService, new HspServiceListener(), BluetoothProfile.HEADSET);
+    mBluetoothAdapter.getProfileProxy(mService, new HspServiceListener(),
+        BluetoothProfile.HEADSET);
   }
 
   class HspServiceListener implements BluetoothProfile.ServiceListener {
@@ -40,6 +40,7 @@ public class BluetoothHspFacade extends RpcReceiver {
       mHspProfile = (BluetoothHeadset) proxy;
       mIsHspReady = true;
     }
+
     @Override
     public void onServiceDisconnected(int profile) {
       mIsHspReady = false;
@@ -57,32 +58,39 @@ public class BluetoothHspFacade extends RpcReceiver {
     return mHspProfile.disconnect(device);
   }
 
-  @Rpc(description="Is Hsp profile ready.")
+  @Rpc(description = "Is Hsp profile ready.")
   public Boolean bluetoothHspIsReady() {
     return mIsHspReady;
   }
 
-  @Rpc(description="Connect to HSP device.")
+  @Rpc(description = "Connect to HSP device.")
   public Boolean bluetoothHspConnect(
-      @RpcParameter(
-          name = "device",
-          description = "Name or MAC address of a bluetooth device.")
-          String device) throws Exception {
-    if (mHspProfile == null) return false;
-    BluetoothDevice mDevice = BluetoothFacade.getDevice(BluetoothFacade.DiscoveredDevices, device);
+      @RpcParameter(name = "device", description = "Name or MAC address of a bluetooth device.")
+      String device)
+      throws Exception {
+    if (mHspProfile == null)
+      return false;
+    BluetoothDevice mDevice = BluetoothFacade.getDevice(
+        BluetoothFacade.DiscoveredDevices, device);
     Log.d("Connecting to device " + mDevice.getAliasName());
     return hspConnect(mDevice);
   }
 
-  @Rpc(description="Disconnect an HSP device.")
+  @Rpc(description = "Disconnect an HSP device.")
   public Boolean bluetoothHspDisconnect(
-      @RpcParameter(
-          name = "device",
-          description = "Name or MAC address of a bluetooth device.")
-          String device) throws Exception {
-    if (mHspProfile == null) return false;
-    BluetoothDevice mDevice = BluetoothFacade.getDevice(mHspProfile.getConnectedDevices(), device);
+      @RpcParameter(name = "device", description = "Name or MAC address of a bluetooth device.")
+      String device)
+      throws Exception {
+    if (mHspProfile == null)
+      return false;
+    BluetoothDevice mDevice = BluetoothFacade.getDevice(
+        mHspProfile.getConnectedDevices(), device);
     return hspDisconnect(mDevice);
+  }
+
+  @Rpc(description = "Return the list of devices connected through Hsp.")
+  public List<BluetoothDevice> bluetoothHspGetConnectedDevices() {
+    return mHspProfile.getConnectedDevices();
   }
 
   @Override
