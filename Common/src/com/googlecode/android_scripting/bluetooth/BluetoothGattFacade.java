@@ -657,7 +657,6 @@ public class BluetoothGattFacade extends RpcReceiver {
                 Log.d("State Disconnecting from mac address "
                         + gatt.getDevice().getAddress() + " status " + status);
             }
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onConnectionSTateChange");
             mResults.putInt("Status", status);
             mResults.putInt("State", newState);
@@ -669,7 +668,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.d("gatt_connect change onServicesDiscovered " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onServicesDiscovered");
             mResults.putInt("Status", status);
             mEventFacade
@@ -682,7 +680,6 @@ public class BluetoothGattFacade extends RpcReceiver {
                 BluetoothGattCharacteristic characteristic,
                 int status) {
             Log.d("gatt_connect change onCharacteristicRead " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onCharacteristicRead");
             mResults.putInt("Status", status);
             mResults.putString("CharacteristicUuid", characteristic.getUuid().toString());
@@ -695,7 +692,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         public void onCharacteristicWrite(BluetoothGatt gatt,
                 BluetoothGattCharacteristic characteristic, int status) {
             Log.d("gatt_connect change onCharacteristicWrite " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onCharacteristicWrite");
             mResults.putInt("Status", status);
             mResults.putString("CharacteristicUuid", characteristic.getUuid().toString());
@@ -720,7 +716,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor,
                 int status) {
             Log.d("gatt_connect change onServicesDiscovered " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onServicesDiscovered");
             mResults.putInt("Status", status);
             mResults.putString("DescriptorUuid", descriptor.getUuid().toString());
@@ -746,7 +741,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
             Log.d("gatt_connect change onReliableWriteCompleted " + mEventType + " "
                     + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onReliableWriteCompleted");
             mResults.putInt("Status", status);
             mEventFacade
@@ -757,7 +751,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
             Log.d("gatt_connect change onReadRemoteRssi " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onReadRemoteRssi");
             mResults.putInt("Status", status);
             mResults.putInt("Rssi", rssi);
@@ -769,12 +762,21 @@ public class BluetoothGattFacade extends RpcReceiver {
         @Override
         public void onConfigureMTU(BluetoothGatt gatt, int mtu, int status) {
             Log.d("gatt_connect change onConfigureMTU " + mEventType + " " + index);
-            mResults.putInt("ID", index);
             mResults.putString("Type", "onConfigureMTU");
             mResults.putInt("Status", status);
             mResults.putInt("MTU", mtu);
             mEventFacade
                     .postEvent(mEventType + index + "onConfigureMTU", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onConnectionCongested(BluetoothGatt gatt, boolean congested) {
+            Log.d("gatt_connect change onConnectionCongested " + mEventType + " " + index);
+            mResults.putString("Type", "onConnectionCongested");
+            mResults.putBoolean("Congested", congested);
+            mEventFacade
+                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
             mResults.clear();
         }
     }
