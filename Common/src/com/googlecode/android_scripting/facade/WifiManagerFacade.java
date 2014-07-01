@@ -28,10 +28,12 @@ import java.util.List;
 //TODO: make methods handle various wifi states properly
 //e.g. wifi connection result will be null when flight mode is on
 public class WifiManagerFacade extends RpcReceiver {
+  private final static String mEventType = "WiFiManager";
   private final Service mService;
   private final WifiManager mWifi;
   private final IntentFilter mIntentFilter;
   private final WifiScanReceiver mReceiver;
+  private final WifiActionListener mWifiActionListener;
   private WifiLock mLock;
   private static int WifiScanCnt;
 
@@ -42,6 +44,7 @@ public class WifiManagerFacade extends RpcReceiver {
     mLock = null;
     mIntentFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
     mReceiver = new WifiScanReceiver(manager.getReceiver(EventFacade.class));
+    mWifiActionListener = new WifiActionListener(manager.getReceiver(EventFacade.class));
   }
 
   private void makeLock(int wifiMode) {
@@ -57,7 +60,6 @@ public class WifiManagerFacade extends RpcReceiver {
    *        Object of EventFacade
    */
   class WifiScanReceiver extends BroadcastReceiver {
-    private final static String mEventType = "WiFiManager";
     private final EventFacade mEventFacade;
     private final Bundle mResults;
 
@@ -74,6 +76,32 @@ public class WifiManagerFacade extends RpcReceiver {
       mEventFacade.postEvent(mEventType, mResults.clone());
       mResults.clear();
     }
+  }
+
+  class WifiActionListener implements WifiManager.ActionListener{
+    private final EventFacade mEventFacade;
+    private final Bundle mResults;
+
+    public WifiActionListener(EventFacade eventFacade) {
+      mEventFacade = eventFacade;
+      mResults = new Bundle();
+    }
+    @Override
+    public void onSuccess() {
+      Log.d("WifiActionListener  "+ mEventType);
+      mResults.putString("Type", "onSuccess");
+      mEventFacade.postEvent(mEventType, mResults.clone());
+      mResults.clear();
+    }
+
+    @Override
+    public void onFailure(int reason) {
+      Log.d("WifiActionListener  "+ mEventType);
+      mResults.putString("Type", "onFailure");
+      mEventFacade.postEvent(mEventType, mResults.clone());
+      mResults.clear();
+    }
+
   }
 
   @Rpc(description = "Returns the list of access points found during the most recent Wifi scan.")
@@ -141,8 +169,39 @@ public class WifiManagerFacade extends RpcReceiver {
   }
 
   /**
+   * Connects to a wifi network with priority
+   *
+   * @param wifiSSID
+   *          SSID of the wifi network
+   * @param wifiPassword
+   *          password for the wifi network
+   */
+  @Rpc(description = "Connects a wifi network as priority by pasing ssid")
+  public void wifiPriorityConnect(@RpcParameter(name = "wifiSSID") String wifiSSID,
+      @RpcParameter(name = "wifiPassword") String wifiPassword) {
+    WifiConfiguration wifiConfig = new WifiConfiguration();
+    wifiConfig.SSID = "\"" + wifiSSID + "\"";
+    if(wifiPassword == null)
+      wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+    else
+      wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
+    mWifi.connect(wifiConfig, mWifiActionListener);
+  }
+
+  /**
+   * Forget to a wifi network with priority
+   *
+   * @param networkID
+   *          Id of wifi network
+   */
+  @Rpc(description = "Forget a wifi network with priority")
+  public void wifiForgetNetwork(@RpcParameter(name = "wifiSSID") Integer newtorkId ) {
+    mWifi.forget(newtorkId, mWifiActionListener);
+  }
+
+  /**
    * Connects to a WPA protected wifi network
-   * 
+   *
    * @param wifiSSID
    *          SSID of the wifi network
    * @param wifiPassword
@@ -150,7 +209,7 @@ public class WifiManagerFacade extends RpcReceiver {
    * @return true on success
    * @throws ConnectException
    */
-  @Rpc(description = "Connects a WPA protected wifi network by ssid", returns = "True if the operation succeeded.")
+  @Rpc(description = "Connects a wifi network by ssid", returns = "True if the operation succeeded.")
   public Boolean wifiConnectWPA(@RpcParameter(name = "wifiSSID") String wifiSSID,
       @RpcParameter(name = "wifiPassword") String wifiPassword) throws ConnectException {
     WifiConfiguration wifiConfig = new WifiConfiguration();
