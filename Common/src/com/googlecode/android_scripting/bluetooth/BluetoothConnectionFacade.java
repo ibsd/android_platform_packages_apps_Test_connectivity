@@ -1,17 +1,18 @@
 
 package com.googlecode.android_scripting.bluetooth;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import android.app.Service;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothInputDevice;
 import android.bluetooth.BluetoothUuid;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,9 +29,7 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothConnectionFacade extends RpcReceiver {
-    static final ParcelUuid[] SINK_UUIDS = {
-            BluetoothUuid.AudioSink, BluetoothUuid.AdvAudioDist,
-    };
+
     static final ParcelUuid[] HSP_UUIDS = {
             BluetoothUuid.HSP, BluetoothUuid.Handsfree,
     };
@@ -39,16 +38,22 @@ public class BluetoothConnectionFacade extends RpcReceiver {
     private final BluetoothAdapter mBluetoothAdapter;
     private final BluetoothPairingHelper mPairingHelper;
     private final Map<String, BroadcastReceiver> listeningDevices;
-
     private final EventFacade mEventFacade;
-    private BluetoothHspFacade mHspProfile;
-    private BluetoothA2dpFacade mA2dpProfile;
 
     private final IntentFilter mDiscoverConnectFilter;
+    private final IntentFilter mConnectionStateChangeFilter;
     private final IntentFilter mPairingFilter;
-    private final IntentFilter mBondStateChangeFilter;
+    private final IntentFilter mBondFilter;
     private final IntentFilter mA2dpStateChangeFilter;
+    private final IntentFilter mHidStateChangeFilter;
     private final IntentFilter mHspStateChangeFilter;
+
+    private final Bundle mGoodNews;
+    private final Bundle mBadNews;
+
+    private BluetoothA2dpFacade mA2dpProfile;
+    private BluetoothHidFacade mHidProfile;
+    private BluetoothHspFacade mHspProfile;
 
     public BluetoothConnectionFacade(FacadeManager manager) {
         super(manager);
@@ -60,17 +65,31 @@ public class BluetoothConnectionFacade extends RpcReceiver {
 
         mEventFacade = manager.getReceiver(EventFacade.class);
         mA2dpProfile = manager.getReceiver(BluetoothA2dpFacade.class);
+        mHidProfile = manager.getReceiver(BluetoothHidFacade.class);
         mHspProfile = manager.getReceiver(BluetoothHspFacade.class);
 
         mDiscoverConnectFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         mDiscoverConnectFilter.addAction(BluetoothDevice.ACTION_UUID);
         mDiscoverConnectFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
+        mConnectionStateChangeFilter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        mConnectionStateChangeFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+
         mPairingFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
 
-        mBondStateChangeFilter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        mBondFilter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        mBondFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        mBondFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        mBondFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY - 1);
+
         mA2dpStateChangeFilter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        mHidStateChangeFilter = new IntentFilter(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
         mHspStateChangeFilter = new IntentFilter(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+
+        mGoodNews = new Bundle();
+        mGoodNews.putBoolean("Status", true);
+        mBadNews = new Bundle();
+        mBadNews.putBoolean("Status", false);
     }
 
     /**
@@ -78,23 +97,17 @@ public class BluetoothConnectionFacade extends RpcReceiver {
      */
     public class DiscoverConnectReceiver extends BroadcastReceiver {
         private final String mDeviceID;
-        private final Boolean mBond;
         private BluetoothDevice mDevice;
 
         /**
          * Constructor
-         * 
+         *
          * @param deviceID Either the device alias name or mac address.
          * @param bond If true, bond the device only.
          */
-        public DiscoverConnectReceiver(String deviceID, Boolean bond) {
+        public DiscoverConnectReceiver(String deviceID) {
             super();
             mDeviceID = deviceID;
-            mBond = bond;
-        }
-
-        public DiscoverConnectReceiver(String deviceID) {
-            this(deviceID, false);
         }
 
         @Override
@@ -108,72 +121,125 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                     mBluetoothAdapter.cancelDiscovery();
                     mDevice = device;
                 }
-                // After discovery stops.
+            // After discovery stops.
             } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                 if (mDevice == null) {
-                    Log.d("Device " + mDeviceID + " was not discovered.");
-                    return;
+                    Log.d("Device " + mDeviceID + " not discovered.");
+                    mEventFacade.postEvent("Bond" + mDeviceID, mBadNews);
                 }
-                // Attempt to initiate bonding if this is a bond request.
-                if (mBond) {
-                    Log.d("Bond with " + mDevice.getAliasName());
-                    StateChangeReceiver receiver = new StateChangeReceiver(mDeviceID);
-                    listeningDevices.put("Bonding" + mDeviceID, receiver);
-                    mService.registerReceiver(receiver, mBondStateChangeFilter);
-                    if (mDevice.createBond()) {
-                        Log.d("Bonding started.");
-                    } else {
-                        Log.e("Failed to bond with " + mDevice.getAliasName());
-                        mService.unregisterReceiver(listeningDevices.remove("Bonding" + mDeviceID));
-                    }
-                    mService.unregisterReceiver(listeningDevices.remove("Bond" + mDeviceID));
-                    // Otherwise fetch the device's UUID.
-                } else {
-                    Log.d("Discovery finished, start fetching UUIDs.");
-                    boolean status = mDevice.fetchUuidsWithSdp();
-                    Log.d("Initiated ACL connection: " + status);
-                }
-                // Initiate connection based on the UUIDs retrieved.
+                boolean status = mDevice.fetchUuidsWithSdp();
+                Log.d("Initiated ACL connection: " + status);
             } else if (action.equals(BluetoothDevice.ACTION_UUID)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (BluetoothFacade.deviceMatch(device, mDeviceID)) {
                     Log.d("Initiating connections.");
                     connectProfile(device, mDeviceID);
-                    mService.unregisterReceiver(listeningDevices.remove(mDeviceID));
+                    mService.unregisterReceiver(listeningDevices.remove("Connect" + mDeviceID));
                 }
             }
         }
     }
 
-    public class StateChangeReceiver extends BroadcastReceiver {
+    /**
+     * Connect to a specific device upon its discovery
+     */
+    public class DiscoverBondReceiver extends BroadcastReceiver {
         private final String mDeviceID;
+        private BluetoothDevice mDevice = null;
+        private boolean started = false;
 
-        public StateChangeReceiver(String deviceID) {
+        /**
+         * Constructor
+         *
+         * @param deviceID Either the device alias name or Mac address.
+         */
+        public DiscoverBondReceiver(String deviceID) {
+            super();
             mDeviceID = deviceID;
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
-                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1);
-                if (state == BluetoothDevice.BOND_BONDED) {
-                    mEventFacade.postEvent("Bonded" + mDeviceID, new Bundle());
-                    mService.unregisterReceiver(listeningDevices.remove("Bonding" + mDeviceID));
+            // The specified device is found.
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (BluetoothFacade.deviceMatch(device, mDeviceID)) {
+                    Log.d("Found device " + device.getAliasName() + " for connection.");
+                    mBluetoothAdapter.cancelDiscovery();
+                    mDevice = device;
                 }
-            } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
+            // After discovery stops.
+            } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                if (mDevice == null) {
+                    Log.d("Device " + mDeviceID + " was not discovered.");
+                    mEventFacade.postEvent("Bond", mBadNews);
+                    return;
+                }
+                // Attempt to initiate bonding.
+                if (!started) {
+                    Log.d("Bond with " + mDevice.getAliasName());
+                    if (mDevice.createBond()) {
+                        started = true;
+                        Log.d("Bonding started.");
+                    } else {
+                        Log.e("Failed to bond with " + mDevice.getAliasName());
+                        mEventFacade.postEvent("Bond", mBadNews);
+                        mService.unregisterReceiver(listeningDevices.remove("Bond" + mDeviceID));
+                    }
+                }
+            } else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
+                Log.d("Bond state changing.");
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (BluetoothFacade.deviceMatch(device, mDeviceID)) {
+                    int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1);
+                    Log.d("New state is " + state);
+                    if (state == BluetoothDevice.BOND_BONDED) {
+                        Log.d("Bonding with " + mDeviceID + " successful.");
+                        mEventFacade.postEvent("Bond" + mDeviceID, mGoodNews);
+                        mService.unregisterReceiver(listeningDevices.remove("Bond" + mDeviceID));
+                    }
+                }
+            }
+        }
+    }
+
+    public class ConnectStateChangeReceiver extends BroadcastReceiver {
+        private final String mDeviceID;
+
+        public ConnectStateChangeReceiver(String deviceID) {
+            mDeviceID = deviceID;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            // Check if received the specified device
+            if (!BluetoothFacade.deviceMatch(device, mDeviceID)) {
+                return;
+            }
+            if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
                 int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, -1);
                 if (state == BluetoothA2dp.STATE_CONNECTED) {
-                    mEventFacade.postEvent("A2dpConnected" + mDeviceID, new Bundle());
+                    mEventFacade.postEvent("A2dpConnect" + mDeviceID, mGoodNews);
                     mService.unregisterReceiver(listeningDevices.remove("A2dpConnecting"
                             + mDeviceID));
+                } else if (state == BluetoothA2dp.STATE_CONNECTING) {
+                }
+            }else if (action.equals(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED)) {
+                int state = intent.getIntExtra(BluetoothInputDevice.EXTRA_STATE, -1);
+                if (state == BluetoothInputDevice.STATE_CONNECTED) {
+                    mEventFacade.postEvent("HidConnect" + mDeviceID, mGoodNews);
+                    mService.unregisterReceiver(listeningDevices
+                                                .remove("HidConnecting" + mDeviceID));
                 }
             } else if (action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)) {
                 int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
                 if (state == BluetoothHeadset.STATE_CONNECTED) {
-                    mEventFacade.postEvent("HspConnected" + mDeviceID, new Bundle());
+                    mEventFacade.postEvent("HspConnect" + mDeviceID, mGoodNews);
                     mService.unregisterReceiver(listeningDevices
-                            .remove("HspConnecting" + mDeviceID));
+                                                .remove("HspConnecting" + mDeviceID));
                 }
             }
         }
@@ -183,39 +249,65 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         ParcelUuid[] deviceUuids = device.getUuids();
         Log.d("Device uuid is " + deviceUuids);
         mService.registerReceiver(mPairingHelper, mPairingFilter);
-        if (BluetoothUuid.containsAnyUuid(SINK_UUIDS, deviceUuids)) {
+        if (BluetoothUuid.containsAnyUuid(BluetoothA2dpFacade.SINK_UUIDS, deviceUuids)) {
             Log.d("Connecting to " + device.getAliasName());
             boolean status = mA2dpProfile.a2dpConnect(device);
             if (status) {
                 Log.d("Connecting A2dp...");
-                StateChangeReceiver receiver = new StateChangeReceiver(deviceID);
+                ConnectStateChangeReceiver receiver = new ConnectStateChangeReceiver(deviceID);
                 mService.registerReceiver(receiver, mA2dpStateChangeFilter);
                 listeningDevices.put("A2dpConnecting" + deviceID, receiver);
             } else {
                 Log.d("Failed starting A2dp connection.");
+                mEventFacade.postEvent("A2dpConnect", mBadNews);
+            }
+        }
+        if (BluetoothUuid.containsAnyUuid(BluetoothHidFacade.HID_UUID, deviceUuids)) {
+            boolean status = mHidProfile.hidConnect(device);
+            if (status) {
+                Log.d("Connecting Hid...");
+                ConnectStateChangeReceiver receiver = new ConnectStateChangeReceiver(deviceID);
+                mService.registerReceiver(receiver, mHidStateChangeFilter);
+                listeningDevices.put("HidConnecting" + deviceID, receiver);
+            } else {
+                Log.d("Failed starting Hid connection.");
+                mEventFacade.postEvent("HidConnect", mBadNews);
             }
         }
         if (BluetoothUuid.containsAnyUuid(HSP_UUIDS, deviceUuids)) {
             boolean status = mHspProfile.hspConnect(device);
             if (status) {
-                Log.d("Posting event.");
-                StateChangeReceiver receiver = new StateChangeReceiver(deviceID);
+                Log.d("Connecting Hsp...");
+                ConnectStateChangeReceiver receiver = new ConnectStateChangeReceiver(deviceID);
                 mService.registerReceiver(receiver, mHspStateChangeFilter);
                 listeningDevices.put("HspConnecting" + deviceID, receiver);
             } else {
                 Log.d("Failed starting Hsp connection.");
+                mEventFacade.postEvent("HspConnect", mBadNews);
             }
         }
         mService.unregisterReceiver(mPairingHelper);
     }
 
-    private Set<BluetoothDevice> getConnectedDevices() {
-        Set<BluetoothDevice> a2dp = new HashSet<BluetoothDevice>(
-                mA2dpProfile.bluetoothA2dpGetConnectedDevices());
-        Set<BluetoothDevice> hsp = new HashSet<BluetoothDevice>(
-                mHspProfile.bluetoothHspGetConnectedDevices());
-        a2dp.addAll(hsp);
-        return a2dp;
+    @Rpc(description = "Return a list of devices connected through bluetooth")
+    public List<BluetoothDevice> bluetoothGetConnectedDevices() {
+        ArrayList<BluetoothDevice> results = new ArrayList<BluetoothDevice>();
+        for (BluetoothDevice bd : mBluetoothAdapter.getBondedDevices()) {
+            if (bd.isConnected()) {
+                results.add(bd);
+            }
+        }
+        return results;
+    }
+
+    @Rpc(description = "Return ture if a bluetooth device is connected.")
+    public Boolean bluetoothIsDeviceConnected(String deviceID) {
+        for (BluetoothDevice bd : mBluetoothAdapter.getBondedDevices()) {
+            if (BluetoothFacade.deviceMatch(bd, deviceID)) {
+                return bd.isConnected();
+            }
+        }
+        return false;
     }
 
     @Rpc(description = "Connect to a specified device once it's discovered.",
@@ -227,14 +319,10 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mBluetoothAdapter.cancelDiscovery();
         if (listeningDevices.containsKey(deviceID)) {
             Log.d("This device is already in the process of discovery and connecting.");
-            return false;
-        }
-        if (BluetoothFacade.deviceExists(getConnectedDevices(), deviceID)) {
-            Log.d("Device " + deviceID + " is already connected through A2DP.");
-            return false;
+            return true;
         }
         DiscoverConnectReceiver receiver = new DiscoverConnectReceiver(deviceID);
-        listeningDevices.put(deviceID, receiver);
+        listeningDevices.put("Connect" + deviceID, receiver);
         mService.registerReceiver(receiver, mDiscoverConnectFilter);
         return mBluetoothAdapter.startDiscovery();
     }
@@ -242,43 +330,48 @@ public class BluetoothConnectionFacade extends RpcReceiver {
     @Rpc(description = "Bond to a specified device once it's discovered.",
          returns = "Whether discovery started successfully. ")
     public Boolean bluetoothDiscoverAndBond(
-            @RpcParameter(name = "device",
+            @RpcParameter(name = "deviceID",
                           description = "Name or MAC address of a bluetooth device.")
             String deviceID) {
         mBluetoothAdapter.cancelDiscovery();
         if (listeningDevices.containsKey(deviceID)) {
             Log.d("This device is already in the process of discovery and bonding.");
-            return false;
+            return true;
         }
         if (BluetoothFacade.deviceExists(mBluetoothAdapter.getBondedDevices(), deviceID)) {
             Log.d("Device " + deviceID + " is already bonded.");
-            return false;
+            mEventFacade.postEvent("Bond" + deviceID, mGoodNews);
+            return true;
         }
-        DiscoverConnectReceiver receiver = new DiscoverConnectReceiver(deviceID, true);
+        DiscoverBondReceiver receiver = new DiscoverBondReceiver(deviceID);
+        if (listeningDevices.containsKey("Bond" + deviceID)) {
+            mService.unregisterReceiver(listeningDevices.remove("Bond" + deviceID));
+        }
         listeningDevices.put("Bond" + deviceID, receiver);
-        mService.registerReceiver(receiver, mDiscoverConnectFilter);
+        mService.registerReceiver(receiver, mBondFilter);
+        Log.d("Start discovery for bonding.");
         return mBluetoothAdapter.startDiscovery();
     }
 
-    @Rpc(description = "Remove bond to a device.",
+    @Rpc(description = "Unbond a device.",
          returns = "Whether the device was successfully unbonded.")
     public Boolean bluetoothUnbond(
-            @RpcParameter(name = "device",
+            @RpcParameter(name = "deviceID",
                           description = "Name or MAC address of a bluetooth device.")
-            String device) throws Exception {
+            String deviceID) throws Exception {
         BluetoothDevice mDevice = BluetoothFacade.getDevice(mBluetoothAdapter.getBondedDevices(),
-                device);
+                deviceID);
         return mDevice.removeBond();
     }
 
     @Rpc(description = "Connect to a device that is already bonded.")
     public void bluetoothConnectBonded(
-            @RpcParameter(name = "device",
+            @RpcParameter(name = "deviceID",
                           description = "Name or MAC address of a bluetooth device.")
-            String device) throws Exception {
+            String deviceID) throws Exception {
         BluetoothDevice mDevice = BluetoothFacade.getDevice(mBluetoothAdapter.getBondedDevices(),
-                device);
-        connectProfile(mDevice, device);
+                deviceID);
+        connectProfile(mDevice, deviceID);
     }
 
     @Override

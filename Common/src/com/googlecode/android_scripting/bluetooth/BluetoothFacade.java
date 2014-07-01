@@ -53,6 +53,7 @@ public class BluetoothFacade extends RpcReceiver {
     private final BroadcastReceiver mDiscoveryReceiver;
     private final IntentFilter discoveryFilter;
     private final EventFacade mEventFacade;
+    private final BluetoothStateReceiver mStateReceiver;
     private Map<String, BluetoothConnection> connections =
             new HashMap<String, BluetoothConnection>();
     private BluetoothAdapter mBluetoothAdapter;
@@ -74,6 +75,7 @@ public class BluetoothFacade extends RpcReceiver {
         discoveryFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         discoveryFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         mDiscoveryReceiver = new DiscoveryCacheReceiver();
+        mStateReceiver = new BluetoothStateReceiver();
     }
 
     class DiscoveryCacheReceiver extends BroadcastReceiver {
@@ -93,6 +95,23 @@ public class BluetoothFacade extends RpcReceiver {
             } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                 mEventFacade.postEvent("BluetoothDiscoveryFinished", new Bundle());
                 mService.unregisterReceiver(mDiscoveryReceiver);
+            }
+        }
+    }
+
+    class BluetoothStateReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_ON) {
+                    Bundle msg = new Bundle();
+                    msg.putString("State", "ON");
+                    mEventFacade.postEvent("BluetoothOn", msg);
+                    mService.unregisterReceiver(mStateReceiver);
+                }
             }
         }
     }
@@ -225,6 +244,8 @@ public class BluetoothFacade extends RpcReceiver {
                           description = "Prompt the user to confirm changing the Bluetooth state.")
             @RpcDefault("false")
             Boolean prompt) {
+        mService.registerReceiver(mStateReceiver,
+                                  new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
         if (enabled == null) {
             enabled = !bluetoothCheckState();
         }

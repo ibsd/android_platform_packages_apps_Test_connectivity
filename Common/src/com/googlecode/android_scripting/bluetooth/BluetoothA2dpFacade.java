@@ -17,9 +17,9 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothA2dpFacade extends RpcReceiver {
-  static final ParcelUuid[] SINK_UUIDS = { BluetoothUuid.AudioSink,
-      BluetoothUuid.AdvAudioDist, };
-
+  static final ParcelUuid[] SINK_UUIDS = {
+    BluetoothUuid.AudioSink, BluetoothUuid.AdvAudioDist,
+  };
   private final Service mService;
   private final BluetoothAdapter mBluetoothAdapter;
 
@@ -71,32 +71,33 @@ public class BluetoothA2dpFacade extends RpcReceiver {
 
   @Rpc(description = "Connect to an A2DP device.")
   public Boolean bluetoothA2dpConnect(
-      @RpcParameter(name = "device", description = "Name or MAC address of a bluetooth device.") String device)
+      @RpcParameter(name = "deviceID", description = "Name or MAC address of a bluetooth device.")
+      String deviceID)
       throws Exception {
     if (sA2dpProfile == null)
       return false;
     BluetoothDevice mDevice = BluetoothFacade.getDevice(
-        BluetoothFacade.DiscoveredDevices, device);
+        BluetoothFacade.DiscoveredDevices, deviceID);
     Log.d("Connecting to device " + mDevice.getAliasName());
     return a2dpConnect(mDevice);
   }
 
   @Rpc(description = "Disconnect an A2DP device.")
   public Boolean bluetoothA2dpDisconnect(
-      @RpcParameter(name = "device", description = "Name or MAC address of a device.") String device)
+      @RpcParameter(name = "deviceID", description = "Name or MAC address of a device.")
+      String deviceID)
       throws Exception {
     if (sA2dpProfile == null)
       return false;
     Log.d("Connected devices: " + sA2dpProfile.getConnectedDevices());
-    BluetoothDevice mDevice = BluetoothFacade.getDevice(
-        sA2dpProfile.getConnectedDevices(), device);
+    BluetoothDevice mDevice = BluetoothFacade.getDevice(sA2dpProfile.getConnectedDevices(),
+                                                        deviceID);
     return a2dpDisconnect(mDevice);
   }
 
   @Rpc(description = "Get all the devices connected through A2DP.")
   public List<BluetoothDevice> bluetoothA2dpGetConnectedDevices() {
-    while (!sIsA2dpReady)
-      ;
+    while (!sIsA2dpReady);
     return sA2dpProfile.getConnectedDevices();
   }
 

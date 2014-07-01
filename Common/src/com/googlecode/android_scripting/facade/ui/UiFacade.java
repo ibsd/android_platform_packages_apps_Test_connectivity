@@ -23,11 +23,13 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.FileUtils;
 import com.googlecode.android_scripting.FutureActivityTaskExecutor;
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.interpreter.html.HtmlActivityTask;
@@ -111,12 +113,17 @@ import org.json.JSONException;
  * convenience functions that create, display and return the relevant dialogs in one call.<br>
  * There is only ever one instance of a dialog. Any dialogCreate call will cause the existing dialog
  * to be destroyed.
- * 
+ *
  * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 public class UiFacade extends RpcReceiver {
   // This value should not be used for menu groups outside this class.
   private static final int MENU_GROUP_ID = Integer.MAX_VALUE;
+  private static final String blankLayout = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+          + "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\""
+          + "android:id=\"@+id/background\" android:orientation=\"vertical\""
+          + "android:layout_width=\"match_parent\" android:layout_height=\"match_parent\""
+          + "android:background=\"#ff000000\"></LinearLayout>";
 
   private final Service mService;
   private final FutureActivityTaskExecutor mTaskQueue;
@@ -129,6 +136,8 @@ public class UiFacade extends RpcReceiver {
 
   private final EventFacade mEventFacade;
   private List<Integer> mOverrideKeys = Collections.synchronizedList(new ArrayList<Integer>());
+
+  private float mLastXPosition;
 
   public UiFacade(FacadeManager manager) {
     super(manager);
@@ -577,6 +586,23 @@ public class UiFacade extends RpcReceiver {
     }
   }
 
+  class MouseMotionListener implements View.OnGenericMotionListener {
+
+      @Override
+      public boolean onGenericMotion(View v, MotionEvent event) {
+          Log.d("Generic motion triggered.");
+          if (event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) {
+              mLastXPosition = event.getAxisValue(MotionEvent.AXIS_X);
+              Log.d("New mouse x coord: " + mLastXPosition);
+//              Bundle msg = new Bundle();
+//              msg.putFloat("value", mLastXPosition);
+//              mEventFacade.postEvent("MouseXPositionUpdate", msg);
+              return true;
+          }
+          return false;
+      }
+  }
+
   @Rpc(description = "Get Fullscreen Properties")
   public Map<String, Map<String, String>> fullQuery() {
     if (mFullScreenTask == null) {
@@ -661,7 +687,24 @@ public class UiFacade extends RpcReceiver {
     return new JSONArray(mOverrideKeys);
   }
 
-  @Override
+  @Rpc(description = "Start tracking mouse cursor x coordinate.")
+  public void startTrackingMouseXCoord() throws InterruptedException {
+    View.OnGenericMotionListener l = new MouseMotionListener();
+    fullShow(blankLayout, "Blank");
+    mFullScreenTask.mView.setOnGenericMotionListener(l);
+  }
+
+  @Rpc(description = "Stop tracking mouse cursor x coordinate.")
+  public void stopTrackingMouseXCoord() throws InterruptedException {
+    fullDismiss();
+  }
+
+  @Rpc(description = "Return the latest X position of mouse cursor.")
+  public float getLatestMouseXCoord() {
+      return mLastXPosition;
+  }
+
+@Override
   public void shutdown() {
     fullDismiss();
     HtmlActivityTask.shutdown();

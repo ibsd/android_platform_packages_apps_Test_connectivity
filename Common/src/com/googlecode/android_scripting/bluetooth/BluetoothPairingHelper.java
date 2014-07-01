@@ -24,8 +24,8 @@ public class BluetoothPairingHelper extends BroadcastReceiver {
       Log.d("Processing Action Paring Request.");
       if(type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ||
          type == BluetoothDevice.PAIRING_VARIANT_CONSENT) {
-        Log.d("Confirming connection");
         mBtDevice.setPairingConfirmation(true);
+        Log.d("Connection confirmed");
         abortBroadcast(); // Abort the broadcast so Settings app doesn't get it.
       }
     }

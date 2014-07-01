@@ -238,7 +238,6 @@ public class MediaRecorderFacade extends RpcReceiver {
         getActivity().setContentView(view);
         getActivity().getWindow().setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED);
-        view.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         view.getHolder().addCallback(new Callback() {
           @Override
           public void surfaceDestroyed(SurfaceHolder holder) {
