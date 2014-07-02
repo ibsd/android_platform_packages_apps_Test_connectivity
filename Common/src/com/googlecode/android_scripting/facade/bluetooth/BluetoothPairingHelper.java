@@ -1,4 +1,4 @@
-package com.googlecode.android_scripting.bluetooth;
+package com.googlecode.android_scripting.facade.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
