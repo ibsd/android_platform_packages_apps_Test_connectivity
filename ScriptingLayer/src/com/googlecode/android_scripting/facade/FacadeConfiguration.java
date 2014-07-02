@@ -17,15 +17,15 @@
 package com.googlecode.android_scripting.facade;
 
 import com.google.common.collect.Maps;
-import com.googlecode.android_scripting.bluetooth.BluetoothA2dpFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothConnectionFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothGattFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothHidFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothHspFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothLeAdvertiseFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothLeScanFacade;
-import com.googlecode.android_scripting.bluetooth.BluetoothRfcommFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothA2dpFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothConnectionFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothGattFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothHidFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothHspFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeAdvertiseFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeScanFacade;
+import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;

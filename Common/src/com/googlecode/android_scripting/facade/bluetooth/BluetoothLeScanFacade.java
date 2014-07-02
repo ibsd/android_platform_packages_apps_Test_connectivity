@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.bluetooth;
+package com.googlecode.android_scripting.facade.bluetooth;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
