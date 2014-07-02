@@ -1,5 +1,5 @@
 
-package com.googlecode.android_scripting.facade.bluetooth;
+package com.googlecode.android_scripting.bluetooth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -770,15 +770,15 @@ public class BluetoothGattFacade extends RpcReceiver {
             mResults.clear();
         }
 
-//        @Override
-//        public void onConnectionCongested(BluetoothGatt gatt, boolean congested) {
-//            Log.d("gatt_connect change onConnectionCongested " + mEventType + " " + index);
-//            mResults.putString("Type", "onConnectionCongested");
-//            mResults.putBoolean("Congested", congested);
-//            mEventFacade
-//                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
-//            mResults.clear();
-//        }
+        @Override
+        public void onConnectionCongested(BluetoothGatt gatt, boolean congested) {
+            Log.d("gatt_connect change onConnectionCongested " + mEventType + " " + index);
+            mResults.putString("Type", "onConnectionCongested");
+            mResults.putBoolean("Congested", congested);
+            mEventFacade
+                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
+            mResults.clear();
+        }
     }
 
     @Override

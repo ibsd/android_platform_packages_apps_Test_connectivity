@@ -1,4 +1,4 @@
-package com.googlecode.android_scripting.facade.bluetooth;
+package com.googlecode.android_scripting.bluetooth;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.googlecode.android_scripting.facade.bluetooth;
+package com.googlecode.android_scripting.bluetooth;
 
 import java.util.List;
 
@@ -25,7 +25,6 @@ public class BluetoothA2dpFacade extends RpcReceiver {
 
   private static boolean sIsA2dpReady = false;
   private static BluetoothA2dp sA2dpProfile = null;
-  private static BluetoothAvrcpFacade sAvrcpProfile = null;
 
   public BluetoothA2dpFacade(FacadeManager manager) {
     super(manager);
@@ -33,7 +32,6 @@ public class BluetoothA2dpFacade extends RpcReceiver {
     mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     mBluetoothAdapter.getProfileProxy(mService, new A2dpServiceListener(),
         BluetoothProfile.A2DP);
-    sAvrcpProfile = manager.getReceiver(BluetoothAvrcpFacade.class);
   }
 
   class A2dpServiceListener implements BluetoothProfile.ServiceListener {
@@ -92,11 +90,8 @@ public class BluetoothA2dpFacade extends RpcReceiver {
     if (sA2dpProfile == null)
       return false;
     Log.d("Connected devices: " + sA2dpProfile.getConnectedDevices());
-    List<BluetoothDevice> connected_a2dp = sA2dpProfile.getConnectedDevices();
-    //List<BluetoothDevice> connected_avrcp = sAvrcpProfile.bluetoothAvrcpGetConnectedDevices();
-    //connected_a2dp.addAll(connected_avrcp);
-    Log.d("Connected a2dp devices " + connected_a2dp);
-    BluetoothDevice mDevice = BluetoothFacade.getDevice(connected_a2dp, deviceID);
+    BluetoothDevice mDevice = BluetoothFacade.getDevice(sA2dpProfile.getConnectedDevices(),
+                                                        deviceID);
     return a2dpDisconnect(mDevice);
   }
 

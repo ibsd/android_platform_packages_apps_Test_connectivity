@@ -1,5 +1,5 @@
 
-package com.googlecode.android_scripting.facade.bluetooth;
+package com.googlecode.android_scripting.bluetooth;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +29,10 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothConnectionFacade extends RpcReceiver {
+
+    static final ParcelUuid[] HSP_UUIDS = {
+            BluetoothUuid.HSP, BluetoothUuid.Handsfree,
+    };
 
     private final Service mService;
     private final BluetoothAdapter mBluetoothAdapter;
@@ -270,7 +274,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 mEventFacade.postEvent("HidConnect", mBadNews);
             }
         }
-        if (BluetoothUuid.containsAnyUuid(BluetoothHspFacade.HSP_UUIDS, deviceUuids)) {
+        if (BluetoothUuid.containsAnyUuid(HSP_UUIDS, deviceUuids)) {
             boolean status = mHspProfile.hspConnect(device);
             if (status) {
                 Log.d("Connecting Hsp...");

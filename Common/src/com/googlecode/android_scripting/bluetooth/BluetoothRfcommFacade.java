@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade.bluetooth;
+package com.googlecode.android_scripting.bluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
