@@ -257,21 +257,20 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Get a ble batch Scan results
+     * Trigger onBatchScanResults
      *
      * @param flush the results
      * @throws Exception
      */
     @Rpc(description = "Gets the results of the ble ScanCallback")
-    public List<ScanResult> getBatchScanResults(
+    public void flushPendingScanResults(
             @RpcParameter(name = "callbackIndex")
-            Integer callbackIndex,
-            @RpcParameter(name = "flush")
-            Boolean flush) throws Exception {
+            Integer callbackIndex
+            ) throws Exception {
         if (mScanCallbackList.get(callbackIndex) != null) {
-            return mBluetoothAdapter
-                    .getBluetoothLeScanner().getBatchScanResults(
-                            mScanCallbackList.get(callbackIndex), flush);
+            mBluetoothAdapter
+                    .getBluetoothLeScanner().flushPendingScanResults(
+                            mScanCallbackList.get(callbackIndex));
         } else {
             throw new Exception("Invalid callbackIndex input:"
                     + Integer.toString(callbackIndex));
