@@ -251,27 +251,25 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanCallbackList.get(callbackIndex) != null) {
             mScanner.startScan(mScanFilters, mScanSettings, mScanCallbackList.get(callbackIndex));
         } else {
-            throw new Exception("Invalid filterListIndex input:" 
+            throw new Exception("Invalid filterListIndex input:"
                     + Integer.toString(filterListIndex));
         }
     }
 
     /**
-     * Get a ble batch Scan results
+     * Trigger onBatchScanResults
      *
-     * @param flush the results
      * @throws Exception
      */
     @Rpc(description = "Gets the results of the ble ScanCallback")
-    public List<ScanResult> getBatchScanResults(
+    public void flushPendingScanResults(
             @RpcParameter(name = "callbackIndex")
-            Integer callbackIndex,
-            @RpcParameter(name = "flush")
-            Boolean flush) throws Exception {
+            Integer callbackIndex
+            ) throws Exception {
         if (mScanCallbackList.get(callbackIndex) != null) {
-            return mBluetoothAdapter
-                    .getBluetoothLeScanner().getBatchScanResults(
-                            mScanCallbackList.get(callbackIndex), flush);
+            mBluetoothAdapter
+                    .getBluetoothLeScanner().flushPendingScanResults(
+                            mScanCallbackList.get(callbackIndex));
         } else {
             throw new Exception("Invalid callbackIndex input:"
                     + Integer.toString(callbackIndex));
@@ -298,8 +296,9 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "scanResultType")
             Integer scanResultType) {
         mScanSettingsBuilder.setCallbackType(callbackType);
-        mScanSettingsBuilder.setCallbackType(scanMode);
-        mScanSettingsBuilder.setCallbackType(scanResultType);
+        mScanSettingsBuilder.setScanMode(scanMode);
+        mScanSettingsBuilder.setScanResultType(scanResultType);
+        mScanSettingsBuilder.setReportDelayNanos(reportDelayNanos);
     }
 
     /**
