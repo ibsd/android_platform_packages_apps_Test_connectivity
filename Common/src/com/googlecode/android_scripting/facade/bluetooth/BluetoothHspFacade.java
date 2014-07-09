@@ -17,7 +17,7 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothHspFacade extends RpcReceiver {
-  static final ParcelUuid[] HSP_UUIDS = {
+  static final ParcelUuid[] UUIDS = {
     BluetoothUuid.HSP, BluetoothUuid.Handsfree
   };
 

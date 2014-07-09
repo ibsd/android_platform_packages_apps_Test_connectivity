@@ -10,23 +10,48 @@ import com.googlecode.android_scripting.Log;
 public class BluetoothPairingHelper extends BroadcastReceiver {
   public BluetoothPairingHelper() {
     super();
+    Log.d("Pairing helper created.");
   }
   /**
-   * Blindly confirm passkey
+   * Blindly confirm bluetooth connection/bonding requests.
    */
   @Override
   public void onReceive(Context c, Intent intent) {
     String action = intent.getAction();
-    int type = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR);
-    Log.d("Bluetooth pairing intent received: " + action + " with type " + type);
-    BluetoothDevice mBtDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    Log.d("Bluetooth pairing intent received: " + action);
+    BluetoothDevice mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
     if(action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
-      Log.d("Processing Action Paring Request.");
+      int type = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR);
+      Log.d("Processing Action Paring Request with type " + type);
       if(type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ||
          type == BluetoothDevice.PAIRING_VARIANT_CONSENT) {
-        mBtDevice.setPairingConfirmation(true);
+        mDevice.setPairingConfirmation(true);
         Log.d("Connection confirmed");
         abortBroadcast(); // Abort the broadcast so Settings app doesn't get it.
+      }
+    }
+    else if(action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST)) {
+      int type = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE, BluetoothDevice.ERROR);
+      Log.d("Processing Action Connection Access Request type " + type);
+      if(type == BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS ||
+         type == BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS ||
+         type == BluetoothDevice.REQUEST_TYPE_PROFILE_CONNECTION) {
+    	  Intent newIntent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
+    	  String mReturnPackage = intent.getStringExtra(BluetoothDevice.EXTRA_PACKAGE_NAME);
+          String mReturnClass = intent.getStringExtra(BluetoothDevice.EXTRA_CLASS_NAME);
+          int mRequestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                  BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+          if (mReturnPackage != null && mReturnClass != null) {
+              newIntent.setClassName(mReturnPackage, mReturnClass);
+          }
+    	  newIntent.putExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
+    			             BluetoothDevice.CONNECTION_ACCESS_YES);
+          newIntent.putExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, true);
+    	  newIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+    	  newIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE, mRequestType);
+          Log.d("Sending connection access acceptance intent.");
+          abortBroadcast();
+          c.sendBroadcast(newIntent, android.Manifest.permission.BLUETOOTH_ADMIN);
       }
     }
   }

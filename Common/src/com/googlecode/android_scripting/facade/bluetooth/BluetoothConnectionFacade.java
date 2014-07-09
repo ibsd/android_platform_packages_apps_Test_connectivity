@@ -37,7 +37,6 @@ public class BluetoothConnectionFacade extends RpcReceiver {
     private final EventFacade mEventFacade;
 
     private final IntentFilter mDiscoverConnectFilter;
-    private final IntentFilter mConnectionStateChangeFilter;
     private final IntentFilter mPairingFilter;
     private final IntentFilter mBondFilter;
     private final IntentFilter mA2dpStateChangeFilter;
@@ -56,7 +55,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mService = manager.getService();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mPairingHelper = new BluetoothPairingHelper();
-        // Use a synchronized map to avoid running problems
+        // Use a synchronized map to avoid racing problems
         listeningDevices = Collections.synchronizedMap(new HashMap<String, BroadcastReceiver>());
 
         mEventFacade = manager.getReceiver(EventFacade.class);
@@ -68,15 +67,13 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mDiscoverConnectFilter.addAction(BluetoothDevice.ACTION_UUID);
         mDiscoverConnectFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        mConnectionStateChangeFilter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        mConnectionStateChangeFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-
         mPairingFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        mPairingFilter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
+        mPairingFilter.setPriority(999);
 
         mBondFilter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondFilter.addAction(BluetoothDevice.ACTION_FOUND);
         mBondFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        mBondFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY - 1);
 
         mA2dpStateChangeFilter = new IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         mHidStateChangeFilter = new IntentFilter(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
@@ -86,6 +83,8 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mGoodNews.putBoolean("Status", true);
         mBadNews = new Bundle();
         mBadNews.putBoolean("Status", false);
+
+        mService.registerReceiver(mPairingHelper, mPairingFilter);
     }
 
     /**
@@ -218,7 +217,9 @@ public class BluetoothConnectionFacade extends RpcReceiver {
             if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
                 int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, -1);
                 if (state == BluetoothA2dp.STATE_CONNECTED) {
-                    mEventFacade.postEvent("A2dpConnect" + mDeviceID, mGoodNews);
+                	Bundle a2dpGoodNews = (Bundle) mGoodNews.clone();
+                	a2dpGoodNews.putString("Type", "a2dp");
+                    mEventFacade.postEvent("A2dpConnect" + mDeviceID, a2dpGoodNews);
                     mService.unregisterReceiver(listeningDevices.remove("A2dpConnecting"
                             + mDeviceID));
                 } else if (state == BluetoothA2dp.STATE_CONNECTING) {
@@ -242,9 +243,12 @@ public class BluetoothConnectionFacade extends RpcReceiver {
     }
 
     private void connectProfile(BluetoothDevice device, String deviceID) {
+        mService.registerReceiver(mPairingHelper, mPairingFilter);
         ParcelUuid[] deviceUuids = device.getUuids();
         Log.d("Device uuid is " + deviceUuids);
-        mService.registerReceiver(mPairingHelper, mPairingFilter);
+        if (deviceUuids == null) {
+        	mEventFacade.postEvent("Connect", mBadNews);
+        }
         if (BluetoothUuid.containsAnyUuid(BluetoothA2dpFacade.SINK_UUIDS, deviceUuids)) {
             Log.d("Connecting to " + device.getAliasName());
             boolean status = mA2dpProfile.a2dpConnect(device);
@@ -255,10 +259,12 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 listeningDevices.put("A2dpConnecting" + deviceID, receiver);
             } else {
                 Log.d("Failed starting A2dp connection.");
-                mEventFacade.postEvent("A2dpConnect", mBadNews);
+                Bundle a2dpBadNews = (Bundle) mBadNews.clone();
+                a2dpBadNews.putString("Type", "a2dp");
+                mEventFacade.postEvent("Connect", a2dpBadNews);
             }
         }
-        if (BluetoothUuid.containsAnyUuid(BluetoothHidFacade.HID_UUID, deviceUuids)) {
+        if (BluetoothUuid.containsAnyUuid(BluetoothHidFacade.UUIDS, deviceUuids)) {
             boolean status = mHidProfile.hidConnect(device);
             if (status) {
                 Log.d("Connecting Hid...");
@@ -270,7 +276,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 mEventFacade.postEvent("HidConnect", mBadNews);
             }
         }
-        if (BluetoothUuid.containsAnyUuid(BluetoothHspFacade.HSP_UUIDS, deviceUuids)) {
+        if (BluetoothUuid.containsAnyUuid(BluetoothHspFacade.UUIDS, deviceUuids)) {
             boolean status = mHspProfile.hspConnect(device);
             if (status) {
                 Log.d("Connecting Hsp...");
@@ -296,7 +302,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         return results;
     }
 
-    @Rpc(description = "Return ture if a bluetooth device is connected.")
+    @Rpc(description = "Return true if a bluetooth device is connected.")
     public Boolean bluetoothIsDeviceConnected(String deviceID) {
         for (BluetoothDevice bd : mBluetoothAdapter.getBondedDevices()) {
             if (BluetoothFacade.deviceMatch(bd, deviceID)) {
@@ -367,10 +373,21 @@ public class BluetoothConnectionFacade extends RpcReceiver {
             String deviceID) throws Exception {
         BluetoothDevice mDevice = BluetoothFacade.getDevice(mBluetoothAdapter.getBondedDevices(),
                 deviceID);
+        mDevice.setTrust(true);
         connectProfile(mDevice, deviceID);
     }
+//
+//    @Rpc(description = "Register pairing helper.")
+//    public void bluetoothAutoAccept() {
+//        mService.registerReceiver(mPairingHelper, mPairingFilter);
+//    }
 
     @Override
     public void shutdown() {
+        for(BroadcastReceiver receiver : listeningDevices.values()) {
+            mService.unregisterReceiver(receiver);
+        }
+        listeningDevices.clear();
+        mService.unregisterReceiver(mPairingHelper);
     }
 }
