@@ -18,7 +18,7 @@ import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothHidFacade extends RpcReceiver {
-  public final static ParcelUuid[] HID_UUID = { BluetoothUuid.Hid };
+  public final static ParcelUuid[] UUIDS = { BluetoothUuid.Hid };
 
   private final Service mService;
   private final BluetoothAdapter mBluetoothAdapter;

@@ -13,6 +13,7 @@ import android.os.ParcelUuid;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 public class BluetoothAvrcpFacade extends RpcReceiver {
   static final ParcelUuid[] AVRCP_UUIDS = {
@@ -54,6 +55,18 @@ public class BluetoothAvrcpFacade extends RpcReceiver {
   public List<BluetoothDevice> bluetoothAvrcpGetConnectedDevices() {
     while (!sIsAvrcpReady);
     return sAvrcpProfile.getConnectedDevices();
+  }
+
+  @Rpc(description = "Send AVRPC passthrough command.")
+  public void bluetoothAvrcpSendPassThroughCmd(
+          @RpcParameter(name = "deviceID", description = "Name or MAC address of a bluetooth device.")
+          String deviceID,
+          @RpcParameter(name = "keyCode")
+          Integer keyCode,
+          @RpcParameter(name = "keyState")
+          Integer keyState) throws Exception {
+      BluetoothDevice mDevice = BluetoothFacade.getDevice(sAvrcpProfile.getConnectedDevices(), deviceID);
+      sAvrcpProfile.sendPassThroughCmd(mDevice, keyCode, keyState);
   }
 
   @Override
