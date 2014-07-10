@@ -251,7 +251,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (mScanCallbackList.get(callbackIndex) != null) {
             mScanner.startScan(mScanFilters, mScanSettings, mScanCallbackList.get(callbackIndex));
         } else {
-            throw new Exception("Invalid filterListIndex input:" 
+            throw new Exception("Invalid filterListIndex input:"
                     + Integer.toString(filterListIndex));
         }
     }
@@ -259,7 +259,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     /**
      * Trigger onBatchScanResults
      *
-     * @param flush the results
      * @throws Exception
      */
     @Rpc(description = "Gets the results of the ble ScanCallback")
@@ -297,8 +296,9 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "scanResultType")
             Integer scanResultType) {
         mScanSettingsBuilder.setCallbackType(callbackType);
-        mScanSettingsBuilder.setCallbackType(scanMode);
-        mScanSettingsBuilder.setCallbackType(scanResultType);
+        mScanSettingsBuilder.setScanMode(scanMode);
+        mScanSettingsBuilder.setScanResultType(scanResultType);
+        mScanSettingsBuilder.setReportDelayNanos(reportDelayNanos);
     }
 
     /**
