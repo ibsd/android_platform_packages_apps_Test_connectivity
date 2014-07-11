@@ -23,7 +23,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Contacts.PhonesColumns;
+import android.provider.ContactsContract;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
@@ -244,7 +244,7 @@ public class PhoneFacade extends RpcReceiver {
             throws Exception {
         Uri uri = Uri.parse(uriString);
         if (uri.getScheme().equals("content")) {
-            String phoneNumberColumn = PhonesColumns.NUMBER;
+            String phoneNumberColumn = ContactsContract.PhoneLookup.NUMBER;
             String selectWhere = null;
             if ((FacadeManager.class.cast(mManager)).getSdkLevel() >= 5) {
                 Class<?> contactsContract_Data_class = Class
@@ -441,7 +441,7 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Checks the data connection state.",
             returns = "True if data conenction is enabled.")
     public Boolean checkDataConnection() {
-        return mConnect.getMobileDataEnabled();
+        return mTelephonyManager.getDataEnabled();
     }
 
     @Rpc(description = "Toggles data connection on or off.")
