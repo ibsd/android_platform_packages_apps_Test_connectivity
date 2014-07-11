@@ -203,7 +203,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing ble advertisement scan")
-    @RpcStopEvent("BleAdvertise")
     public void stopBleAdvertising(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
@@ -223,7 +222,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing classic ble advertisement scan")
-    @RpcStopEvent("BleAdvertise")
     public void stopClassicBleAdvertising(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
@@ -245,7 +243,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts ble advertisement")
-    @RpcStartEvent("BleAdvertising")
     public void startBleAdvertising(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex,
@@ -287,7 +284,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts ble advertisement")
-    @RpcStartEvent("BleAdvertising")
     public void startBleAdvertisingWithScanResponse(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex,
@@ -336,7 +332,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts ble advertisement")
-    @RpcStartEvent("BleAdvertising")
     public void startClassicBleAdvertising(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex,
