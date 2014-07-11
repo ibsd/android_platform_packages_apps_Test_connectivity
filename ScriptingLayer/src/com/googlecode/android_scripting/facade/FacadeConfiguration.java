@@ -17,6 +17,7 @@
 package com.googlecode.android_scripting.facade;
 
 import com.google.common.collect.Maps;
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothA2dpFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothAvrcpFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothConnectionFacade;
@@ -64,15 +65,21 @@ public class FacadeConfiguration {
     sSdkLevel = android.os.Build.VERSION.SDK_INT;
 
     sFacadeClassList = new HashSet<Class<? extends RpcReceiver>>();
+    sFacadeClassList.add(ActivityResultFacade.class);
     sFacadeClassList.add(AndroidFacade.class);
     sFacadeClassList.add(ApplicationManagerFacade.class);
+    sFacadeClassList.add(AudioManagerFacade.class);
+    sFacadeClassList.add(BatteryManagerFacade.class);
     sFacadeClassList.add(CameraFacade.class);
     sFacadeClassList.add(CommonIntentsFacade.class);
     sFacadeClassList.add(ContactsFacade.class);
     sFacadeClassList.add(EventFacade.class);
     sFacadeClassList.add(LocationFacade.class);
     sFacadeClassList.add(PhoneFacade.class);
+    sFacadeClassList.add(PreferencesFacade.class);
+    sFacadeClassList.add(MediaPlayerFacade.class);
     sFacadeClassList.add(MediaRecorderFacade.class);
+    sFacadeClassList.add(MediaSessionFacade.class);
     sFacadeClassList.add(SensorManagerFacade.class);
     sFacadeClassList.add(SettingsFacade.class);
     // Could not get SmsFacade to compile. APIs are deprecated
@@ -82,10 +89,6 @@ public class FacadeConfiguration {
     sFacadeClassList.add(WakeLockFacade.class);
     sFacadeClassList.add(WifiManagerFacade.class);
     sFacadeClassList.add(UiFacade.class);
-    sFacadeClassList.add(BatteryManagerFacade.class);
-    sFacadeClassList.add(ActivityResultFacade.class);
-    sFacadeClassList.add(MediaPlayerFacade.class);
-    sFacadeClassList.add(PreferencesFacade.class);
 
     if (sSdkLevel >= 4) {
       sFacadeClassList.add(TextToSpeechFacade.class);
@@ -95,13 +98,13 @@ public class FacadeConfiguration {
 
     if (sSdkLevel >= 5) {
       sFacadeClassList.add(BluetoothFacade.class);
-      sFacadeClassList.add(BluetoothRfcommFacade.class);
-      sFacadeClassList.add(BluetoothConnectionFacade.class);
       sFacadeClassList.add(BluetoothA2dpFacade.class);
       sFacadeClassList.add(BluetoothAvrcpFacade.class);
+      sFacadeClassList.add(BluetoothConnectionFacade.class);
       sFacadeClassList.add(BluetoothHspFacade.class);
       sFacadeClassList.add(BluetoothHidFacade.class);
       sFacadeClassList.add(BluetoothMapFacade.class);
+      sFacadeClassList.add(BluetoothRfcommFacade.class);
     }
 
     if (sSdkLevel >= 7) {
@@ -116,8 +119,8 @@ public class FacadeConfiguration {
       sFacadeClassList.add(BluetoothLeScanFacade.class);
       sFacadeClassList.add(BluetoothGattFacade.class);
       sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
-      sFacadeClassList.add(WifiScannerFacade.class);
       sFacadeClassList.add(WifiPasspointManagerFacade.class);
+      sFacadeClassList.add(WifiScannerFacade.class);
 
     }
 
@@ -169,6 +172,7 @@ public class FacadeConfiguration {
       if (method.isAnnotationPresent(RpcStartEvent.class)) {
         String eventName = method.getAnnotation(RpcStartEvent.class).value();
         if (map.containsKey(eventName)) {
+          Log.d("Duplicate eventName " + eventName);
           throw new RuntimeException("Duplicate start event method descriptor found.");
         }
         map.put(eventName, descriptor);
