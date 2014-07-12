@@ -111,7 +111,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanFilterList.put(index, new ArrayList<ScanFilter>());
         return index;
     }
-    
+
     /**
      * Constructs a new filter list array and returns its index
      *
@@ -298,7 +298,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanSettingsBuilder.setCallbackType(callbackType);
         mScanSettingsBuilder.setScanMode(scanMode);
         mScanSettingsBuilder.setScanResultType(scanResultType);
-        mScanSettingsBuilder.setReportDelayNanos(reportDelayNanos);
+        mScanSettingsBuilder.setReportDelaySeconds(reportDelayNanos);
     }
 
     /**
@@ -334,7 +334,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
             ScanSettings mScanSettings = mScanSettingsList.get(index);
-            return mScanSettings.getReportDelayNanos();
+            // TODO: fix the rpc to match API.
+            return mScanSettings.getReportDelaySeconds();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
@@ -445,7 +446,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throws Exception {
         if (mScanFilterList.get(index) != null) {
             if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index).get(filterIndex).getLocalName();
+                return mScanFilterList.get(index).get(filterIndex).getDeviceName();
             } else {
                 throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
             }
@@ -678,7 +679,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "macAddress")
             String macAddress
             ) {
-            mScanFilterBuilder.setMacAddress(macAddress);
+            mScanFilterBuilder.setDeviceAddress(macAddress);
     }
 
     /**
@@ -742,7 +743,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             ) {
         if (serviceDataMask != null) {
             mScanFilterBuilder
-                    .setServiceData(BigInteger.valueOf(serviceData).toByteArray(), 
+                    .setServiceData(BigInteger.valueOf(serviceData).toByteArray(),
                             BigInteger.valueOf(serviceDataMask).toByteArray());
         } else {
             mScanFilterBuilder.setServiceData(BigInteger.valueOf(serviceData).toByteArray());
@@ -780,7 +781,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "name")
             String name
             ) {
-            mScanFilterBuilder.setName(name);
+            mScanFilterBuilder.setDeviceName(name);
     }
 
     /**
@@ -827,32 +828,12 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         }
 
         @Override
-        public void onAdvertisementUpdate(ScanResult result) {
+        public void onScanResult(int callbackType, ScanResult result) {
             Log.d("bluetooth_le_scan change onUpdate " + mEventType + " " + index);
             mResults.putInt("ID", index);
-            mResults.putString("Type", "onAdvertisementUpdate");
+            mResults.putString("Type", "onScanResult");
             mResults.putParcelable("Result", result);
-            mEventFacade.postEvent(mEventType + index + "onAdvertisementUpdate", mResults.clone());
-            mResults.clear();
-        }
-
-        @Override
-        public void onAdvertisementFound(ScanResult result) {
-            Log.d("bluetooth_le_scan onAdvertisementFound " + mEventType + " "
-                    + index);
-            mResults.putInt("ID", index);
-            mResults.putString("Type", "onAdvertisementFound");
-            mEventFacade.postEvent(mEventType + index + "onAdvertisementFound", mResults.clone());
-            mResults.clear();
-        }
-
-        @Override
-        public void onAdvertisementLost(ScanResult result) {
-            Log.d("bluetooth_le_scan onAdvertisementLost" + mEventType + " " + index);
-            mResults.putInt("ID", index);
-            mResults.putString("Type", "onAdvertisementLost");
-            mResults.putParcelable("Result", result);
-            mEventFacade.postEvent(mEventType + index + "onAdvertisementLost", mResults.clone());
+            mEventFacade.postEvent(mEventType + index + "onScanResults", mResults.clone());
             mResults.clear();
         }
 

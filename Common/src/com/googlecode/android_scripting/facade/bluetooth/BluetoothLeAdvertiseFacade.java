@@ -24,9 +24,9 @@ import java.util.concurrent.Callable;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseData.Builder;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.AdvertisementData;
-import android.bluetooth.le.AdvertisementData.Builder;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -62,7 +62,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     private final Service mService;
     private Builder mAdvertiseDataBuilder;
     private android.bluetooth.le.AdvertiseSettings.Builder mAdvertiseSettingsBuilder;
-    private final HashMap<Integer, AdvertisementData> mAdvertiseDataList;
+    private final HashMap<Integer, AdvertiseData> mAdvertiseDataList;
     private final HashMap<Integer, AdvertiseSettings> mAdvertiseSettingsList;
 
     public BluetoothLeAdvertiseFacade(FacadeManager manager) {
@@ -79,7 +79,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         mAdvertiseCallbackList = new HashMap<Integer, myAdvertiseCallback>();
         mClassicAdvertiseCallbackList = new HashMap<Integer, myClassicAdvertiseCallback>();
         mAdvertise = mBluetoothAdapter.getBluetoothLeAdvertiser();
-        mAdvertiseDataList = new HashMap<Integer, AdvertisementData>();
+        mAdvertiseDataList = new HashMap<Integer, AdvertiseData>();
         mAdvertiseSettingsList = new HashMap<Integer, AdvertiseSettings>();
         mAdvertiseDataBuilder = new Builder();
         mAdvertiseSettingsBuilder = new android.bluetooth.le.AdvertiseSettings.Builder();
@@ -116,12 +116,12 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
-     * Constructs a AdvertisementData obj and returns its index
+     * Constructs a AdvertiseData obj and returns its index
      *
      * @return index
      */
     @Rpc(description = "Constructs a new Builder obj for AdvertiseData and returns its index")
-    public Integer buildAdvertisementData() {
+    public Integer buildAdvertiseData() {
         BleAdvertiseDataCount += 1;
         int index = BleAdvertiseDataCount;
         mAdvertiseDataList.put(index,
@@ -238,7 +238,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * Starts ble advertising
      *
      * @param callbackIndex The advertisementCallback index
-     * @param dataIndex the advertisementData index
+     * @param dataIndex the AdvertiseData index
      * @param settingsIndex the advertisementsettings index
      * @throws Exception
      */
@@ -251,7 +251,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             @RpcParameter(name = "settingsIndex")
             Integer settingsIndex
             ) throws Exception {
-        AdvertisementData mData = new AdvertisementData.Builder().build();
+        AdvertiseData mData = new AdvertiseData.Builder().build();
         AdvertiseSettings mSettings = new AdvertiseSettings.Builder().build();
         if (mAdvertiseDataList.get(dataIndex) != null) {
             mData = mAdvertiseDataList.get(dataIndex);
@@ -275,10 +275,10 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
 
     /**
      * Starts ble advertising with a scanResponse. ScanResponses are created in the same way
-     * AdvertisementData is created since they share the same object type.
+     * AdvertiseData is created since they share the same object type.
      *
      * @param callbackIndex The advertisementCallback index
-     * @param dataIndex the advertisementData index
+     * @param dataIndex the AdvertiseData index
      * @param settingsIndex the advertisementsettings index
      * @param scanResponseIndex the scanResponse index
      * @throws Exception
@@ -294,9 +294,9 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             @RpcParameter(name = "scanResponseIndex")
             Integer scanResponseIndex
             ) throws Exception {
-        AdvertisementData mData = new AdvertisementData.Builder().build();
+        AdvertiseData mData = new AdvertiseData.Builder().build();
         AdvertiseSettings mSettings = new AdvertiseSettings.Builder().build();
-        AdvertisementData mScanResponse = new AdvertisementData.Builder().build();
+        AdvertiseData mScanResponse = new AdvertiseData.Builder().build();
 
         if (mAdvertiseDataList.get(dataIndex) != null) {
             mData = mAdvertiseDataList.get(dataIndex);
@@ -357,7 +357,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data include tx power level")
-    public void setAdvertisementDataIncludeTxPowerLevel(
+    public void setAdvertiseDataIncludeTxPowerLevel(
             @RpcParameter(name = "includeTxPowerLevel")
             Boolean includeTxPowerLevel
             ) {
@@ -415,7 +415,8 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
             AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
-            return mSettings.getType();
+            // TODO: Fix this rpc to match the API.
+            return mSettings.getIsConnectable() ? 1 : 0;
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
@@ -429,11 +430,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement data include tx power level")
-    public Boolean getAdvertisementDataIncludeTxPowerLevel(
+    public Boolean getAdvertiseDataIncludeTxPowerLevel(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             return mData.getIncludeTxPowerLevel();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -448,11 +449,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement data manufacturer id")
-    public Integer getAdvertisementDataManufacturerId(
+    public Integer getAdvertiseDataManufacturerId(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             return mData.getManufacturerId();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -468,11 +469,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Manufacturer Specific Data")
-    public String getAdvertisementDataManufacturerSpecificData(
+    public String getAdvertiseDataManufacturerSpecificData(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             return ConvertUtils.convertByteArrayToString(mData.getManufacturerSpecificData());
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -487,11 +488,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Service Data")
-    public String getAdvertisementDataServiceData(
+    public String getAdvertiseDataServiceData(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             return ConvertUtils.convertByteArrayToString(mData.getServiceData());
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -506,16 +507,16 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Service Data Uuid")
-    public String getAdvertisementDataServiceDataUuid(
+    public String getAdvertiseDataServiceDataUuid(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             if (mData.getServiceDataUuid() != null) {
                 return mData.getServiceDataUuid().toString();
             } else {
                 throw new Exception("Service Data Uuid not set for input "
-                        + "AdvertisementData: " + index);
+                        + "AdvertiseData: " + index);
             }
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -530,11 +531,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Service Uuids")
-    public List<ParcelUuid> getAdvertisementDataServiceUuids(
+    public List<ParcelUuid> getAdvertiseDataServiceUuids(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
-            AdvertisementData mData = mAdvertiseDataList.get(index);
+            AdvertiseData mData = mAdvertiseDataList.get(index);
             return mData.getServiceUuids();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -548,7 +549,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data service uuids")
-    public void setAdvertisementDataSetServiceUuids(
+    public void setAdvertiseDataSetServiceUuids(
             @RpcParameter(name = "uuidList")
             String[] uuidList
             ) {
@@ -567,7 +568,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data service uuids")
-    public void setAdvertisementDataSetServiceData(
+    public void setAdvertiseDataSetServiceData(
             @RpcParameter(name = "serviceDataUuid")
             String serviceDataUuid,
             @RpcParameter(name = "serviceData")
@@ -586,7 +587,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data manufacturerId")
-    public void setAdvertisementDataManufacturerId(
+    public void setAdvertiseDataManufacturerId(
             @RpcParameter(name = "manufacturerId")
             Integer manufacturerId,
             @RpcParameter(name = "manufacturerSpecificData")
@@ -635,7 +636,8 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             @RpcParameter(name = "type")
             Integer type
             ) {
-        mAdvertiseSettingsBuilder.setType(type);
+        // TODO: FIx this rpc to match the updated API.
+        mAdvertiseSettingsBuilder.setIsConnectable(true);
     }
 
     private class myAdvertiseCallback extends AdvertiseCallback {
@@ -650,7 +652,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         }
 
         @Override
-        public void onSuccess(AdvertiseSettings settingsInEffect) {
+        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
             Log.d("bluetooth_le_advertisement onSuccess " + mEventType + " "
                     + index);
             mResults.putString("Type", "onSuccess");
@@ -660,7 +662,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         }
 
         @Override
-        public void onFailure(int errorCode) {
+        public void onStartFailure(int errorCode) {
             Log.d("bluetooth_le_advertisement onFailure " + mEventType + " "
                     + index);
             mResults.putString("Type", "onFailure");
