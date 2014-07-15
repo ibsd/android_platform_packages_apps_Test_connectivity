@@ -280,7 +280,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * Set scanSettings for ble scan. Note: You have to set all variables at once.
      *
      * @param callbackType Bluetooth LE scan callback type
-     * @param reportDelayNanos Time of delay for reporting the scan result
+     * @param reportDelaySeconds Time of delay for reporting the scan result
      * @param scanMode Bluetooth LE scan mode.
      * @param scanResultType Bluetooth LE scan result type
      * @throws Exception
@@ -289,8 +289,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     public void setScanSettings(
             @RpcParameter(name = "callbackType")
             Integer callbackType,
-            @RpcParameter(name = "reportDelayNanos")
-            Integer reportDelayNanos,
+            @RpcParameter(name = "reportDelaySeconds")
+            Integer reportDelaySeconds,
             @RpcParameter(name = "scanMode")
             Integer scanMode,
             @RpcParameter(name = "scanResultType")
@@ -298,7 +298,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanSettingsBuilder.setCallbackType(callbackType);
         mScanSettingsBuilder.setScanMode(scanMode);
         mScanSettingsBuilder.setScanResultType(scanResultType);
-        mScanSettingsBuilder.setReportDelaySeconds(reportDelayNanos);
+        mScanSettingsBuilder.setReportDelaySeconds(reportDelaySeconds);
     }
 
     /**
@@ -322,19 +322,18 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Get ScanSetting's report delay nanos
+     * Get ScanSetting's report delay Seconds
      *
      * @param index the ScanSetting object to use
-     * @return the ScanSetting's report delay in nanoseconds
+     * @return the ScanSetting's report delay in seconds
      * @throws Exception
      */
-    @Rpc(description = "Get ScanSetting's report delay nanos")
-    public Long getScanSettingsReportDelayNanos(
+    @Rpc(description = "Get ScanSetting's report delay seconds")
+    public Long getScanSettingsReportDelaySeconds(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
             ScanSettings mScanSettings = mScanSettingsList.get(index);
-            // TODO: fix the rpc to match API.
             return mScanSettings.getReportDelaySeconds();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));

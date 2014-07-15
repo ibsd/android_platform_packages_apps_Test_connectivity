@@ -403,20 +403,20 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
-     * Get ble advertisement settings type
+     * Get ble advertisement settings isConnectable value
      *
      * @param index the advertise settings object to use
-     * @return the type of the advertise settings object
+     * @return the boolean value whether the advertisement will indicate
+     * connectable.
      * @throws Exception
      */
-    @Rpc(description = "Get ble advertisement settings type")
-    public int getAdvertisementSettingsType(
+    @Rpc(description = "Get ble advertisement settings isConnectable value")
+    public boolean getAdvertisementSettingsIsConnectable(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
             AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
-            // TODO: Fix this rpc to match the API.
-            return mSettings.getIsConnectable() ? 1 : 0;
+            return mSettings.getIsConnectable();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
@@ -626,18 +626,17 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
-     * Set ble advertise settings the setting type
+     * Set ble advertise settings the isConnectable value
      *
-     * @param type the setting type
+     * @param type the isConnectable value
      * @throws Exception
      */
-    @Rpc(description = "Set ble advertise settings the setting type")
+    @Rpc(description = "Set ble advertise settings isConnectable value")
     public void setAdvertisementSettingType(
-            @RpcParameter(name = "type")
-            Integer type
+            @RpcParameter(name = "value")
+            Boolean value
             ) {
-        // TODO: FIx this rpc to match the updated API.
-        mAdvertiseSettingsBuilder.setIsConnectable(true);
+        mAdvertiseSettingsBuilder.setIsConnectable(value);
     }
 
     private class myAdvertiseCallback extends AdvertiseCallback {
