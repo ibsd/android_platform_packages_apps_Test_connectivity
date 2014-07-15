@@ -145,6 +145,19 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
         return mediaIsPlaying(tag);
     }
 
+    @Rpc(description = "Stop playing media file.", returns = "true if successful")
+    public synchronized boolean mediaPlayStop(
+            @RpcParameter(name = "tag", description = "string identifying resource")
+            @RpcDefault(value = "default")
+            String tag) {
+        MediaPlayer player = getPlayer(tag);
+        if (player == null) {
+            return false;
+        }
+        player.stop();
+        return !mediaIsPlaying(tag) && player.getCurrentPosition() == 0;
+    }
+
     @Rpc(description = "Start playing media file from a specified point.")
     public synchronized void mediaPlaySeekTo(
             @RpcParameter(name = "tag", description = "string identifying resource")
