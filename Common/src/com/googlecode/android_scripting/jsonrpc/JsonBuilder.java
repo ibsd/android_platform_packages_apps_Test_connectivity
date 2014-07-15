@@ -36,6 +36,7 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseSettings;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
 import android.net.wifi.ScanResult;
@@ -45,6 +46,7 @@ import android.os.ParcelUuid;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.gsm.GsmCellLocation;
+import android.util.DisplayMetrics;
 
 import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.event.Event;
@@ -149,6 +151,12 @@ public class JsonBuilder {
         }
         if (data instanceof InetSocketAddress) {
             return buildInetSocketAddress((InetSocketAddress) data);
+        }
+        if (data instanceof Point) {
+            return buildPoint((Point) data);
+        }
+        if (data instanceof DisplayMetrics) {
+            return buildDisplayMetrics((DisplayMetrics) data);
         }
         if (data instanceof byte[]) {
             return Base64Codec.encodeBase64((byte[]) data);
@@ -340,6 +348,22 @@ public class JsonBuilder {
         result.put("uuid", data.getUuid().toString());
         result.put("value", build(data.getValue()));
         return result;
+    }
+
+    private static Object buildPoint(Point data) throws JSONException {
+        JSONObject point = new JSONObject();
+        point.put("x", data.x);
+        point.put("y", data.y);
+        return point;
+    }
+
+    private static Object buildDisplayMetrics(DisplayMetrics data) throws JSONException {
+        JSONObject dm = new JSONObject();
+        dm.put("widthPixels", data.widthPixels);
+        dm.put("heightPixels", data.heightPixels);
+        dm.put("noncompatHeightPixels", data.noncompatHeightPixels);
+        dm.put("noncompatWidthPixels", data.noncompatWidthPixels);
+        return dm;
     }
 
     private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
