@@ -21,7 +21,6 @@ public class MediaSessionFacade extends RpcReceiver {
 
     private final Service mService;
     private final EventFacade mEventFacade;
-    private MediaSessionManager mMediaManager;
     private MediaSession mMedia;
     private Callback mCallback;
 
@@ -30,8 +29,7 @@ public class MediaSessionFacade extends RpcReceiver {
         mService = manager.getService();
         mEventFacade = manager.getReceiver(EventFacade.class);
         Log.d("Creating MediaSession.");
-        mMediaManager = (MediaSessionManager) mService.getSystemService(Context.MEDIA_SESSION_SERVICE);
-        mMedia = mMediaManager.createSession("SL4A");
+        mMedia = new MediaSession(mService, "SL4A");
         mMedia.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
         mMedia.setActive(true);
         mCallback = new ButtonCallback(mEventFacade);
