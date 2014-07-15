@@ -78,10 +78,10 @@ public class MediaSessionFacade extends RpcReceiver {
             public Object call() throws Exception {
                 Log.d("Adding callback.");
                 mMedia.addCallback(mCallback);
-                PlaybackState state = new PlaybackState();
-                state.setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_STOP);
-                state.setState(PlaybackState.STATE_PLAYING, 0, 1);
-                mMedia.setPlaybackState(state);
+                PlaybackState.Builder bob = new PlaybackState.Builder();
+                bob.setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_STOP);
+                bob.setState(PlaybackState.STATE_PLAYING, 0, 1);
+                mMedia.setPlaybackState(bob.build());
                 return null;
             }
         });
