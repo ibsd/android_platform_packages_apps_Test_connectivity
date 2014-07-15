@@ -308,8 +308,7 @@ public class JsonBuilder {
         JSONObject result = new JSONObject();
         result.put("mode", advertiseSettings.getMode());
         result.put("txPowerLevel", advertiseSettings.getTxPowerLevel());
-        // TODO: fix this test setup.
-        result.put("type", advertiseSettings.getIsConnectable());
+        result.put("isConnectable", advertiseSettings.getIsConnectable());
         return result;
     }
 
