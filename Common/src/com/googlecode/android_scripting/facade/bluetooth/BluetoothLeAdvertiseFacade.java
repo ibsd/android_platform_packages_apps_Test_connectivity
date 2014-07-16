@@ -627,5 +627,4 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertiseDataList.clear();
         }
     }
-
 }
