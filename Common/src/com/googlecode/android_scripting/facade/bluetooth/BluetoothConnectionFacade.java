@@ -376,11 +376,6 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mDevice.setTrust(true);
         connectProfile(mDevice, deviceID);
     }
-//
-//    @Rpc(description = "Register pairing helper.")
-//    public void bluetoothAutoAccept() {
-//        mService.registerReceiver(mPairingHelper, mPairingFilter);
-//    }
 
     @Override
     public void shutdown() {

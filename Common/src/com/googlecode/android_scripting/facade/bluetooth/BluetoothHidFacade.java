@@ -111,19 +111,38 @@ public class BluetoothHidFacade extends RpcReceiver {
       return sHidProfile.getConnectionState(device);
   }
 
-  @Rpc(description = "Set report on a connected HID device.")
+  @Rpc(description = "Send Set_Report command to the connected HID input device.")
   public Boolean bluetoothHidSetReport(
           @RpcParameter(name = "deviceID",
           description = "Name or MAC address of a bluetooth device.")
           String deviceID,
           @RpcParameter(name = "type")
           @RpcDefault(value = "1")
-          Byte type,
+          String type,
           @RpcParameter(name = "report")
           String report) throws Exception {
       BluetoothDevice device = BluetoothFacade.getDevice(sHidProfile.getConnectedDevices(),
               deviceID);
-      return sHidProfile.setReport(device, type, report);
+      Log.d("type " + type.getBytes()[0]);
+      return sHidProfile.setReport(device, type.getBytes()[0], report);
+  }
+
+  @Rpc(description = "Send Get_Report command to the connected HID input device.")
+  public Boolean bluetoothHidGetReport(
+          @RpcParameter(name = "deviceID",
+          description = "Name or MAC address of a bluetooth device.")
+          String deviceID,
+          @RpcParameter(name = "type")
+          @RpcDefault(value = "1")
+          String type,
+          @RpcParameter(name = "reportId")
+          String reportId,
+          @RpcParameter(name = "buffSize")
+          Integer buffSize) throws Exception {
+      BluetoothDevice device = BluetoothFacade.getDevice(sHidProfile.getConnectedDevices(),
+              deviceID);
+      Log.d("type " + type.getBytes()[0] + "reportId " + reportId.getBytes()[0]);
+      return sHidProfile.getReport(device, type.getBytes()[0], reportId.getBytes()[0], buffSize);
   }
 
   @Rpc(description = "Send data to a connected HID device.")
@@ -136,6 +155,22 @@ public class BluetoothHidFacade extends RpcReceiver {
       BluetoothDevice device = BluetoothFacade.getDevice(sHidProfile.getConnectedDevices(),
               deviceID);
       return sHidProfile.sendData(device, report);
+  }
+
+  @Rpc(description = "Send virtual unplug to a connected HID device.")
+  public Boolean bluetoothHidVirtualUnplug(
+          @RpcParameter(name = "deviceID",
+          description = "Name or MAC address of a bluetooth device.")
+          String deviceID) throws Exception {
+      BluetoothDevice device = BluetoothFacade.getDevice(sHidProfile.getConnectedDevices(),
+              deviceID);
+      return sHidProfile.virtualUnplug(device);
+  }
+
+  @Rpc(description = "Test byte transfer.")
+  public byte[] testByte() {
+      byte[] bts = {0b01,0b10,0b11,0b100}; 
+      return bts;
   }
 
   @Override
