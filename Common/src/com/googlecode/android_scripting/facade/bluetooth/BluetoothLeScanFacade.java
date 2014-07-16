@@ -33,6 +33,7 @@ import android.bluetooth.le.ScanSettings;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 
+import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
 import com.googlecode.android_scripting.facade.EventFacade;
@@ -430,14 +431,14 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Get ScanFilter's local name
+     * Get ScanFilter's device name
      *
      * @param index the ScanFilter object to use
-     * @return the ScanFilter's local name
+     * @return the ScanFilter's device name
      * @throws Exception
      */
-    @Rpc(description = "Get ScanFilter's local name")
-    public String getScanFilterLocalName(
+    @Rpc(description = "Get ScanFilter's device name")
+    public String getScanFilterDeviceName(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -462,7 +463,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's manufacturer data")
-    public byte[] getScanFilterManufacturerData(
+    public String getScanFilterManufacturerData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -470,8 +471,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throws Exception {
         if (mScanFilterList.get(index) != null) {
             if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index)
-                        .get(filterIndex).getManufacturerData();
+                return ConvertUtils.convertByteArrayToString(mScanFilterList.get(index)
+                        .get(filterIndex).getManufacturerData());
             } else {
                 throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
             }
@@ -488,7 +489,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's manufacturer data mask")
-    public byte[] getScanFilterManufacturerDataMask(
+    public String getScanFilterManufacturerDataMask(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -496,7 +497,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throws Exception {
         if (mScanFilterList.get(index) != null) {
             if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index).get(filterIndex).getManufacturerDataMask();
+                return ConvertUtils.convertByteArrayToString(mScanFilterList.get(index)
+                        .get(filterIndex).getManufacturerDataMask());
             } else {
                 throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
             }
@@ -564,7 +566,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service data")
-    public byte[] getScanFilterServiceData(
+    public String getScanFilterServiceData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -572,7 +574,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throws Exception {
         if (mScanFilterList.get(index) != null) {
             if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index).get(filterIndex).getServiceData();
+                return ConvertUtils.convertByteArrayToString(mScanFilterList
+                        .get(index).get(filterIndex).getServiceData());
             } else {
                 throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
             }
@@ -589,7 +592,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service data mask")
-    public byte[] getScanFilterServiceDataMask(
+    public String getScanFilterServiceDataMask(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -597,7 +600,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throws Exception {
         if (mScanFilterList.get(index) != null) {
             if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index).get(filterIndex).getServiceDataMask();
+                return ConvertUtils.convertByteArrayToString(mScanFilterList.get(index)
+                        .get(filterIndex).getServiceDataMask());
             } else {
                 throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
             }
@@ -674,7 +678,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"macAddress\" to existing ScanFilter")
-    public void setScanFilterMacAddress(
+    public void setScanFilterDeviceAddress(
             @RpcParameter(name = "macAddress")
             String macAddress
             ) {
@@ -770,13 +774,13 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Add filter "name" to existing ScanFilter
+     * Add filter "device name" to existing ScanFilter
      *
-     * @param name the name to filter against
+     * @param name the device name to filter against
      * @throws Exception
      */
-    @Rpc(description = "Remove a scanFilter from the scanFilterList")
-    public void setScanFilterName(
+    @Rpc(description = "Sets the scan filter's device name")
+    public void setScanFilterDeviceName(
             @RpcParameter(name = "name")
             String name
             ) {
