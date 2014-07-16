@@ -57,7 +57,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     private static int BleAdvertiseSettingsCount;
     private static int BleAdvertiseDataCount;
     private final HashMap<Integer, myAdvertiseCallback> mAdvertiseCallbackList;
-    private final HashMap<Integer, myClassicAdvertiseCallback> mClassicAdvertiseCallbackList;
+    //private final HashMap<Integer, myClassicAdvertiseCallback> mClassicAdvertiseCallbackList;
     private final BluetoothLeAdvertiser mAdvertise;
     private final Service mService;
     private Builder mAdvertiseDataBuilder;
@@ -77,7 +77,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
                 });
         mEventFacade = manager.getReceiver(EventFacade.class);
         mAdvertiseCallbackList = new HashMap<Integer, myAdvertiseCallback>();
-        mClassicAdvertiseCallbackList = new HashMap<Integer, myClassicAdvertiseCallback>();
+        //mClassicAdvertiseCallbackList = new HashMap<Integer, myClassicAdvertiseCallback>();
         mAdvertise = mBluetoothAdapter.getBluetoothLeAdvertiser();
         mAdvertiseDataList = new HashMap<Integer, AdvertiseData>();
         mAdvertiseSettingsList = new HashMap<Integer, AdvertiseSettings>();
@@ -104,7 +104,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * Constructs a myClassicAdvertiseCallback obj and returns its index
      *
      * @return myClassicAdvertiseCallback.index
-     */
+     
     @Rpc(description = "Generate a new myClassicAdvertisement Object")
     public Integer genClassicBleAdvertiseCallback() {
         ClassicBleAdvertiseCallbackCount += 1;
@@ -113,7 +113,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         mClassicAdvertiseCallbackList.put(mCallback.index,
                 mCallback);
         return mCallback.index;
-    }
+    }*/
 
     /**
      * Constructs a AdvertiseData obj and returns its index
@@ -221,6 +221,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @param index the id of the advertisement to stop advertising on
      * @throws Exception
      */
+/*
     @Rpc(description = "Stops an ongoing classic ble advertisement scan")
     public void stopClassicBleAdvertising(
             @RpcParameter(name = "index")
@@ -233,7 +234,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
     }
-
+*/
     /**
      * Starts ble advertising
      *
@@ -330,7 +331,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      *
      * @param callbackIndex The advertisementCallback index
      * @throws Exception
-     */
+     
     @Rpc(description = "Starts ble advertisement")
     public void startClassicBleAdvertising(
             @RpcParameter(name = "callbackIndex")
@@ -348,7 +349,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             throw new Exception("Invalid callbackIndex input" + Integer.toString(callbackIndex));
         }
     }
-
+*/
     /**
      * Set ble advertisement data include tx power level
      *
@@ -671,7 +672,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mResults.clear();
         }
     }
-
+/*
     private class myClassicAdvertiseCallback implements
             android.bluetooth.BluetoothAdapter.AdvertiseCallback {
         public Integer index;
@@ -684,7 +685,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mResults = new Bundle();
         }
 
-        @Override
         public void onAdvertiseStart(int status) {
             Log.d("bluetooth_classic_le_advertisement onAdvertiseStart " + mEventType + " "
                     + index);
@@ -695,7 +695,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mResults.clear();
         }
 
-        @Override
         public void onAdvertiseStop(int status) {
             Log.d("bluetooth_classic_le_advertisement onAdvertiseStop " + mEventType + " "
                     + index);
@@ -707,7 +706,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         }
 
     }
-
+*/
     @Override
     public void shutdown() {
         if (mAdvertiseCallbackList.isEmpty() == false) {
@@ -722,16 +721,16 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertiseSettingsList.clear();
             mAdvertiseDataList.clear();
         }
-
+/*
         if (mClassicAdvertiseCallbackList.isEmpty() == false) {
             for (myClassicAdvertiseCallback mAdvertise : mClassicAdvertiseCallbackList
                     .values()) {
                 if (mAdvertise != null) {
-                    mBluetoothAdapter.stopAdvertising(mAdvertise);
+                    //mBluetoothAdapter.stopAdvertising(mAdvertise);
                 }
             }
             mAdvertiseCallbackList.clear();
-        }
+        }*/
     }
 
 }
