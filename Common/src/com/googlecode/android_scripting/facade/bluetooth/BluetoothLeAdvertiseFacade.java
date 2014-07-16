@@ -57,7 +57,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     private static int BleAdvertiseSettingsCount;
     private static int BleAdvertiseDataCount;
     private final HashMap<Integer, myAdvertiseCallback> mAdvertiseCallbackList;
-    private final HashMap<Integer, myClassicAdvertiseCallback> mClassicAdvertiseCallbackList;
     private final BluetoothLeAdvertiser mAdvertise;
     private final Service mService;
     private Builder mAdvertiseDataBuilder;
@@ -77,7 +76,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
                 });
         mEventFacade = manager.getReceiver(EventFacade.class);
         mAdvertiseCallbackList = new HashMap<Integer, myAdvertiseCallback>();
-        mClassicAdvertiseCallbackList = new HashMap<Integer, myClassicAdvertiseCallback>();
         mAdvertise = mBluetoothAdapter.getBluetoothLeAdvertiser();
         mAdvertiseDataList = new HashMap<Integer, AdvertiseData>();
         mAdvertiseSettingsList = new HashMap<Integer, AdvertiseSettings>();
@@ -96,21 +94,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         int index = BleAdvertiseCallbackCount;
         myAdvertiseCallback mCallback = new myAdvertiseCallback(index);
         mAdvertiseCallbackList.put(mCallback.index,
-                mCallback);
-        return mCallback.index;
-    }
-
-    /**
-     * Constructs a myClassicAdvertiseCallback obj and returns its index
-     *
-     * @return myClassicAdvertiseCallback.index
-     */
-    @Rpc(description = "Generate a new myClassicAdvertisement Object")
-    public Integer genClassicBleAdvertiseCallback() {
-        ClassicBleAdvertiseCallbackCount += 1;
-        int index = ClassicBleAdvertiseCallbackCount;
-        myClassicAdvertiseCallback mCallback = new myClassicAdvertiseCallback(index);
-        mClassicAdvertiseCallbackList.put(mCallback.index,
                 mCallback);
         return mCallback.index;
     }
@@ -216,25 +199,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
-     * Stops a classic ble advertisement
-     *
-     * @param index the id of the advertisement to stop advertising on
-     * @throws Exception
-     */
-    @Rpc(description = "Stops an ongoing classic ble advertisement scan")
-    public void stopClassicBleAdvertising(
-            @RpcParameter(name = "index")
-            Integer index) throws Exception {
-        if (mClassicAdvertiseCallbackList.get(index) != null) {
-            Log.d("bluetooth_le_classic mAdvertise " + index);
-            mBluetoothAdapter.stopAdvertising(mClassicAdvertiseCallbackList
-                    .get(index));
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
      * Starts ble advertising
      *
      * @param callbackIndex The advertisementCallback index
@@ -320,30 +284,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertise
                     .startAdvertising(mSettings, mData, mScanResponse,
                             mAdvertiseCallbackList.get(callbackIndex));
-        } else {
-            throw new Exception("Invalid callbackIndex input" + Integer.toString(callbackIndex));
-        }
-    }
-
-    /**
-     * Starts Classic ble advertising
-     *
-     * @param callbackIndex The advertisementCallback index
-     * @throws Exception
-     */
-    @Rpc(description = "Starts ble advertisement")
-    public void startClassicBleAdvertising(
-            @RpcParameter(name = "callbackIndex")
-            Integer callbackIndex,
-            @RpcParameter(name = "dataIndex")
-            Integer dataIndex,
-            @RpcParameter(name = "settingsIndex")
-            Integer settingsIndex
-            ) throws Exception {
-        if (mClassicAdvertiseCallbackList.get(callbackIndex) != null) {
-            Log.d("bluetooth_le starting a background scan on callback index: "
-                    + Integer.toString(callbackIndex));
-            mBluetoothAdapter.startAdvertising(mClassicAdvertiseCallbackList.get(callbackIndex));
         } else {
             throw new Exception("Invalid callbackIndex input" + Integer.toString(callbackIndex));
         }
@@ -672,42 +612,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         }
     }
 
-    private class myClassicAdvertiseCallback implements
-            android.bluetooth.BluetoothAdapter.AdvertiseCallback {
-        public Integer index;
-        private final Bundle mResults;
-        String mEventType;
-
-        public myClassicAdvertiseCallback(int idx) {
-            index = idx;
-            mEventType = "BleAdvertise";
-            mResults = new Bundle();
-        }
-
-        @Override
-        public void onAdvertiseStart(int status) {
-            Log.d("bluetooth_classic_le_advertisement onAdvertiseStart " + mEventType + " "
-                    + index);
-            mResults.putString("Type", "onAdvertiseStart");
-            mResults.putInt("Status", status);
-            mEventFacade.postEvent(mEventType + index + "onAdvertiseStart",
-                    mResults.clone());
-            mResults.clear();
-        }
-
-        @Override
-        public void onAdvertiseStop(int status) {
-            Log.d("bluetooth_classic_le_advertisement onAdvertiseStop " + mEventType + " "
-                    + index);
-            mResults.putString("Type", "onAdvertiseStop");
-            mResults.putInt("Status", status);
-            mEventFacade.postEvent(mEventType + index + "onAdvertiseStop",
-                    mResults.clone());
-            mResults.clear();
-        }
-
-    }
-
     @Override
     public void shutdown() {
         if (mAdvertiseCallbackList.isEmpty() == false) {
@@ -721,16 +625,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             mAdvertiseCallbackList.clear();
             mAdvertiseSettingsList.clear();
             mAdvertiseDataList.clear();
-        }
-
-        if (mClassicAdvertiseCallbackList.isEmpty() == false) {
-            for (myClassicAdvertiseCallback mAdvertise : mClassicAdvertiseCallbackList
-                    .values()) {
-                if (mAdvertise != null) {
-                    mBluetoothAdapter.stopAdvertising(mAdvertise);
-                }
-            }
-            mAdvertiseCallbackList.clear();
         }
     }
 
