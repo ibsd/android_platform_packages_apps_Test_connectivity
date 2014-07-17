@@ -16,7 +16,6 @@
 
 package com.googlecode.android_scripting.facade.bluetooth;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -697,18 +696,18 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "manufacturerDataId")
             Integer manufacturerDataId,
             @RpcParameter(name = "manufacturerData")
-            Long manufacturerData,
+            String manufacturerData,
             @RpcParameter(name = "manufacturerDataMask")
             @RpcOptional
-            Long manufacturerDataMask
+            String manufacturerDataMask
             ){
         if (manufacturerDataMask != null) {
             mScanFilterBuilder.setManufacturerData(manufacturerDataId,
-                    BigInteger.valueOf(manufacturerData).toByteArray(),
-                    BigInteger.valueOf(manufacturerDataMask).toByteArray());
+                    ConvertUtils.convertStringToByteArray(manufacturerData),
+                    ConvertUtils.convertStringToByteArray(manufacturerDataMask));
         } else {
             mScanFilterBuilder.setManufacturerData(manufacturerDataId,
-                    BigInteger.valueOf(manufacturerData).toByteArray());
+                    ConvertUtils.convertStringToByteArray(manufacturerData));
         }
     }
 
@@ -739,17 +738,17 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     @Rpc(description = "Add filter \"serviceData and serviceDataMask\" to existing ScanFilter ")
     public void setScanFilterServiceData(
             @RpcParameter(name = "serviceData")
-            Long serviceData,
+            String serviceData,
             @RpcParameter(name = "serviceDataMask")
             @RpcOptional
-            Long serviceDataMask
+            String serviceDataMask
             ) {
         if (serviceDataMask != null) {
             mScanFilterBuilder
-                    .setServiceData(BigInteger.valueOf(serviceData).toByteArray(),
-                            BigInteger.valueOf(serviceDataMask).toByteArray());
+                    .setServiceData(ConvertUtils.convertStringToByteArray(serviceData),
+                            ConvertUtils.convertStringToByteArray(serviceDataMask));
         } else {
-            mScanFilterBuilder.setServiceData(BigInteger.valueOf(serviceData).toByteArray());
+            mScanFilterBuilder.setServiceData(ConvertUtils.convertStringToByteArray(serviceData));
         }
     }
 
