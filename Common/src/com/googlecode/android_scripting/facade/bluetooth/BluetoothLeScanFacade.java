@@ -19,13 +19,16 @@ package com.googlecode.android_scripting.facade.bluetooth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.BluetoothAdapter.LeScanCallback;
 import android.bluetooth.le.ScanFilter.Builder;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
@@ -57,12 +60,14 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     private BluetoothAdapter mBluetoothAdapter;
     private static int ScanCallbackCount;
     private static int FilterListCount;
+    private static int LeScanCallbackCount;
     private static int ScanSettingsCount;
     private final Service mService;
     private final BluetoothLeScanner mScanner;
     private android.bluetooth.le.ScanSettings.Builder mScanSettingsBuilder;
     private Builder mScanFilterBuilder;
     private final HashMap<Integer, myScanCallback> mScanCallbackList;
+    private final HashMap<Integer, myLeScanCallback> mLeScanCallbackList;
     private final HashMap<Integer, ArrayList<ScanFilter>> mScanFilterList;
     private final HashMap<Integer, ScanSettings> mScanSettingsList;
 
@@ -79,6 +84,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mEventFacade = manager.getReceiver(EventFacade.class);
         mScanFilterList = new HashMap<Integer, ArrayList<ScanFilter>>();
+        mLeScanCallbackList = new HashMap<Integer, myLeScanCallback>();
         mScanSettingsList = new HashMap<Integer, ScanSettings>();
         mScanCallbackList = new HashMap<Integer, myScanCallback>();
         mScanFilterBuilder = new Builder();
@@ -96,6 +102,20 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         int index = ScanCallbackCount;
         myScanCallback mScan = new myScanCallback(index);
         mScanCallbackList.put(mScan.index, mScan);
+        return mScan.index;
+    }
+
+    /**
+     * Constructs a myLeScanCallback obj and returns its index
+     *
+     * @return Integer myScanCallback.index
+     */
+    @Rpc(description = "Generate a new myScanCallback Object")
+    public Integer genLeScanCallback() {
+        LeScanCallbackCount += 1;
+        int index = LeScanCallbackCount;
+        myLeScanCallback mScan = new myLeScanCallback(index);
+        mLeScanCallbackList.put(mScan.index, mScan);
         return mScan.index;
     }
 
@@ -217,6 +237,26 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
+     * Stops a classic ble scan
+     *
+     * @param index the id of the myScan whose LeScanCallback to stop
+     * @throws Exception
+     */
+    @Rpc(description = "Stops an ongoing classic ble scan")
+    @RpcStopEvent("BleScan")
+    public void stopClassicBleScan(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        Log.d("bluetooth_le_scan mLeScanCallback " + index);
+        if (mLeScanCallbackList.get(index) != null) {
+            myLeScanCallback mLeScanCallback = mLeScanCallbackList.get(index);
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
      * Starts a ble scan
      *
      * @param index the id of the myScan whose ScanCallback to start
@@ -254,6 +294,56 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             throw new Exception("Invalid filterListIndex input:"
                     + Integer.toString(filterListIndex));
         }
+    }
+
+    /**
+     * Starts a classic ble scan
+     *
+     * @param index the id of the myScan whose ScanCallback to start
+     * @throws Exception
+     */
+    @Rpc(description = "Starts a classic ble advertisement scan")
+    @RpcStartEvent("BleScan")
+    public void startClassicBleScan(
+            @RpcParameter(name = "leCallbackIndex")
+            Integer leCallbackIndex
+            ) throws Exception {
+        Log.d("bluetooth_le_scan starting a background scan");
+        if (mLeScanCallbackList.get(leCallbackIndex) != null) {
+            mBluetoothAdapter.startLeScan(mLeScanCallbackList.get(leCallbackIndex));
+        } else {
+            throw new Exception("Invalid leCallbackIndex input:"
+                    + Integer.toString(leCallbackIndex));
+        }
+    }
+
+    /**
+     * Starts a classic ble scan with service Uuids
+     *
+     * @param index the id of the myScan whose ScanCallback to start
+     * @throws Exception
+     */
+    @Rpc(description = "Starts a classic ble advertisement scan with service Uuids")
+    @RpcStartEvent("BleScan")
+    public void startClassicBleScanWithServiceUuids(
+            @RpcParameter(name = "leCallbackIndex")
+            Integer leCallbackIndex,
+            @RpcParameter(name = "serviceUuids")
+            String[] serviceUuidList
+            ) throws Exception {
+        Log.d("bluetooth_le_scan starting a background scan");
+        UUID[] serviceUuids = new UUID[serviceUuidList.length];
+        for (int i = 0; i < serviceUuidList.length; i++) {
+            serviceUuids[i] = UUID.fromString(serviceUuidList[i]);
+        }
+        if (serviceUuidList.length == 0)
+            if (mLeScanCallbackList.get(leCallbackIndex) != null) {
+                mBluetoothAdapter.startLeScan(serviceUuids,
+                        mLeScanCallbackList.get(leCallbackIndex));
+            } else {
+                throw new Exception("Invalid leCallbackIndex input:"
+                        + Integer.toString(leCallbackIndex));
+            }
     }
 
     /**
@@ -852,6 +942,29 @@ public class BluetoothLeScanFacade extends RpcReceiver {
 
     }
 
+    private class myLeScanCallback implements LeScanCallback {
+        public Integer index;
+        String mEventType;
+        private final Bundle mResults;
+
+        public myLeScanCallback(Integer idx) {
+            index = idx;
+            mEventType = "ClassicBleScan";
+            mResults = new Bundle();
+        }
+
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            Log.d("bluetooth_classic_le_scan " + mEventType + " " + index);
+            mResults.putParcelable("Device", device);
+            mResults.putInt("Rssi", rssi);
+            mResults.putByteArray("ScanRecord", scanRecord);
+            mResults.putString("Type", "onLeScan");
+            mEventFacade.postEvent(mEventType + index + "onLeScan", mResults.clone());
+            mResults.clear();
+        }
+    }
+
     @Override
     public void shutdown() {
         if (mScanCallbackList.isEmpty() == false) {
@@ -861,8 +974,16 @@ public class BluetoothLeScanFacade extends RpcReceiver {
                 }
             }
         }
+        if (mLeScanCallbackList.isEmpty() == false) {
+            for (myLeScanCallback mLeScanCallback : mLeScanCallbackList.values()) {
+                if (mLeScanCallback != null) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
+            }
+        }
         mScanCallbackList.clear();
         mScanFilterList.clear();
         mScanSettingsList.clear();
+        mLeScanCallbackList.clear();
     }
 }
