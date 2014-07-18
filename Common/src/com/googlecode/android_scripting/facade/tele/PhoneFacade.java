@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.facade.tele;
 
 import android.app.Service;
 import android.content.ContentResolver;
@@ -22,29 +22,35 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
-import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
-import android.telephony.PreciseCallState;
-import android.net.ConnectivityManager;
 import android.provider.Telephony;
-import android.telephony.DataConnectionRealTimeInfo;
 
+import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.TelephonyProperties;
 
 import android.content.ContentValues;
 import android.os.SystemProperties;
 
-import com.googlecode.android_scripting.MainThread;
+import com.googlecode.android_scripting.facade.AndroidFacade;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
+import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+                                                   .CallStateChangeListener;
+import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+                                                   .DataConnectionChangeListener;
+import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+                                                   .ServiceStateChangeListener;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.MainThread;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 
 import java.io.UnsupportedEncodingException;
@@ -61,21 +67,17 @@ import java.util.concurrent.Callable;
  */
 public class PhoneFacade extends RpcReceiver {
 
+    private final Service mService;
     private final AndroidFacade mAndroidFacade;
     private final EventFacade mEventFacade;
     private final TelephonyManager mTelephonyManager;
-    private final Bundle mPhoneState;
-    private final Service mService;
-    private final Bundle mServiceState;
-    private PhoneStateListener mPhoneStateListener;
-    private final ConnectivityManager mConnect;
-    private final Bundle mModemPowerLevel;
-    private final Bundle mPreciseCallState;
 
-    private final int POWER_STATE_LOW = 1;
-    private final int POWER_STATE_MEDIUM = 2;
-    private final int POWER_STATE_HIGH = 3;
-    private final int POWER_STATE_UNKNOWN = Integer.MAX_VALUE;
+    private CallStateChangeListener mCallStateChangeListener;
+    private DataConnectionChangeListener mDataConnectionChangeListener;
+    private ServiceStateChangeListener mServiceStateChangeListener;
+
+    private ITelephony mITelephony;
+    private PhoneStateListener mPhoneStateListener;
 
     private static final String[] sProjection = new String[] {
             Telephony.Carriers._ID, // 0
@@ -99,8 +101,7 @@ public class PhoneFacade extends RpcReceiver {
             Telephony.Carriers.BEARER, // 18
             Telephony.Carriers.ROAMING_PROTOCOL, // 19
             Telephony.Carriers.MVNO_TYPE, // 20
-            Telephony.Carriers.MVNO_MATCH_DATA
-            // 21
+            Telephony.Carriers.MVNO_MATCH_DATA // 21
     };
 
     public PhoneFacade(FacadeManager manager) {
@@ -108,158 +109,61 @@ public class PhoneFacade extends RpcReceiver {
         mService = manager.getService();
         mTelephonyManager =
                 (TelephonyManager) mService.getSystemService(Context.TELEPHONY_SERVICE);
-        mConnect =
-                (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
         mAndroidFacade = manager.getReceiver(AndroidFacade.class);
         mEventFacade = manager.getReceiver(EventFacade.class);
-        mPhoneState = new Bundle();
-        mServiceState = new Bundle();
-        mModemPowerLevel = new Bundle();
-        mModemPowerLevel.putLong("time", 0);
-        mModemPowerLevel.putInt("power_level", POWER_STATE_UNKNOWN);
-        mPreciseCallState = new Bundle();
-        mPreciseCallState.putString("CallState", "");
-
-        mPhoneStateListener = MainThread.run(mService,
-                new Callable<PhoneStateListener>() {
+        MainThread.run(manager.getService(), new Callable<Object>() {
             @Override
-            public PhoneStateListener call() throws Exception {
-                return new PhoneStateListener() {
-                    @Override
-                    public void onCallStateChanged(int state,
-                            String incomingNumber) {
-                        mPhoneState.putString("incomingNumber",
-                                incomingNumber);
-                        switch (state) {
-                            case TelephonyManager.CALL_STATE_IDLE:
-                                mPhoneState.putString("state", "idle");
-                                break;
-                            case TelephonyManager.CALL_STATE_OFFHOOK:
-                                mPhoneState.putString("state", "offhook");
-                                break;
-                            case TelephonyManager.CALL_STATE_RINGING:
-                                mPhoneState.putString("state", "ringing");
-                                break;
-                        }
-                        mEventFacade.postEvent("PhoneCallStateChanged", mPhoneState.clone());
-                        mPhoneState.clear();
-                    }
-
-                    public void onServiceStateChanged(ServiceState serviceState) {
-                        switch(serviceState.getVoiceRegState()) {
-                            case ServiceState.STATE_EMERGENCY_ONLY:
-                                mServiceState.putString("serviceState", "emergency");
-                            break;
-                            case ServiceState.STATE_IN_SERVICE:
-                                mServiceState.putString("serviceState", "inService");
-                            break;
-                            case ServiceState.STATE_OUT_OF_SERVICE:
-                                mServiceState.putString("serviceState","noService");
-                            break;
-                            case ServiceState.STATE_POWER_OFF:
-                                mServiceState.putString("serviceState", "powerOff");
-                            break;
-                        }
-                        mServiceState.putString("operatorName",
-                                serviceState.getOperatorAlphaLong());
-                        mServiceState.putString("operatorCode",
-                                serviceState.getOperatorNumeric());
-                        mEventFacade.postEvent("PhoneServiceStateChanged", mPhoneState.clone());
-                        mPhoneState.clear();
-                    }
-
-                    @Override
-                    public void onDataConnectionRealTimeInfoChanged(
-                            DataConnectionRealTimeInfo dcRtInfo) {
-                        mModemPowerLevel.putString("Type", "modemPowerLvl");
-                        mModemPowerLevel.putLong("time", dcRtInfo.getTime());
-
-                        int state = dcRtInfo.getDcPowerState();
-                        if (POWER_STATE_LOW == state) {
-                            mModemPowerLevel.putString("power_level", "LOW");
-                        } else if (POWER_STATE_MEDIUM == state) {
-                            mModemPowerLevel.putString("power_level", "MEDIUM");
-                        } else if (POWER_STATE_HIGH == state) {
-                            mModemPowerLevel.putString("power_level", "HIGH");
-                        } else {
-                            mModemPowerLevel.putString("power_level", "UNKNOWN");
-                        }
-
-                        mEventFacade.postEvent("PhoneModemPowerLevelChanged",
-                                mModemPowerLevel.clone());
-                        mModemPowerLevel.clear();
-                    }
-
-                    @Override
-                    public void
-                    onPreciseCallStateChanged(PreciseCallState callState) {
-                        int foreGroundCallState = callState.getForegroundCallState();
-
-                        if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_ACTIVE) {
-                            mPreciseCallState.putString("CallState", "ACTIVE");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_HOLDING) {
-                            mPreciseCallState.putString("CallState", "HOLDING)");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_DIALING) {
-                            mPreciseCallState.putString("CallState", "DIALING");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_ALERTING) {
-                            mPreciseCallState.putString("CallState", "ALERTING");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
-                            mPreciseCallState.putString("CallState", "INCOMING)");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_WAITING) {
-                            mPreciseCallState.putString("CallState", "WAITING");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_DISCONNECTED) {
-                            mPreciseCallState.putString("CallState", "DISCONNECTED");
-                        } else if (foreGroundCallState ==
-                                PreciseCallState.PRECISE_CALL_STATE_DISCONNECTING) {
-                            mPreciseCallState.putString("CallState", "DISCONNECTING");
-                        } else {
-                            if (callState.getRingingCallState() ==
-                                    PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
-                                mPreciseCallState.putString("CallState", "INCOMING");
-                            } else {
-                                mPreciseCallState.putString("CallState", "IDLE");
-                            }
-                        }
-                        mEventFacade.postEvent("PhonePreciseCallStateChanged",
-                                mPreciseCallState.clone());
-                        mPreciseCallState.clear();
-                    }
-
-                };
+            public Object call() throws Exception {
+                mCallStateChangeListener = new CallStateChangeListener(mEventFacade);
+                mDataConnectionChangeListener = new DataConnectionChangeListener(mEventFacade);
+                mServiceStateChangeListener = new ServiceStateChangeListener(mEventFacade);
+                return null;
             }
         });
     }
 
-    @Override
-    public void shutdown() {
-        stopTrackingPhoneState();
+    @Rpc(description = "Starts tracking call state change.")
+    public void phoneStartTrackingCallState() {
+        mTelephonyManager.listen(mCallStateChangeListener,
+                                   CallStateChangeListener.sListeningStates);
     }
 
-    @Rpc(description = "Starts tracking phone state.")
-    public void startTrackingPhoneState() {
-        mTelephonyManager.listen(mPhoneStateListener,
-                PhoneStateListener.LISTEN_CALL_STATE
-                        | PhoneStateListener.LISTEN_DATA_CONNECTION_REAL_TIME_INFO
-                        | PhoneStateListener.LISTEN_PRECISE_CALL_STATE
-                        | PhoneStateListener.LISTEN_SERVICE_STATE);
+    @Rpc(description = "Turn on/off precise listening on fore/background or ringing calls.")
+    public void phoneAdjustPreciseCallStateListenLevel(String type, Boolean listen) {
+        if (type.equals("Foreground")) {
+          mCallStateChangeListener.listenForeground = listen;
+        } else if (type.equals("Ringing")) {
+            mCallStateChangeListener.listenRinging = listen;
+        } else if (type.equals("Background")) {
+            mCallStateChangeListener.listenBackground = listen;
+        }
     }
 
-    @Rpc(description = "Returns the current phone state and incoming number.",
-            returns = "A Map of \"state\" and \"incomingNumber\"")
-    public Bundle readPhoneState() {
-        return mPhoneState;
-    }
-
-    @Rpc(description = "Stops tracking phone state.")
-    public void stopTrackingPhoneState() {
+    @Rpc(description = "Stops tracking call state change.")
+    public void phoneStopTrackingCallStateChange() {
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+    }
+
+    @Rpc(description = "Starts tracking power level change.")
+    public void phoneStartTrackingPowerLevelChange() {
+        mTelephonyManager.listen(mDataConnectionChangeListener,
+                                 DataConnectionChangeListener.sListeningStates);
+    }
+
+    @Rpc(description = "Stops tracking power level change.")
+    public void phoneStopTrackingPowerLevelChange() {
+        mTelephonyManager.listen(mDataConnectionChangeListener, PhoneStateListener.LISTEN_NONE);
+    }
+
+    @Rpc(description = "Starts tracking service state change.")
+    public void phoneStartTrackingServiceStateChange() {
+        mTelephonyManager.listen(mServiceStateChangeListener,
+                                 ServiceStateChangeListener.sListeningStates);
+    }
+
+    @Rpc(description = "Stops tracking service state change.")
+    public void phoneStopTrackingServicetateChange() {
+        mTelephonyManager.listen(mServiceStateChangeListener, PhoneStateListener.LISTEN_NONE);
     }
 
     @Rpc(description = "Calls a contact/phone number by URI.")
@@ -317,6 +221,12 @@ public class PhoneFacade extends RpcReceiver {
             throws Exception {
         mAndroidFacade.startActivity(Intent.ACTION_DIAL, uri, null, null, null,
                 null, null);
+    }
+
+    @Rpc(description = "Answers an incoming ringing call.")
+    public void phoneAnswerCall() throws RemoteException {
+        mITelephony.silenceRinger();
+        mITelephony.answerRingingCall();
     }
 
     @Rpc(description = "Dials a phone number.")
@@ -388,9 +298,9 @@ public class PhoneFacade extends RpcReceiver {
             case TelephonyManager.PHONE_TYPE_NONE:
                 return "none";
             case TelephonyManager.PHONE_TYPE_CDMA:
-                return "none";
+                return "cdma";
             case TelephonyManager.PHONE_TYPE_SIP:
-                return "none";
+                return "sip";
             default:
                 return null;
         }
@@ -493,15 +403,10 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Sets an APN and make that as preferred APN.")
-    public void setAPN(
-            @RpcParameter(name = "name")
-            final String name,
-            @RpcParameter(name = "apn")
-            final String apn,
-            @RpcParameter(name = "type")
-            @RpcOptional
-            @RpcDefault("")
-            final String type) {
+    public void setAPN(@RpcParameter(name = "name") final String name,
+                       @RpcParameter(name = "apn") final String apn,
+                       @RpcParameter(name = "type") @RpcOptional @RpcDefault("")
+                       final String type) {
         Uri uri;
         Cursor cursor;
 
@@ -520,13 +425,11 @@ public class PhoneFacade extends RpcReceiver {
         uri = mService.getContentResolver().insert(
                 Telephony.Carriers.CONTENT_URI, new ContentValues());
         if (uri == null) {
-            Log.w("Failed to insert new telephony provider into "
-                    + Telephony.Carriers.CONTENT_URI);
+            Log.w("Failed to insert new provider into " + Telephony.Carriers.CONTENT_URI);
             return;
         }
 
-        cursor = mService.getContentResolver().query(uri, sProjection, null,
-                null, null);
+        cursor = mService.getContentResolver().query(uri, sProjection, null, null, null);
         cursor.moveToFirst();
 
         ContentValues values = new ContentValues();
@@ -573,24 +476,20 @@ public class PhoneFacade extends RpcReceiver {
 
     @Rpc(description = "Returns the number of APNs defined")
     public int getNumberOfAPNs() {
-        int noOfAPN = 0;
-        String where = "numeric=\""
-                + android.os.SystemProperties.get(
-                        TelephonyProperties.PROPERTY_ICC_OPERATOR_NUMERIC, "")
-                + "\"";
+        int result = 0;
+        String where = "numeric=\"" + android.os.SystemProperties.get(
+                        TelephonyProperties.PROPERTY_ICC_OPERATOR_NUMERIC, "") + "\"";
 
         Cursor cursor = mService.getContentResolver().query(
                 Telephony.Carriers.CONTENT_URI,
-                new String[] {
-                        "_id", "name", "apn", "type"
-                }, where, null,
+                new String[] {"_id", "name", "apn", "type"}, where, null,
                 Telephony.Carriers.DEFAULT_SORT_ORDER);
 
         if (cursor != null) {
-            noOfAPN = cursor.getCount();
+            result = cursor.getCount();
         }
         cursor.close();
-        return noOfAPN;
+        return result;
     }
 
     @Rpc(description = "Returns the currently selected APN name")
@@ -599,16 +498,21 @@ public class PhoneFacade extends RpcReceiver {
         int ID_INDEX = 0;
         final String PREFERRED_APN_URI = "content://telephony/carriers/preferapn";
 
-        Cursor cursor = mService.getContentResolver().query(
-                Uri.parse(PREFERRED_APN_URI), new String[] {
-                    "name"
-                }, null,
-                null, Telephony.Carriers.DEFAULT_SORT_ORDER);
+        Cursor cursor = mService.getContentResolver().query(Uri.parse(PREFERRED_APN_URI),
+                new String[] {"name"}, null, null, Telephony.Carriers.DEFAULT_SORT_ORDER);
+
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             key = cursor.getString(ID_INDEX);
         }
         cursor.close();
         return key;
+    }
+
+    @Override
+    public void shutdown() {
+        phoneStopTrackingCallStateChange();
+        phoneStopTrackingPowerLevelChange();
+        phoneStopTrackingServicetateChange();
     }
 }
