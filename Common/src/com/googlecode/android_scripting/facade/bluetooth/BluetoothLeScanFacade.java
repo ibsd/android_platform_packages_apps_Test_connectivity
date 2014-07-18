@@ -923,6 +923,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.d("bluetooth_le_scan change onUpdate " + mEventType + " " + index);
             mResults.putInt("ID", index);
+            mResults.putInt("CallbackType", callbackType);
             mResults.putString("Type", "onScanResult");
             mResults.putParcelable("Result", result);
             mEventFacade.postEvent(mEventType + index + "onScanResults", mResults.clone());
@@ -958,7 +959,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             Log.d("bluetooth_classic_le_scan " + mEventType + " " + index);
             mResults.putParcelable("Device", device);
             mResults.putInt("Rssi", rssi);
-            mResults.putByteArray("ScanRecord", scanRecord);
+            mResults.putString("ScanRecord", ConvertUtils.convertByteArrayToString(scanRecord));
             mResults.putString("Type", "onLeScan");
             mEventFacade.postEvent(mEventType + index + "onLeScan", mResults.clone());
             mResults.clear();
