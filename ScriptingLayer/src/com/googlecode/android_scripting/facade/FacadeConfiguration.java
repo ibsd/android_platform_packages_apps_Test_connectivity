@@ -106,7 +106,6 @@ public class FacadeConfiguration {
       sFacadeClassList.add(BluetoothHidFacade.class);
       sFacadeClassList.add(BluetoothMapFacade.class);
       sFacadeClassList.add(BluetoothRfcommFacade.class);
-      sFacadeClassList.add(SmsFacade.class);
     }
 
     if (sSdkLevel >= 7) {

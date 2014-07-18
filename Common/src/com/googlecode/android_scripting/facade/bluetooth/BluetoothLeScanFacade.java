@@ -45,8 +45,6 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.rpc.RpcStartEvent;
-import com.googlecode.android_scripting.rpc.RpcStopEvent;
 
 /**
  * BluetoothLe Scan functions.
@@ -223,7 +221,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing ble advertisement scan")
-    @RpcStopEvent("BleScan")
     public void stopBleScan(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
@@ -243,7 +240,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing classic ble scan")
-    @RpcStopEvent("BleScan")
     public void stopClassicBleScan(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
@@ -263,7 +259,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a ble advertisement scan")
-    @RpcStartEvent("BleScan")
     public void startBleScan(
             @RpcParameter(name = "filterListIndex")
             Integer filterListIndex,
@@ -303,7 +298,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan")
-    @RpcStartEvent("BleScan")
     public void startClassicBleScan(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex
@@ -324,7 +318,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan with service Uuids")
-    @RpcStartEvent("BleScan")
     public void startClassicBleScanWithServiceUuids(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex,
