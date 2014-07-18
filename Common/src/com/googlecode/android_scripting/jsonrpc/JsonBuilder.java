@@ -43,8 +43,10 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.telecomm.PhoneAccount;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
+import android.telephony.SmsMessage;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.DisplayMetrics;
 
@@ -154,6 +156,12 @@ public class JsonBuilder {
         }
         if (data instanceof Point) {
             return buildPoint((Point) data);
+        }
+        if (data instanceof SmsMessage) {
+            return buildSmsMessage((SmsMessage) data);
+        }
+        if (data instanceof PhoneAccount) {
+            return buildPhoneAccount((PhoneAccount) data);
         }
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
@@ -355,6 +363,19 @@ public class JsonBuilder {
         point.put("x", data.x);
         point.put("y", data.y);
         return point;
+    }
+
+    private static Object buildSmsMessage(SmsMessage data) throws JSONException {
+        JSONObject msg = new JSONObject();
+        msg.put("originatingAddress", data.getOriginatingAddress());
+        msg.put("messageBody", data.getMessageBody());
+        return msg;
+    }
+
+    private static Object buildPhoneAccount(PhoneAccount data) throws JSONException {
+        JSONObject msg = new JSONObject();
+        msg.put("id", data.getId());
+        return msg;
     }
 
     private static Object buildDisplayMetrics(DisplayMetrics data) throws JSONException {

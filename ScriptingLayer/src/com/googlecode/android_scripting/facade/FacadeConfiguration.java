@@ -29,6 +29,8 @@ import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeAdvertiseFac
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeScanFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothMapFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
+import com.googlecode.android_scripting.facade.tele.PhoneFacade;
+import com.googlecode.android_scripting.facade.tele.TelecommManagerFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
@@ -82,8 +84,7 @@ public class FacadeConfiguration {
     sFacadeClassList.add(MediaSessionFacade.class);
     sFacadeClassList.add(SensorManagerFacade.class);
     sFacadeClassList.add(SettingsFacade.class);
-    // Could not get SmsFacade to compile. APIs are deprecated
-    // sFacadeClassList.add(SmsFacade.class);
+    sFacadeClassList.add(SmsFacade.class);
     sFacadeClassList.add(SpeechRecognitionFacade.class);
     sFacadeClassList.add(ToneGeneratorFacade.class);
     sFacadeClassList.add(WakeLockFacade.class);
@@ -121,6 +122,7 @@ public class FacadeConfiguration {
       sFacadeClassList.add(BluetoothGattFacade.class);
       sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
       sFacadeClassList.add(DisplayFacade.class);
+      sFacadeClassList.add(TelecommManagerFacade.class);
       sFacadeClassList.add(WifiPasspointManagerFacade.class);
       sFacadeClassList.add(WifiScannerFacade.class);
     }
