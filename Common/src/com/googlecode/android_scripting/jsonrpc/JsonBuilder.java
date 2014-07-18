@@ -46,6 +46,7 @@ import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.gsm.GsmCellLocation;
 
+import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.event.Event;
 
 public class JsonBuilder {
@@ -289,8 +290,9 @@ public class JsonBuilder {
             throws JSONException {
         JSONObject result = new JSONObject();
         result.put("rssi", scanResult.getRssi());
-        result.put("timestampNanos", scanResult.getTimestampNanos());
-        result.put("scanRecord", build(scanResult.getScanRecord()));
+        result.put("timestampSeconds", scanResult.getTimestampNanos());
+        result.put("scanRecord", build(ConvertUtils.convertByteArrayToString(
+                scanResult.getScanRecord())));
         result.put("deviceInfo", build(scanResult.getDevice()));
         return result;
     }
