@@ -372,8 +372,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     public void setScanSettings(
             @RpcParameter(name = "callbackType")
             Integer callbackType,
-            @RpcParameter(name = "reportDelaySeconds")
-            Integer reportDelaySeconds,
+            @RpcParameter(name = "reportDelayMillis")
+            Integer reportDelayMillis,
             @RpcParameter(name = "scanMode")
             Integer scanMode,
             @RpcParameter(name = "scanResultType")
@@ -381,7 +381,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanSettingsBuilder.setCallbackType(callbackType);
         mScanSettingsBuilder.setScanMode(scanMode);
         mScanSettingsBuilder.setScanResultType(scanResultType);
-        mScanSettingsBuilder.setReportDelaySeconds(reportDelaySeconds);
+        mScanSettingsBuilder.setReportDelayMillis(reportDelayMillis);
     }
 
     /**
@@ -408,16 +408,16 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * Get ScanSetting's report delay Seconds
      *
      * @param index the ScanSetting object to use
-     * @return the ScanSetting's report delay in seconds
+     * @return the ScanSetting's report delay in milliseconds
      * @throws Exception
      */
-    @Rpc(description = "Get ScanSetting's report delay seconds")
+    @Rpc(description = "Get ScanSetting's report delay milliseconds")
     public Long getScanSettingsReportDelaySeconds(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
             ScanSettings mScanSettings = mScanSettingsList.get(index);
-            return mScanSettings.getReportDelaySeconds();
+            return mScanSettings.getReportDelayMillis();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
@@ -590,57 +590,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Get ScanFilter's max rssi
-     *
-     * @param index the ScanFilter object to use
-     * @return the ScanFilter's max rssi
-     * @throws Exception
-     */
-    @Rpc(description = "Get ScanSetting's scan result type")
-    public Integer getScanFilterMaxRssi(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex)
-            throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index)
-                        .get(filterIndex).getMaxRssi();
-            } else {
-                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
-            }
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
-     * Get ScanFilter's min rssi
-     *
-     * @param index the ScanFilter object to use
-     * @return the ScanFilter's mix rssi
-     * @throws Exception
-     */
-    @Rpc(description = "Get ScanFilter's min rssi")
-    public Integer getScanFilterMinRssi(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex)
-            throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            if (mScanFilterList.get(index).get(filterIndex) != null) {
-                return mScanFilterList.get(index).get(filterIndex).getMinRssi();
-            } else {
-                throw new Exception("Invalid filterIndex input:" + Integer.toString(filterIndex));
-            }
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
      * Get ScanFilter's service data
      *
      * @param index the ScanFilter object to use
@@ -795,23 +744,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Add filter "minRssi and maxRssi" to existing ScanFilter
-     *
-     * @param minRssi the min rssi to filter against
-     * @param maxRssi the max rssi to filter against
-     * @throws Exception
-     */
-    @Rpc(description = "Add filter \"minRssi and maxRssi\" to existing ScanFilter")
-    public void setScanFilterRssiRange(
-            @RpcParameter(name = "minRssi")
-            Integer minRssi,
-            @RpcParameter(name = "maxRssi")
-            Integer maxRssi
-            ) {
-            mScanFilterBuilder.setRssiRange(minRssi, maxRssi);
-    }
-
-    /**
      * Add filter "serviceData and serviceDataMask" to existing ScanFilter
      *
      * @param serviceData the service data to filter against
@@ -828,10 +760,13 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             ) {
         if (serviceDataMask != null) {
             mScanFilterBuilder
-                    .setServiceData(ConvertUtils.convertStringToByteArray(serviceData),
+                    .setServiceData(
+                            new ParcelUuid(UUID.randomUUID()),
+                            ConvertUtils.convertStringToByteArray(serviceData),
                             ConvertUtils.convertStringToByteArray(serviceDataMask));
         } else {
-            mScanFilterBuilder.setServiceData(ConvertUtils.convertStringToByteArray(serviceData));
+            mScanFilterBuilder.setServiceData(new ParcelUuid(UUID.randomUUID()),
+                    ConvertUtils.convertStringToByteArray(serviceData));
         }
     }
 

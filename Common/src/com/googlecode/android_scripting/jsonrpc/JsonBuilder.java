@@ -308,7 +308,7 @@ public class JsonBuilder {
         result.put("rssi", scanResult.getRssi());
         result.put("timestampSeconds", scanResult.getTimestampNanos());
         result.put("scanRecord", build(ConvertUtils.convertByteArrayToString(
-                scanResult.getScanRecord())));
+                scanResult.getScanRecord().getBytes())));
         result.put("deviceInfo", build(scanResult.getDevice()));
         return result;
     }

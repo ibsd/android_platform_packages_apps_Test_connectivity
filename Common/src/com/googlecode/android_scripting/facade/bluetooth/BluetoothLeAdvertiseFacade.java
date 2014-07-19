@@ -493,11 +493,9 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             @RpcParameter(name = "uuidList")
             String[] uuidList
             ) {
-        ArrayList<ParcelUuid> mUuids = new ArrayList<ParcelUuid>();
         for (String uuid : uuidList) {
-            mUuids.add(ParcelUuid.fromString(uuid));
+            mAdvertiseDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid));
         }
-        mAdvertiseDataBuilder.setServiceUuids(mUuids);
     }
 
     /**
