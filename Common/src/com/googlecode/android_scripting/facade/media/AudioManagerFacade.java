@@ -1,11 +1,13 @@
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.facade.media;
 
 import android.app.Service;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 

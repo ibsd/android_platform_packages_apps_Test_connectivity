@@ -29,6 +29,10 @@ import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeAdvertiseFac
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeScanFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothMapFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
+import com.googlecode.android_scripting.facade.media.AudioManagerFacade;
+import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
+import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
+import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
 import com.googlecode.android_scripting.facade.tele.TelecommManagerFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;

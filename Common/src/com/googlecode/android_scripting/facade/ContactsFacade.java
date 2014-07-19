@@ -22,8 +22,7 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.Contacts.People;
-import android.provider.Contacts.PhonesColumns;
+import android.provider.ContactsContract;
 
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
@@ -71,7 +70,7 @@ public class ContactsFacade extends RpcReceiver {
   }
 
   private Uri buildUri(Integer id) {
-    Uri uri = ContentUris.withAppendedId(People.CONTENT_URI, id);
+    Uri uri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id);
     return uri;
   }
 
@@ -89,7 +88,7 @@ public class ContactsFacade extends RpcReceiver {
       Cursor cursor = mService.getContentResolver().query(phoneData, null, null, null, null);
       if (cursor != null) {
         if (cursor.moveToFirst()) {
-          result = cursor.getString(cursor.getColumnIndexOrThrow(PhonesColumns.NUMBER));
+          result = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.NUMBER));
         }
         cursor.close();
       }
