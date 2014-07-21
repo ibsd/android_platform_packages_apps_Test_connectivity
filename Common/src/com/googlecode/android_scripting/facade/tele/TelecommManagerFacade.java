@@ -19,7 +19,7 @@ package com.googlecode.android_scripting.facade.tele;
 import java.util.List;
 
 import android.app.Service;
-import android.telecomm.PhoneAccount;
+import android.telecomm.PhoneAccountHandle;
 import android.telecomm.TelecommManager;
 
 import com.googlecode.android_scripting.facade.FacadeManager;
@@ -41,7 +41,7 @@ public class TelecommManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
-    public List<PhoneAccount> telecommGetEnabledPhoneAccounts() {
+    public List<PhoneAccountHandle> telecommGetEnabledPhoneAccounts() {
         return mTelecommManager.getEnabledPhoneAccounts();
     }
 
