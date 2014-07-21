@@ -44,7 +44,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
-import android.telecomm.PhoneAccount;
+import android.telecomm.PhoneAccountHandle;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
@@ -161,8 +161,8 @@ public class JsonBuilder {
         if (data instanceof SmsMessage) {
             return buildSmsMessage((SmsMessage) data);
         }
-        if (data instanceof PhoneAccount) {
-            return buildPhoneAccount((PhoneAccount) data);
+        if (data instanceof PhoneAccountHandle) {
+            return buildPhoneAccountHandle((PhoneAccountHandle) data);
         }
         if (data instanceof MediaSessionInfo) {
             return buildMediaSessionInfo((MediaSessionInfo) data);
@@ -384,7 +384,7 @@ public class JsonBuilder {
         return msg;
     }
 
-    private static Object buildPhoneAccount(PhoneAccount data) throws JSONException {
+    private static Object buildPhoneAccountHandle(PhoneAccountHandle data) throws JSONException {
         JSONObject msg = new JSONObject();
         msg.put("id", data.getId());
         return msg;
