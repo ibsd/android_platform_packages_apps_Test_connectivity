@@ -138,7 +138,7 @@ public class AndroidFacade extends RpcReceiver {
     return mClipboard;
   }
 
-  Intent startActivityForResult(final Intent intent) {
+  public Intent startActivityForResult(final Intent intent) {
     FutureActivityTask<Intent> task = new FutureActivityTask<Intent>() {
       @Override
       public void onCreate() {

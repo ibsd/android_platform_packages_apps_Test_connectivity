@@ -39,6 +39,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
+import android.media.session.MediaSessionInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
@@ -163,6 +164,9 @@ public class JsonBuilder {
         if (data instanceof PhoneAccount) {
             return buildPhoneAccount((PhoneAccount) data);
         }
+        if (data instanceof MediaSessionInfo) {
+            return buildMediaSessionInfo((MediaSessionInfo) data);
+        }
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
         }
@@ -174,6 +178,14 @@ public class JsonBuilder {
         }
         return data.toString();
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
+    }
+
+    private static Object buildMediaSessionInfo(MediaSessionInfo data) throws JSONException {
+        JSONObject info = new JSONObject();
+        info.put("PackageName", data.getPackageName());
+        info.put("Pid", data.getPid());
+        info.put("Id", data.getId());
+        return info;
     }
 
     private static Object buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {

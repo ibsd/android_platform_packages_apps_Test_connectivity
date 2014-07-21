@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.facade.media;
 
 import android.app.Service;
 import android.content.Intent;
@@ -29,6 +29,8 @@ import android.view.WindowManager;
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.FutureActivityTaskExecutor;
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.AndroidFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.future.FutureActivityTask;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
