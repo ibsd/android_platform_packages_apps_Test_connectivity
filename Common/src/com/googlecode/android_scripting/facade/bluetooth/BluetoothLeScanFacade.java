@@ -405,14 +405,14 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     }
 
     /**
-     * Get ScanSetting's report delay Seconds
+     * Get ScanSetting's report delay in milli seconds
      *
      * @param index the ScanSetting object to use
      * @return the ScanSetting's report delay in milliseconds
      * @throws Exception
      */
     @Rpc(description = "Get ScanSetting's report delay milliseconds")
-    public Long getScanSettingsReportDelaySeconds(
+    public Long getScanSettingsReportDelayMillis(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {

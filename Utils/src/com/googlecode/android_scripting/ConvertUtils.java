@@ -2,11 +2,6 @@
 package com.googlecode.android_scripting;
 
 public class ConvertUtils {
-
-    private ConvertUtils() {
-        // This class will be
-    }
-
     /**
      * Converts a String of comma separated bytes to a byte array
      *
@@ -14,11 +9,16 @@ public class ConvertUtils {
      * @return the byte array
      */
     public static byte[] convertStringToByteArray(String value) {
+        if (value.equals("")) {
+            return new byte[0];
+        }
         String[] parseString = value.split(",");
         byte[] byteArray = new byte[parseString.length];
-        for (int i = 0; i < parseString.length; i++) {
-            byte byteValue = Byte.valueOf(parseString[i].trim());
-            byteArray[i] = byteValue;
+        if (byteArray.length > 0) {
+            for (int i = 0; i < parseString.length; i++) {
+                byte byteValue = Byte.valueOf(parseString[i].trim());
+                byteArray[i] = byteValue;
+            }
         }
         return byteArray;
     }
@@ -31,12 +31,14 @@ public class ConvertUtils {
      */
     public static String convertByteArrayToString(byte[] byteArray) {
         String ret = "";
-        for (int i = 0; i < byteArray.length; i++) {
-            if ((i + 1) != byteArray.length) {
-                ret = ret + Byte.valueOf(byteArray[i]) + ",";
-            }
-            else {
-                ret = ret + Byte.valueOf(byteArray[i]);
+        if (byteArray != null) {
+            for (int i = 0; i < byteArray.length; i++) {
+                if ((i + 1) != byteArray.length) {
+                    ret = ret + Byte.valueOf(byteArray[i]) + ",";
+                }
+                else {
+                    ret = ret + Byte.valueOf(byteArray[i]);
+                }
             }
         }
         return ret;
