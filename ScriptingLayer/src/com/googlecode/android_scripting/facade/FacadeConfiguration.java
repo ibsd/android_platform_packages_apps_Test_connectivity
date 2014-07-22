@@ -32,6 +32,7 @@ import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
 import com.googlecode.android_scripting.facade.media.AudioManagerFacade;
 import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
 import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
+import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
 import com.googlecode.android_scripting.facade.tele.TelecommManagerFacade;
@@ -85,6 +86,7 @@ public class FacadeConfiguration {
     sFacadeClassList.add(PreferencesFacade.class);
     sFacadeClassList.add(MediaPlayerFacade.class);
     sFacadeClassList.add(MediaRecorderFacade.class);
+    sFacadeClassList.add(MediaScannerFacade.class);
     sFacadeClassList.add(MediaSessionFacade.class);
     sFacadeClassList.add(SensorManagerFacade.class);
     sFacadeClassList.add(SettingsFacade.class);
