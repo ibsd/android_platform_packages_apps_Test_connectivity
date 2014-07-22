@@ -121,6 +121,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 if (mDevice == null) {
                     Log.d("Device " + mDeviceID + " not discovered.");
                     mEventFacade.postEvent("Bond" + mDeviceID, mBadNews);
+                    return;
                 }
                 boolean status = mDevice.fetchUuidsWithSdp();
                 Log.d("Initiated ACL connection: " + status);

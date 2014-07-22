@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -30,7 +31,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
 /**
  * Expose functionalities of MediaSession related classes
  * like MediaSession, MediaSessionManager, MediaController.
- * @author angli
  *
  */
 public class MediaSessionFacade extends RpcReceiver {
@@ -77,14 +77,6 @@ public class MediaSessionFacade extends RpcReceiver {
             }
         }
     }
-
-    @Rpc(description = "Launch the android music app.")
-    public void mediaLaunchMusicApp() {
-        Intent LaunchIntent = mService.getPackageManager()
-                                      .getLaunchIntentForPackage("com.android.music");
-        mService.startActivity(LaunchIntent);
-    }
-
 
     @Rpc(description = "Retrieve a list of active sessions.")
     public List<MediaSessionInfo> mediaGetActiveSessions() {
