@@ -1,12 +1,14 @@
 package com.googlecode.android_scripting.facade;
 
 import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
@@ -21,20 +23,21 @@ import java.util.Set;
 
 /**
  * Facade for managing Applications.
- * 
+ *
  */
 public class ApplicationManagerFacade extends RpcReceiver {
 
+  private final Service mService;
   private final AndroidFacade mAndroidFacade;
   private final ActivityManager mActivityManager;
   private final PackageManager mPackageManager;
 
   public ApplicationManagerFacade(FacadeManager manager) {
     super(manager);
-    Service service = manager.getService();
+    mService = manager.getService();
     mAndroidFacade = manager.getReceiver(AndroidFacade.class);
-    mActivityManager = (ActivityManager) service.getSystemService(Context.ACTIVITY_SERVICE);
-    mPackageManager = service.getPackageManager();
+    mActivityManager = (ActivityManager) mService.getSystemService(Context.ACTIVITY_SERVICE);
+    mPackageManager = mService.getPackageManager();
   }
 
   @Rpc(description = "Returns a list of all launchable application class names.")
@@ -55,6 +58,26 @@ public class ApplicationManagerFacade extends RpcReceiver {
     String packageName = className.substring(0, className.lastIndexOf("."));
     intent.setClassName(packageName, className);
     mAndroidFacade.startActivity(intent);
+  }
+
+  @Rpc(description = "Launch the specified app.")
+  public void appLaunch(@RpcParameter(name = "name") String name) {
+      Intent LaunchIntent = mPackageManager.getLaunchIntentForPackage(name);
+      mService.startActivity(LaunchIntent);
+  }
+
+  @Rpc(description = "Kill the specified app.")
+  public Boolean mediaKill(@RpcParameter(name = "name") String name) {
+      for (RunningAppProcessInfo info : mActivityManager.getRunningAppProcesses()) {
+          if (info.processName.contains(name)) {
+              Log.d("Killing " + info.processName);
+              android.os.Process.killProcess(info.pid);
+              android.os.Process.sendSignal(info.pid, android.os.Process.SIGNAL_KILL);
+              mActivityManager.killBackgroundProcesses(info.processName);
+              return true;
+          }
+      }
+      return false;
   }
 
   @Rpc(description = "Returns a list of packages running activities or services.", returns = "List of packages running activities.")

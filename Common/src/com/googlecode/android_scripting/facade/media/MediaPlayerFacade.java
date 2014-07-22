@@ -160,19 +160,18 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
         return !mediaIsPlaying(tag) && player.getCurrentPosition() == 0;
     }
 
-    @Rpc(description = "Start playing media file from a specified point.")
-    public synchronized void mediaPlaySeekTo(
-            @RpcParameter(name = "tag", description = "string identifying resource")
-            @RpcDefault(value = "default")
-            String tag,
-            @RpcParameter(name = "offset",
-                          description = "milliseconds from the beginning of the file")
-            Integer offset) throws Exception {
+    @Rpc(description = "Seek To Position", returns = "New Position (in ms)")
+    public synchronized int mediaPlaySeek(@RpcParameter(name = "msec",
+                                                        description = "Position in millseconds")
+    Integer msec, @RpcParameter(name = "tag", description = "string identifying resource")
+    @RpcDefault(value = "default")
+    String tag) {
         MediaPlayer player = getPlayer(tag);
         if (player == null) {
-            throw new Exception(tag + " is not in media list. Has it been opened?");
+            return 0;
         }
-        player.seekTo(offset);
+        player.seekTo(msec);
+        return player.getCurrentPosition();
     }
 
     @Rpc(description = "Close media file", returns = "true if successful")
@@ -197,7 +196,7 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
     }
 
     @Rpc(description = "Information on current media", returns = "Media Information")
-    public synchronized Map<String, Object> mediaPlayInfo(
+    public synchronized Map<String, Object> mediaPlayGetInfo(
             @RpcParameter(name = "tag", description = "string identifying resource")
             @RpcDefault(value = "default")
             String tag) {
@@ -236,18 +235,22 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
         return true;
     }
 
-    @Rpc(description = "Seek To Position", returns = "New Position (in ms)")
-    public synchronized int mediaPlaySeek(@RpcParameter(name = "msec",
-                                                        description = "Position in millseconds")
-    Integer msec, @RpcParameter(name = "tag", description = "string identifying resource")
-    @RpcDefault(value = "default")
-    String tag) {
+    @Rpc(description = "Checks if media file is playing.", returns = "true if playing")
+    public synchronized void mediaSetNext(
+            @RpcParameter(name = "tag", description = "string identifying resource")
+            @RpcDefault(value = "default")
+            String tag,
+            @RpcParameter(name = "next", description = "tag of the next track to play.")
+            String next) {
         MediaPlayer player = getPlayer(tag);
+        MediaPlayer nPlayer = getPlayer(next);
         if (player == null) {
-            return 0;
+            throw new NullPointerException("Non-existent player tag " + tag);
         }
-        player.seekTo(msec);
-        return player.getCurrentPosition();
+        if (nPlayer == null) {
+            throw new NullPointerException("Non-existent player tag " + next);
+        }
+        player.setNextMediaPlayer(nPlayer);
     }
 
     @Override
