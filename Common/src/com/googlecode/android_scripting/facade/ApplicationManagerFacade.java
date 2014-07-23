@@ -67,7 +67,7 @@ public class ApplicationManagerFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Kill the specified app.")
-  public Boolean mediaKill(@RpcParameter(name = "name") String name) {
+  public Boolean appKill(@RpcParameter(name = "name") String name) {
       for (RunningAppProcessInfo info : mActivityManager.getRunningAppProcesses()) {
           if (info.processName.contains(name)) {
               Log.d("Killing " + info.processName);
