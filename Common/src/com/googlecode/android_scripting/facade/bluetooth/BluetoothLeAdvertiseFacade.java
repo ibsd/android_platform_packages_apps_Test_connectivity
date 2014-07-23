@@ -294,7 +294,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      *
      * @param includeTxPowerLevel boolean whether to include the tx power level or not in the
      *            advertisement
-     * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data include tx power level")
     public void setAdvertiseDataIncludeTxPowerLevel(
@@ -302,6 +301,20 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Boolean includeTxPowerLevel
             ) {
         mAdvertiseDataBuilder.setIncludeTxPowerLevel(includeTxPowerLevel);
+    }
+
+    /**
+     * Set ble advertisement data include device name
+     *
+     * @param includeDeviceName boolean whether to include device name or not in the
+     *            advertisement
+     */
+    @Rpc(description = "Set ble advertisement data include device name")
+    public void setAdvertiseDataIncludeDeviceName(
+            @RpcParameter(name = "includeDeviceName")
+            Boolean includeDeviceName
+            ) {
+        mAdvertiseDataBuilder.setIncludeDeviceName(includeDeviceName);
     }
 
     /**
