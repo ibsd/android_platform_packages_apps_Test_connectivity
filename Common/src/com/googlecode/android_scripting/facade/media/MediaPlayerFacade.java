@@ -160,6 +160,13 @@ public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnComp
         return !mediaIsPlaying(tag) && player.getCurrentPosition() == 0;
     }
 
+    @Rpc(description = "Stop all players.")
+    public synchronized void mediaPlayStopAll() {
+        for (MediaPlayer p : mPlayers.values()) {
+            p.stop();
+        }
+    }
+
     @Rpc(description = "Seek To Position", returns = "New Position (in ms)")
     public synchronized int mediaPlaySeek(@RpcParameter(name = "msec",
                                                         description = "Position in millseconds")
