@@ -25,6 +25,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.AdvertiseData.Builder;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
@@ -434,6 +435,25 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
+     * Get ble advertisement data include device name
+     *
+     * @param index the advertise data object to use
+     * @return the advertisement data's include device name
+     * @throws Exception
+     */
+    @Rpc(description = "Get ble advertisement include device name")
+    public Boolean getAdvertiseDataIncludeDeviceName(
+            @RpcParameter(name = "index")
+            Integer index) throws Exception {
+        if (mAdvertiseDataList.get(index) != null) {
+            AdvertiseData mData = mAdvertiseDataList.get(index);
+            return mData.getIncludeDeviceName();
+        } else {
+            throw new Exception("Invalid index input:" + Integer.toString(index));
+        }
+    }
+
+    /**
      * Get ble advertisement Service Data
      *
      * @param index the advertise data object to use
@@ -613,10 +633,23 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
 
         @Override
         public void onStartFailure(int errorCode) {
+            String errorString = "UNKNOWN_ERROR_CODE";
+            if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED) {
+                errorString = "ADVERTISE_FAILED_ALREADY_STARTED";
+            } else if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE) {
+                errorString = "ADVERTISE_FAILED_DATA_TOO_LARGE";
+            } else if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_FEATURE_UNSUPPORTED) {
+                errorString = "ADVERTISE_FAILED_FEATURE_UNSUPPORTED";
+            } else if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR) {
+                errorString = "ADVERTISE_FAILED_INTERNAL_ERROR";
+            } else if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS) {
+                errorString = "ADVERTISE_FAILED_TOO_MANY_ADVERTISERS";
+            }
             Log.d("bluetooth_le_advertisement onFailure " + mEventType + " "
-                    + index);
+                    + index + " error " + errorString);
             mResults.putString("Type", "onFailure");
             mResults.putInt("ErrorCode", errorCode);
+            mResults.putString("Error", errorString);
             mEventFacade.postEvent(mEventType + index + "onFailure",
                     mResults.clone());
             mResults.clear();

@@ -319,6 +319,27 @@ public class JsonBuilder {
         JSONObject result = new JSONObject();
         result.put("rssi", scanResult.getRssi());
         result.put("timestampSeconds", scanResult.getTimestampNanos());
+        result.put("deviceName", scanResult.getScanRecord().getDeviceName());
+        result.put("txPowerLevel", scanResult.getScanRecord().getTxPowerLevel());
+        result.put("advertiseFlags", scanResult.getScanRecord().getAdvertiseFlags());
+        result.put("manufacturerId", scanResult.getScanRecord().getManufacturerId());
+        result.put("manufacturerSpecificData", ConvertUtils.convertByteArrayToString(scanResult
+                .getScanRecord().getManufacturerSpecificData()));
+        result.put("serviceData",
+                ConvertUtils.convertByteArrayToString(scanResult.getScanRecord().getServiceData()));
+        if (scanResult.getScanRecord().getServiceDataUuid() != null) {
+            result.put("serviceData", scanResult.getScanRecord().getServiceDataUuid().toString());
+        } else {
+            result.put("serviceData", scanResult.getScanRecord().getServiceDataUuid());
+        }
+        List<ParcelUuid> serviceUuids = scanResult.getScanRecord().getServiceUuids();
+        String serviceUuidsString = "";
+        if (serviceUuids != null && serviceUuids.size() > 0) {
+            for (ParcelUuid uuid : serviceUuids) {
+                serviceUuidsString = serviceUuidsString + "," + uuid;
+            }
+        }
+        result.put("serviceUuids", serviceUuidsString);
         result.put("scanRecord", build(ConvertUtils.convertByteArrayToString(
                 scanResult.getScanRecord().getBytes())));
         result.put("deviceInfo", build(scanResult.getDevice()));
