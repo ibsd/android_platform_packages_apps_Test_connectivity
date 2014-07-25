@@ -373,7 +373,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcParameter(name = "callbackType")
             Integer callbackType,
             @RpcParameter(name = "reportDelayMillis")
-            Integer reportDelayMillis,
+            Long reportDelayMillis,
             @RpcParameter(name = "scanMode")
             Integer scanMode,
             @RpcParameter(name = "scanResultType")
@@ -838,10 +838,22 @@ public class BluetoothLeScanFacade extends RpcReceiver {
 
         @Override
         public void onScanFailed(int errorCode) {
-            Log.d("bluetooth_le_scan change onScanFailed " + mEventType + " " + index);
+            String errorString = "UNKNOWN_ERROR_CODE";
+            if (errorCode == ScanCallback.SCAN_FAILED_ALREADY_STARTED) {
+                errorString = "SCAN_FAILED_ALREADY_STARTED";
+            } else if (errorCode == ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {
+                errorString = "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED";
+            } else if (errorCode == ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED) {
+                errorString = "SCAN_FAILED_FEATURE_UNSUPPORTED";
+            } else if (errorCode == ScanCallback.SCAN_FAILED_INTERNAL_ERROR) {
+                errorString = "SCAN_FAILED_INTERNAL_ERROR";
+            }
+            Log.d("bluetooth_le_scan change onScanFailed " + mEventType + " " + index + " error "
+                    + errorString);
             mResults.putInt("ID", index);
             mResults.putString("Type", "onScanFailed");
             mResults.putInt("ErrorCode", errorCode);
+            mResults.putString("Error", errorString);
             mEventFacade.postEvent(mEventType + index + "onScanFailed",
                     mResults.clone());
             mResults.clear();
