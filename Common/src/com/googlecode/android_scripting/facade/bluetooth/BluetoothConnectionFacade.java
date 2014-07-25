@@ -87,6 +87,13 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mService.registerReceiver(mPairingHelper, mPairingFilter);
     }
 
+    private void unregisterCachedListener(String listenerId) {
+        BroadcastReceiver listener = listeningDevices.remove(listenerId);
+        if (listener != null) {
+            mService.unregisterReceiver(listener);
+        }        
+    }
+
     /**
      * Connect to a specific device upon its discovery
      */
@@ -221,23 +228,20 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 	Bundle a2dpGoodNews = (Bundle) mGoodNews.clone();
                 	a2dpGoodNews.putString("Type", "a2dp");
                     mEventFacade.postEvent("A2dpConnect" + mDeviceID, a2dpGoodNews);
-                    mService.unregisterReceiver(listeningDevices.remove("A2dpConnecting"
-                            + mDeviceID));
+                    unregisterCachedListener("A2dpConnecting" + mDeviceID);
                 } else if (state == BluetoothA2dp.STATE_CONNECTING) {
                 }
             }else if (action.equals(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED)) {
                 int state = intent.getIntExtra(BluetoothInputDevice.EXTRA_STATE, -1);
                 if (state == BluetoothInputDevice.STATE_CONNECTED) {
                     mEventFacade.postEvent("HidConnect" + mDeviceID, mGoodNews);
-                    mService.unregisterReceiver(listeningDevices
-                                                .remove("HidConnecting" + mDeviceID));
+                    unregisterCachedListener("HidConnecting" + mDeviceID);
                 }
             } else if (action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)) {
                 int state = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
                 if (state == BluetoothHeadset.STATE_CONNECTED) {
                     mEventFacade.postEvent("HspConnect" + mDeviceID, mGoodNews);
-                    mService.unregisterReceiver(listeningDevices
-                                                .remove("HspConnecting" + mDeviceID));
+                    unregisterCachedListener("HspConnecting" + mDeviceID);
                 }
             }
         }
@@ -274,7 +278,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 listeningDevices.put("HidConnecting" + deviceID, receiver);
             } else {
                 Log.d("Failed starting Hid connection.");
-                mEventFacade.postEvent("HidConnect", mBadNews);
+                mEventFacade.postEvent("HidConnect" + deviceID, mBadNews);
             }
         }
         if (BluetoothUuid.containsAnyUuid(BluetoothHspFacade.UUIDS, deviceUuids)) {
@@ -286,7 +290,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
                 listeningDevices.put("HspConnecting" + deviceID, receiver);
             } else {
                 Log.d("Failed starting Hsp connection.");
-                mEventFacade.postEvent("HspConnect", mBadNews);
+                mEventFacade.postEvent("HspConnect" + deviceID, mBadNews);
             }
         }
         mService.unregisterReceiver(mPairingHelper);

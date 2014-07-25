@@ -1,4 +1,4 @@
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.facade.wifi;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -13,6 +13,8 @@ import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
@@ -35,7 +37,6 @@ public class WifiManagerFacade extends RpcReceiver {
   private final WifiScanReceiver mReceiver;
   private final WifiActionListener mWifiActionListener;
   private WifiLock mLock;
-  private static int WifiScanCnt;
 
   public WifiManagerFacade(FacadeManager manager) {
     super(manager);

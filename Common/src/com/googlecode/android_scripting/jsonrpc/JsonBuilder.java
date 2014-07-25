@@ -40,6 +40,7 @@ import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
 import android.media.session.MediaSessionInfo;
+import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
@@ -170,6 +171,9 @@ public class JsonBuilder {
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
         }
+        if (data instanceof Capabilities) {
+            return buildRttCapabilities((Capabilities) data);
+        }
         if (data instanceof byte[]) {
             return Base64Codec.encodeBase64((byte[]) data);
         }
@@ -178,6 +182,13 @@ public class JsonBuilder {
         }
         return data.toString();
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
+    }
+
+    private static Object buildRttCapabilities(Capabilities data) {
+        JSONObject cap = new JSONObject();
+//        cap.put("supportedType", data.supportedType);
+//        cap.put("supportedPeerType", data.supportedPeerType);
+        return cap;
     }
 
     private static Object buildMediaSessionInfo(MediaSessionInfo data) throws JSONException {
