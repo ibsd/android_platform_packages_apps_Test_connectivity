@@ -79,7 +79,7 @@ echo
 
 echo -e "${y}Switching to root${NC}"
 adb root
-adb remount
+adb wait-for-device remount
 
 echo -e "${y}Uninstalling old apk from device${NC}"
 adb uninstall $APP_PACKAGE_NAME
@@ -88,7 +88,8 @@ adb shell rm -r /system/priv-app/$APP_NAME.apk
 echo -e "${lb}Installing apk to device${NC}"
 cd $APK_ROOT
 #exec adb install $APP_NAME.apk "installing apk to device"
-exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
+#exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
+exec adb install -r $APP_NAME.apk "installing apk to previliged dir"
 
 echo "All clear!"
 echo -e " ${r}U${brn}N${y}I${g}C${cy}O${lb}R${p}N ${r}P${brn}O${y}W${g}E${cy}R${lb}!${p}!${NC}"

@@ -18,25 +18,11 @@ package com.googlecode.android_scripting.facade;
 
 import com.google.common.collect.Maps;
 import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothA2dpFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothAvrcpFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothConnectionFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothGattFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothHidFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothHspFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeAdvertiseFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeScanFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothMapFacade;
-import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
-import com.googlecode.android_scripting.facade.media.AudioManagerFacade;
-import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
-import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
-import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
-import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
-import com.googlecode.android_scripting.facade.tele.PhoneFacade;
-import com.googlecode.android_scripting.facade.tele.TelecommManagerFacade;
+import com.googlecode.android_scripting.facade.bluetooth.*;
+import com.googlecode.android_scripting.facade.media.*;
+import com.googlecode.android_scripting.facade.tele.*;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
+import com.googlecode.android_scripting.facade.wifi.*;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
 import com.googlecode.android_scripting.rpc.RpcDeprecated;
@@ -58,8 +44,6 @@ import java.util.TreeMap;
 /**
  * Encapsulates the list of supported facades and their construction.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Igor Karp (igor.v.karp@gmail.com)
  */
 public class FacadeConfiguration {
   private final static Set<Class<? extends RpcReceiver>> sFacadeClassList;
@@ -129,6 +113,7 @@ public class FacadeConfiguration {
       sFacadeClassList.add(DisplayFacade.class);
       sFacadeClassList.add(TelecommManagerFacade.class);
       sFacadeClassList.add(WifiPasspointManagerFacade.class);
+      sFacadeClassList.add(WifiRttManagerFacade.class);
       sFacadeClassList.add(WifiScannerFacade.class);
     }
 

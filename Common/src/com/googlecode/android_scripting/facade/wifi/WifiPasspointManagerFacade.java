@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.facade.wifi;
 
 import android.app.Service;
 import android.content.Context;
