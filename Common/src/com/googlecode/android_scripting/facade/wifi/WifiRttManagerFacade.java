@@ -16,9 +16,9 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -145,5 +145,9 @@ public class WifiRttManagerFacade extends RpcReceiver {
 
   @Override
   public void shutdown() {
+      ArrayList<Integer> keys = new ArrayList<Integer>(mRangingListeners.keySet());
+      for (int k : keys) {
+          wifiRttStopRanging(k);
+      }
   }
 }
