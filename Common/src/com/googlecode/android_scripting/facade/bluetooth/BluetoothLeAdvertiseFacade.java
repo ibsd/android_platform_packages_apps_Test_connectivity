@@ -488,8 +488,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             if (mData.getServiceDataUuid() != null) {
                 return mData.getServiceDataUuid().toString();
             } else {
-                throw new Exception("Service Data Uuid not set for input "
-                        + "AdvertiseData: " + index);
+                return null;
             }
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
@@ -575,7 +574,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings advertise mode")
-    public void setAdvertisementSettingAdvertiseMode(
+    public void setAdvertisementSettingsAdvertiseMode(
             @RpcParameter(name = "advertiseMode")
             Integer advertiseMode
             ) {
@@ -589,7 +588,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings tx power level")
-    public void setAdvertisementSettingIncludeTxPowerLevel(
+    public void setAdvertisementSettingsIncludeTxPowerLevel(
             @RpcParameter(name = "includeTxPowerLevel")
             Integer txPowerLevel
             ) {
@@ -603,7 +602,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings isConnectable value")
-    public void setAdvertisementSettingType(
+    public void setAdvertisementSettingsIsConnectable(
             @RpcParameter(name = "value")
             Boolean value
             ) {
