@@ -10,7 +10,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
-import android.media.session.MediaSessionInfo;
 import android.media.session.MediaSessionManager;
 import android.media.session.MediaSessionManager.SessionListener;
 import android.media.session.PlaybackState;
@@ -51,13 +50,17 @@ public class MediaSessionFacade extends RpcReceiver {
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
         mManager = (MediaSessionManager) mService.getSystemService(Context.MEDIA_SESSION_SERVICE);
         mCallback = new MediaButtonCallback(mEventFacade);
-        mSessionListener = new MediaSessionListener();
+        mSessionListener = new MediaSessionListener(mService);
         mManager.addActiveSessionsListener(mSessionListener,
                 new ComponentName(mService.getPackageName(), this.getClass().getName()));
         mSession.setActive(true);
     }
 
     private class MediaSessionListener extends SessionListener {
+
+        public MediaSessionListener(Context context) {
+            super(context);
+        }
 
         @Override
         public void onActiveSessionsChanged(List<MediaController> controllers) {
@@ -69,7 +72,7 @@ public class MediaSessionFacade extends RpcReceiver {
                 // We only care about sessions that handle transport controls,
                 // which will be true for apps using RCC
                 if ((flags & MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS) != 0) {
-                    Log.d("The current active MediaSessions is " + controller.getSessionInfo());
+                    Log.d("The current active MediaSessions is " + controller.getTag());
                     return;
                 }
             }
@@ -77,11 +80,11 @@ public class MediaSessionFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Retrieve a list of active sessions.")
-    public List<MediaSessionInfo> mediaGetActiveSessions() {
+    public List<String> mediaGetActiveSessions() {
         mActiveControllers = mManager.getActiveSessions(null);
-        List<MediaSessionInfo> results = new ArrayList<MediaSessionInfo>();
+        List<String> results = new ArrayList<String>();
         for (MediaController mc : mActiveControllers) {
-            results.add(mc.getSessionInfo());
+            results.add(mc.getTag());
         }
         return results;
     }
