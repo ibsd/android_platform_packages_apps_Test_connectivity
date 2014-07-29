@@ -298,17 +298,19 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan")
-    public void startClassicBleScan(
+    public boolean startClassicBleScan(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex
             ) throws Exception {
         Log.d("bluetooth_le_scan starting a background scan");
+        boolean result = false;
         if (mLeScanCallbackList.get(leCallbackIndex) != null) {
-            mBluetoothAdapter.startLeScan(mLeScanCallbackList.get(leCallbackIndex));
+            result = mBluetoothAdapter.startLeScan(mLeScanCallbackList.get(leCallbackIndex));
         } else {
             throw new Exception("Invalid leCallbackIndex input:"
                     + Integer.toString(leCallbackIndex));
         }
+        return result;
     }
 
     /**
@@ -318,7 +320,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan with service Uuids")
-    public void startClassicBleScanWithServiceUuids(
+    public boolean startClassicBleScanWithServiceUuids(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex,
             @RpcParameter(name = "serviceUuids")
@@ -329,14 +331,17 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         for (int i = 0; i < serviceUuidList.length; i++) {
             serviceUuids[i] = UUID.fromString(serviceUuidList[i]);
         }
-        if (serviceUuidList.length == 0)
-            if (mLeScanCallbackList.get(leCallbackIndex) != null) {
-                mBluetoothAdapter.startLeScan(serviceUuids,
-                        mLeScanCallbackList.get(leCallbackIndex));
-            } else {
-                throw new Exception("Invalid leCallbackIndex input:"
-                        + Integer.toString(leCallbackIndex));
-            }
+        boolean result = false;
+        if (mLeScanCallbackList.get(leCallbackIndex) != null) {
+            result = mBluetoothAdapter.startLeScan(serviceUuids,
+                    mLeScanCallbackList.get(leCallbackIndex));
+            System.out.println(result);
+        } else {
+            throw new Exception("Invalid leCallbackIndex input:"
+                    + Integer.toString(leCallbackIndex));
+        }
+        System.out.println(result);
+        return result;
     }
 
     /**
