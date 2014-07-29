@@ -54,7 +54,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     private final EventFacade mEventFacade;
     private BluetoothAdapter mBluetoothAdapter;
     private static int BleAdvertiseCallbackCount;
-    private static int ClassicBleAdvertiseCallbackCount;
     private static int BleAdvertiseSettingsCount;
     private static int BleAdvertiseDataCount;
     private final HashMap<Integer, myAdvertiseCallback> mAdvertiseCallbackList;
@@ -288,34 +287,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
         } else {
             throw new Exception("Invalid callbackIndex input" + Integer.toString(callbackIndex));
         }
-    }
-
-    /**
-     * Set ble advertisement data include tx power level
-     *
-     * @param includeTxPowerLevel boolean whether to include the tx power level or not in the
-     *            advertisement
-     */
-    @Rpc(description = "Set ble advertisement data include tx power level")
-    public void setAdvertiseDataIncludeTxPowerLevel(
-            @RpcParameter(name = "includeTxPowerLevel")
-            Boolean includeTxPowerLevel
-            ) {
-        mAdvertiseDataBuilder.setIncludeTxPowerLevel(includeTxPowerLevel);
-    }
-
-    /**
-     * Set ble advertisement data include device name
-     *
-     * @param includeDeviceName boolean whether to include device name or not in the
-     *            advertisement
-     */
-    @Rpc(description = "Set ble advertisement data include device name")
-    public void setAdvertiseDataIncludeDeviceName(
-            @RpcParameter(name = "includeDeviceName")
-            Boolean includeDeviceName
-            ) {
-        mAdvertiseDataBuilder.setIncludeDeviceName(includeDeviceName);
     }
 
     /**
@@ -588,8 +559,8 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings tx power level")
-    public void setAdvertisementSettingsIncludeTxPowerLevel(
-            @RpcParameter(name = "includeTxPowerLevel")
+    public void setAdvertisementSettingsTxPowerLevel(
+            @RpcParameter(name = "txPowerLevel")
             Integer txPowerLevel
             ) {
         mAdvertiseSettingsBuilder.setTxPowerLevel(txPowerLevel);
@@ -607,6 +578,34 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Boolean value
             ) {
         mAdvertiseSettingsBuilder.setIsConnectable(value);
+    }
+
+    /**
+     * Set ble advertisement data include tx power level
+     *
+     * @param includeTxPowerLevel boolean whether to include the tx power level or not in the
+     *            advertisement
+     */
+    @Rpc(description = "Set ble advertisement data include tx power level")
+    public void setAdvertiseDataIncludeTxPowerLevel(
+            @RpcParameter(name = "includeTxPowerLevel")
+            Boolean includeTxPowerLevel
+            ) {
+        mAdvertiseDataBuilder.setIncludeTxPowerLevel(includeTxPowerLevel);
+    }
+
+    /**
+     * Set ble advertisement data include device name
+     *
+     * @param includeDeviceName boolean whether to include device name or not in the
+     *            advertisement
+     */
+    @Rpc(description = "Set ble advertisement data include device name")
+    public void setAdvertiseDataIncludeDeviceName(
+            @RpcParameter(name = "includeDeviceName")
+            Boolean includeDeviceName
+            ) {
+        mAdvertiseDataBuilder.setIncludeDeviceName(includeDeviceName);
     }
 
     private class myAdvertiseCallback extends AdvertiseCallback {
