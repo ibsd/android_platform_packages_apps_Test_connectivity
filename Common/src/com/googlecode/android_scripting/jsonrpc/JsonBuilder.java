@@ -180,13 +180,6 @@ public class JsonBuilder {
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
     }
 
-    private static Object buildRttCapabilities(Capabilities data) {
-        JSONObject cap = new JSONObject();
-//        cap.put("supportedType", data.supportedType);
-//        cap.put("supportedPeerType", data.supportedPeerType);
-        return cap;
-    }
-
     private static Object buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject deviceInfo = new JSONObject();
         deviceInfo.put("address", data.getAddress());
@@ -417,6 +410,13 @@ public class JsonBuilder {
         dm.put("noncompatHeightPixels", data.noncompatHeightPixels);
         dm.put("noncompatWidthPixels", data.noncompatWidthPixels);
         return dm;
+    }
+
+    private static Object buildRttCapabilities(Capabilities data) throws JSONException {
+        JSONObject cap = new JSONObject();
+        cap.put("supportedType", data.supportedType);
+        cap.put("supportedPeerType", data.supportedPeerType);
+        return cap;
     }
 
     private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
