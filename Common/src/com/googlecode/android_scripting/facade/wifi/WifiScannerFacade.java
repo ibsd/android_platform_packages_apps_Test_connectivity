@@ -19,7 +19,7 @@ import android.app.Service;
 import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiScanner;
-import android.net.wifi.WifiScanner.HotspotInfo;
+import android.net.wifi.WifiScanner.BssidInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
 
@@ -49,10 +49,10 @@ public class WifiScannerFacade extends RpcReceiver {
   //they do not represent the total number of listeners
   private static int WifiScanListenerCnt;
   private static int WifiChangeListenerCnt;
-  private static int WifiHotspotListenerCnt;
+  private static int WifiBssidListenerCnt;
   private final ConcurrentHashMap<Integer, WifiScanListener> wifiScannerListenerList;
   private final ConcurrentHashMap<Integer, ChangeListener> wifiChangeListenerList;
-  private final ConcurrentHashMap<Integer, WifiHotspotListener> wifiHotspotListenerList;
+  private final ConcurrentHashMap<Integer, WifiBssidListener> wifiBssidListenerList;
   private static ConcurrentHashMap<Integer, ScanResult[]> wifiScannerResultList;
 
   public WifiScannerFacade(FacadeManager manager) {
@@ -62,7 +62,7 @@ public class WifiScannerFacade extends RpcReceiver {
     mEventFacade = manager.getReceiver(EventFacade.class);
     wifiScannerListenerList = new ConcurrentHashMap<Integer, WifiScanListener>();
     wifiChangeListenerList = new ConcurrentHashMap<Integer, ChangeListener>();
-    wifiHotspotListenerList = new ConcurrentHashMap<Integer, WifiHotspotListener>();
+    wifiBssidListenerList = new ConcurrentHashMap<Integer, WifiBssidListener>();
     wifiScannerResultList = new ConcurrentHashMap<Integer, ScanResult[]>();
   }
 
@@ -233,27 +233,27 @@ public class WifiScannerFacade extends RpcReceiver {
     }
   }
 
-  public WifiHotspotListener genWifiHotspotListener() {
-    WifiHotspotListener mWifiHotspotListener = MainThread.run(mService, new Callable<WifiHotspotListener>() {
+  public WifiBssidListener genWifiBssidListener() {
+    WifiBssidListener mWifiBssidListener = MainThread.run(mService, new Callable<WifiBssidListener>() {
       @Override
-      public WifiHotspotListener call() throws Exception {
-        return new WifiHotspotListener();
+      public WifiBssidListener call() throws Exception {
+        return new WifiBssidListener();
       }
     });
-    wifiHotspotListenerList.put(mWifiHotspotListener.mIndex, mWifiHotspotListener);
-    return mWifiHotspotListener;
+    wifiBssidListenerList.put(mWifiBssidListener.mIndex, mWifiBssidListener);
+    return mWifiBssidListener;
   }
 
-  private class WifiHotspotListener implements WifiScanner.HotspotListener {
-    private static final String mEventType =  "WifiScannerHotspot";
+  private class WifiBssidListener implements WifiScanner.BssidListener {
+    private static final String mEventType =  "WifiScannerBssid";
     protected final Bundle mResults;
     private final WifiActionListener mWAL;
     public int mIndex;
 
-    public WifiHotspotListener() {
+    public WifiBssidListener() {
       mResults = new Bundle();
-      WifiHotspotListenerCnt += 1;
-      mIndex = WifiHotspotListenerCnt;
+      WifiBssidListenerCnt += 1;
+      mIndex = WifiBssidListenerCnt;
       mWAL = new WifiActionListener(mEventType, mIndex, mResults);
     }
 
@@ -264,13 +264,13 @@ public class WifiScannerFacade extends RpcReceiver {
 
     @Override
     public void onFailure(int reason, String description) {
-      wifiHotspotListenerList.remove(mIndex);
+      wifiBssidListenerList.remove(mIndex);
       mWAL.onFailure(reason, description);
     }
 
     @Override
     public void onFound(ScanResult[] results) {
-      mWAL.reportResult(results, "onHotspotFound");
+      mWAL.reportResult(results, "onBssidFound");
     }
   }
 
@@ -283,11 +283,14 @@ public class WifiScannerFacade extends RpcReceiver {
    * @return the id of the scan listener associated with this scan
    */
   @Rpc(description = "Starts a periodic WifiScanner scan")
-  @RpcStartEvent("WifiScannerScan")
-  public Integer startWifiScannerScan(@RpcParameter(name = "periodInMs") Integer periodInMs,
-                                  @RpcParameter(name = "channel_freqs") Integer[] channel_freqs) {
+  @RpcStartEvent("WifiScannerScanChannel")
+  public Integer startWifiScannerScanChannel( @RpcParameter(name = "channel_freqs") Integer[] channel_freqs,
+                                  @RpcParameter(name = "periodInMs") Integer periodInMs,
+                                  @RpcParameter(name = "report_event") Integer reportEvents) {
     WifiScanner.ScanSettings ss = new WifiScanner.ScanSettings();
+    ss.band = WifiScanner.WIFI_BAND_UNSPECIFIED;
     ss.channels = new WifiScanner.ChannelSpec[channel_freqs.length];
+    ss.reportEvents = reportEvents;
     for(int i=0; i<channel_freqs.length; i++) {
       ss.channels[i] = new WifiScanner.ChannelSpec(channel_freqs[i]);
     }
@@ -296,6 +299,27 @@ public class WifiScannerFacade extends RpcReceiver {
     for(int i=0; i<ss.channels.length; i++) {
       Log.d("startWifiScannerScan " + ss.channels[i].frequency + " " + ss.channels[i].passive + " " + ss.channels[i].dwellTimeMS);
     }
+    WifiScanListener mListener = genWifiScanListener();
+    mScan.startBackgroundScan(ss, mListener);
+    return mListener.mIndex;
+  }
+
+  /**
+   * Starts periodic WifiScanner scan for provided WiFi band
+   * @param periodInMs
+   * @param WiFi band
+   * @return the id of the scan listener associated with this scan
+   */
+  @Rpc(description = "Starts a periodic WifiScanner scan for provided WiFi band")
+  @RpcStartEvent("WifiScannerScanBand")
+  public Integer startWifiScannerScanBand(@RpcParameter(name = "wifi_band") Integer band,
+                                  @RpcParameter(name = "periodInMs") Integer periodInMs,
+                                  @RpcParameter(name = "report_event") Integer reportEvents) {
+    WifiScanner.ScanSettings ss = new WifiScanner.ScanSettings();
+    ss.band = band;
+    ss.periodInMs = periodInMs;
+    ss.reportEvents = reportEvents;
+    Log.d("startWifiScannerScan periodInMs " + ss.periodInMs + "  for band " + ss.band);
     WifiScanListener mListener = genWifiScanListener();
     mScan.startBackgroundScan(ss, mListener);
     return mListener.mIndex;
@@ -333,11 +357,33 @@ public class WifiScannerFacade extends RpcReceiver {
   /**
    * Starts tracking wifi changes
    * @return the id of the change listener associated with this track
+   * @throws Exception
    */
   @Rpc(description = "Starts tracking wifi changes")
-  public Integer startTrackingChange() {
+  public Integer startTrackingChange(@RpcParameter(name = "bssidInfos") String[] bssidInfos,
+      @RpcParameter(name = "rssiSS") Integer rssiSS,@RpcParameter(name = "lostApSS") Integer lostApSS,
+      @RpcParameter(name = "unchangedSS") Integer unchangedSS,
+      @RpcParameter(name = "minApsBreachingThreshold") Integer minApsBreachingThreshold,
+      @RpcParameter(name = "periodInMs") Integer periodInMs ) throws Exception{
     Log.d("starting change track");
+    BssidInfo[] mBssidInfos = new BssidInfo[bssidInfos.length];
+    for(int i=0; i<bssidInfos.length; i++) {
+      Log.d("android_scripting " + bssidInfos[i]);
+      String[] tokens = bssidInfos[i].split(" ");
+      if(tokens.length != 3) {
+        throw new Exception("Invalid bssid info: "+bssidInfos[i]);
+
+      }
+      int rssiHI = Integer.parseInt(tokens[1]);
+      BssidInfo mBI = new BssidInfo();
+      mBI.bssid = tokens[0];
+      mBI.low = rssiHI - unchangedSS;
+      mBI.high = rssiHI + unchangedSS;
+      mBI.frequencyHint = Integer.parseInt(tokens[2]);
+      mBssidInfos[i] = mBI;
+    }
     ChangeListener mListener = genWifiChangeListener();
+    mScan.configureWifiChange(rssiSS, lostApSS, unchangedSS, minApsBreachingThreshold, periodInMs, mBssidInfos);
     mScan.startTrackingWifiChange(mListener);
     return mListener.mIndex;
   }
@@ -358,49 +404,49 @@ public class WifiScannerFacade extends RpcReceiver {
   }
 
   /**
-   * Starts tracking changes of the wifi networks specified in a list of hotspots
-   * @param hotspotInfos a list specifying which wifi networks to track
+   * Starts tracking changes of the wifi networks specified in a list of bssid
+   * @param bssidInfos a list specifying which wifi networks to track
    * @param apLostThreshold signal strength below which an AP is considered lost
-   * @return the id of the hotspot listener associated with this track
+   * @return the id of the bssid listener associated with this track
    * @throws Exception
    */
   @Rpc(description = "Starts tracking changes in the APs specified by the list")
-  public Integer startTrackingHotspots(String[] hotspotInfos, Integer apLostThreshold) throws Exception {
-    //Instantiates HotspotInfo objs
-    HotspotInfo[] mHotspotInfos = new HotspotInfo[hotspotInfos.length];
-    for(int i=0; i<hotspotInfos.length; i++) {
-      Log.d("android_scripting " + hotspotInfos[i]);
-      String[] tokens = hotspotInfos[i].split(" ");
+  public Integer startTrackingBssid(String[] bssidInfos, Integer apLostThreshold) throws Exception {
+    //Instantiates BssidInfo objs
+    BssidInfo[] mBssidInfos = new BssidInfo[bssidInfos.length];
+    for(int i=0; i<bssidInfos.length; i++) {
+      Log.d("android_scripting " + bssidInfos[i]);
+      String[] tokens = bssidInfos[i].split(" ");
       if(tokens.length!=3) {
-        throw new Exception("Invalid hotspot info: "+hotspotInfos[i]);
+        throw new Exception("Invalid bssid info: "+bssidInfos[i]);
 
       }
       int a = Integer.parseInt(tokens[1]);
       int b = Integer.parseInt(tokens[2]);
-      HotspotInfo mHI = new HotspotInfo();
-      mHI.bssid = tokens[0];
-      mHI.low = a<b ? a:b;
-      mHI.high = a<b ? b:a;
-      mHotspotInfos[i] = mHI;
+      BssidInfo mBI = new BssidInfo();
+      mBI.bssid = tokens[0];
+      mBI.low = a<b ? a:b;
+      mBI.high = a<b ? b:a;
+      mBssidInfos[i] = mBI;
     }
-    WifiHotspotListener mWHL = genWifiHotspotListener();
-    mScan.startTrackingHotspots(mHotspotInfos, apLostThreshold, mWHL);
+    WifiBssidListener mWHL = genWifiBssidListener();
+    mScan.startTrackingBssids(mBssidInfos, apLostThreshold, mWHL);
     return mWHL.mIndex;
   }
 
   /**
    * Stops tracking the list of APs associated with the input listener
-   * @param listener_index the id of the hotspot listener whose track to stop
-   * @throws Exception 
+   * @param listener_index the id of the bssid listener whose track to stop
+   * @throws Exception
    */
   @Rpc(description = "Stops tracking changes in the APs on the list")
-  public void stopTrackingHotspots(@RpcParameter(name = "listener") Integer listener_index) throws Exception {
-    if(!wifiHotspotListenerList.containsKey(listener_index)) {
-      throw new Exception("Hotspot tracking session " + listener_index + " does not exist");
+  public void stopTrackingBssids(@RpcParameter(name = "listener") Integer listener_index) throws Exception {
+    if(!wifiBssidListenerList.containsKey(listener_index)) {
+      throw new Exception("Bssid tracking session " + listener_index + " does not exist");
     }
-    WifiHotspotListener mListener = wifiHotspotListenerList.get(listener_index);
-    mScan.stopTrackingHotspots(mListener);
-    wifiHotspotListenerList.remove(listener_index);
+    WifiBssidListener mListener = wifiBssidListenerList.get(listener_index);
+    mScan.stopTrackingBssids(mListener);
+    wifiBssidListenerList.remove(listener_index);
   }
 
   /**
@@ -427,9 +473,9 @@ public class WifiScannerFacade extends RpcReceiver {
           this.stopTrackingChange(i);
         }
       }
-      if(!wifiHotspotListenerList.isEmpty()) {
-        for(int i : wifiHotspotListenerList.keySet()) {
-          this.stopTrackingHotspots(i);
+      if(!wifiBssidListenerList.isEmpty()) {
+        for(int i : wifiBssidListenerList.keySet()) {
+          this.stopTrackingBssids(i);
         }
       }
     } catch (Exception e) {

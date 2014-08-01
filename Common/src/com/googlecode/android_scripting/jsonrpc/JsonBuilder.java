@@ -50,6 +50,7 @@ import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.DisplayMetrics;
+import android.util.SparseArray;
 
 import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.event.Event;
@@ -314,16 +315,28 @@ public class JsonBuilder {
         result.put("deviceName", scanResult.getScanRecord().getDeviceName());
         result.put("txPowerLevel", scanResult.getScanRecord().getTxPowerLevel());
         result.put("advertiseFlags", scanResult.getScanRecord().getAdvertiseFlags());
-        result.put("manufacturerId", scanResult.getScanRecord().getManufacturerId());
-        result.put("manufacturerSpecificData", ConvertUtils.convertByteArrayToString(scanResult
-                .getScanRecord().getManufacturerSpecificData()));
-        result.put("serviceData",
-                ConvertUtils.convertByteArrayToString(scanResult.getScanRecord().getServiceData()));
-        if (scanResult.getScanRecord().getServiceDataUuid() != null) {
-            result.put("serviceData", scanResult.getScanRecord().getServiceDataUuid().toString());
-        } else {
-            result.put("serviceData", scanResult.getScanRecord().getServiceDataUuid());
+        ArrayList<String> manufacturerDataList = new ArrayList<String>();
+        ArrayList<Integer> idList = new ArrayList<Integer>();
+        if (scanResult.getScanRecord().getManufacturerSpecificData() != null) {
+            SparseArray<byte[]> manufacturerSpecificData = scanResult.getScanRecord().getManufacturerSpecificData();
+            for(int i = 0; i < manufacturerSpecificData.size(); i++) {
+                manufacturerDataList.add(ConvertUtils.convertByteArrayToString(manufacturerSpecificData.valueAt(i)));
+                idList.add(manufacturerSpecificData.keyAt(i));
+            }
         }
+        result.put("manufacturerSpecificDataList", manufacturerDataList);
+        result.put("manufacturereIdList", idList);
+        ArrayList<String> serviceUuidList = new ArrayList<String>();
+        ArrayList<String> serviceDataList = new ArrayList<String>();
+        if (scanResult.getScanRecord().getServiceData() != null) {
+            Map<ParcelUuid, byte[]> serviceDataMap = scanResult.getScanRecord().getServiceData();
+            for (ParcelUuid serviceUuid : serviceDataMap.keySet()){
+                serviceUuidList.add(serviceUuid.toString());
+                serviceDataList.add(ConvertUtils.convertByteArrayToString(serviceDataMap.get(serviceUuid)));
+            }
+        }
+        result.put("serviceUuidList", serviceUuidList);
+        result.put("serviceDataList", serviceDataList);
         List<ParcelUuid> serviceUuids = scanResult.getScanRecord().getServiceUuids();
         String serviceUuidsString = "";
         if (serviceUuids != null && serviceUuids.size() > 0) {
