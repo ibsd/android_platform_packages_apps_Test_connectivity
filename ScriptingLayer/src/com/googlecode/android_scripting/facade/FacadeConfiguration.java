@@ -110,6 +110,7 @@ public class FacadeConfiguration {
       sFacadeClassList.add(BluetoothLeScanFacade.class);
       sFacadeClassList.add(BluetoothGattFacade.class);
       sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
+      sFacadeClassList.add(ConnectivityManagerFacade.class);
       sFacadeClassList.add(DisplayFacade.class);
       sFacadeClassList.add(TelecommManagerFacade.class);
       sFacadeClassList.add(WifiPasspointManagerFacade.class);

@@ -41,6 +41,7 @@ import android.location.Address;
 import android.location.Location;
 import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -170,6 +171,9 @@ public class JsonBuilder {
         }
         if (data instanceof Capabilities) {
             return buildRttCapabilities((Capabilities) data);
+        }
+        if (data instanceof WifiConfiguration) {
+            return buildWifiConfiguration((WifiConfiguration) data);
         }
         if (data instanceof byte[]) {
             return Base64Codec.encodeBase64((byte[]) data);
@@ -430,6 +434,30 @@ public class JsonBuilder {
         cap.put("supportedType", data.supportedType);
         cap.put("supportedPeerType", data.supportedPeerType);
         return cap;
+    }
+
+    private static Object buildWifiConfiguration(WifiConfiguration data) throws JSONException {
+        JSONObject config = new JSONObject();
+        config.put("networkId", data.networkId);
+        // Trim the double quotes if exist
+        if (data.SSID.charAt(0)=='"' && data.SSID.charAt(data.SSID.length()-1)=='"') {
+            config.put("ssid", data.SSID.substring(1, data.SSID.length()-1));
+        } else {
+            config.put("ssid", data.SSID);
+        }
+        config.put("bssid", data.BSSID);
+        config.put("priority", data.priority);
+        config.put("hiddenSSID", data.hiddenSSID);
+        if (data.status==WifiConfiguration.Status.CURRENT) {
+            config.put("status", "CURRENT");
+        } else if (data.status==WifiConfiguration.Status.DISABLED) {
+            config.put("status", "DISABLED");
+        } else if (data.status==WifiConfiguration.Status.ENABLED) {
+            config.put("status", "ENABLED");
+        } else {
+            config.put("status", "UNKNOWN");
+        }
+        return config;
     }
 
     private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
