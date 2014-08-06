@@ -426,10 +426,11 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Integer index,
             @RpcParameter(name = "serviceUuid")
             String serviceUuid) throws Exception {
+        ParcelUuid uuidKey = ParcelUuid.fromString(serviceUuid);
         if (mAdvertiseDataList.get(index) != null) {
             AdvertiseData mData = mAdvertiseDataList.get(index);
-            if (mData.getServiceData().get(serviceUuid) != null) {
-                return ConvertUtils.convertByteArrayToString(mData.getServiceData().get(serviceUuid));
+            if (mData.getServiceData().containsKey(uuidKey)) {
+                return ConvertUtils.convertByteArrayToString(mData.getServiceData().get(uuidKey));
             } else {
                 throw new Exception("Invalid serviceUuid input:" + serviceUuid);
             }
@@ -481,7 +482,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data service uuids")
-    public void setAdvertiseDataSetServiceData(
+    public void addAdvertiseDataServiceData(
             @RpcParameter(name = "serviceDataUuid")
             String serviceDataUuid,
             @RpcParameter(name = "serviceData")
@@ -500,7 +501,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data manufacturerId")
-    public void setAdvertiseDataManufacturerId(
+    public void addAdvertiseDataManufacturerId(
             @RpcParameter(name = "manufacturerId")
             Integer manufacturerId,
             @RpcParameter(name = "manufacturerSpecificData")
