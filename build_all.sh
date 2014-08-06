@@ -30,6 +30,12 @@ declare -a lib_list=("Utils" "Common" "InterpreterForAndroid" "ScriptingLayer" "
 
 declare -a test_list=("Utils" "Common")
 
+IFS='_' read -a array <<< "$TARGET_PRODUCT"
+export TP=${array[0]}
+if [[ ${#array[@]} -eq 2 ]]; then
+  export TP=${array[1]}
+fi
+
 APP_NAME=sl4a
 APP_PACKAGE_NAME=com.googlecode.android_scripting
 
@@ -37,7 +43,7 @@ BRANCH_ROOT=$PWD/../../../../..
 SL4A_ROOT=$BRANCH_ROOT/vendor/google_testing/comms/Tools/sl4a
 SHARED_LIB_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/JAVA_LIBRARIES
 APP_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/APPS
-APK_ROOT=$BRANCH_ROOT/out/target/product/hammerhead/system/priv-app/sl4a
+APK_ROOT=$BRANCH_ROOT/out/target/product/$TP/system/priv-app/sl4a
 SL4A_PROJ_DIR=$SL4A_ROOT/ScriptingLayerForAndroid
 
 echo -e "${y}Removing intermediates of all the dependency libs${NC}"

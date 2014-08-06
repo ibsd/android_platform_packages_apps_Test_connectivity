@@ -17,6 +17,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := guava android-common libGoogleAnalytics locale_pl
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.InterpreterForAndroid sl4a.ScriptingLayer sl4a.QuickAction
 
+LOCAL_MODULE_TAGS := eng
 LOCAL_PRIVILEGED_MODULE := true
 LOCAL_PROGUARD_ENABLED := disabled
 
