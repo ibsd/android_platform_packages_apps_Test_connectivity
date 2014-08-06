@@ -1,9 +1,10 @@
-This directory contains projects related to the Scripting Layer For Android.
-ScriptingLayerForAndroid/ contains the main SL4A project.
+This directory contains the source code and project files of Scripting Layer For Android.
+ScriptingLayerForAndroid/ is the main project (the one that builds the apk).
 
-To build, modify the BRANCH_ROOT and other paths if necessary in build_all.sh
-Plug in your device and run build_all.sh
+The code that call API components are in Common/src/com/googlecode/android_scripting/facade. Most likely you only need to add/edit files in this directory.
 
-To run, add android.py to your $PYTHONPATH
+To build, you can either build the entire android tree or use the included build_all.sh. The script will build sl4a.apk and install it on your device.
+
+To run, follow the internal sl4a setup doc.
 
 Note: the sl4a build is dependent on prebuilt libraries in your repo branch. So your local repo needs to be able to build first.
