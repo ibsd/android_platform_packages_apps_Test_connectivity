@@ -176,13 +176,5 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <receiver android:name=".facade.bluetooth.BluetoothPairingHelper"
-                  android:permission="android.permission.BLUETOOTH_ADMIN">
-            <intent-filter android:priority="999">
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />
-                <action android:name="android.bluetooth.device.action.CONNECTION_ACCESS_REQUEST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>

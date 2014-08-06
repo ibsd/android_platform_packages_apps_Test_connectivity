@@ -83,8 +83,6 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         mGoodNews.putBoolean("Status", true);
         mBadNews = new Bundle();
         mBadNews.putBoolean("Status", false);
-
-        mService.registerReceiver(mPairingHelper, mPairingFilter);
     }
 
     private void unregisterCachedListener(String listenerId) {
@@ -294,6 +292,11 @@ public class BluetoothConnectionFacade extends RpcReceiver {
             }
         }
         mService.unregisterReceiver(mPairingHelper);
+    }
+
+    @Rpc(description = "Start intercepting all bluetooth connection pop-ups.")
+    public void bluetoothStartPairingHelper() {
+        mService.registerReceiver(mPairingHelper, mPairingFilter);
     }
 
     @Rpc(description = "Return a list of devices connected through bluetooth")
