@@ -139,7 +139,7 @@ public class WifiRttManagerFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Stop ranging.")
-  public void wifiRttStopRanging(Integer index) {
+  public void wifiRttStopRanging(@RpcParameter(name = "index") Integer index) {
       mRtt.stopRanging(mRangingListeners.remove(index));
   }
 
