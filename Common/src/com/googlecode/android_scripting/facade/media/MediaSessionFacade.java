@@ -95,7 +95,7 @@ public class MediaSessionFacade extends RpcReceiver {
             @Override
             public Object call() throws Exception {
                 Log.d("Adding callback.");
-                mSession.addCallback(mCallback);
+                mSession.setCallback(mCallback);
                 PlaybackState.Builder bob = new PlaybackState.Builder();
                 bob.setActions(PlaybackState.ACTION_PLAY |
                                PlaybackState.ACTION_PAUSE |
@@ -169,7 +169,7 @@ public class MediaSessionFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
-        mSession.removeCallback(mCallback);
+        mSession.setCallback(null);
         mSession.release();
     }
 }

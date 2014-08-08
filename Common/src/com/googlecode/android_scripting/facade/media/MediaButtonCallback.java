@@ -40,7 +40,7 @@ public class MediaButtonCallback extends MediaSession.Callback {
     }
 
     @Override
-    public void onMediaButtonEvent(Intent mediaButtonIntent) {
+    public boolean onMediaButtonEvent(Intent mediaButtonIntent) {
         String action = mediaButtonIntent.getAction();
         Log.d("Received intent with action " + action);
         if (action.equals(Intent.ACTION_MEDIA_BUTTON)) {
@@ -53,6 +53,8 @@ public class MediaButtonCallback extends MediaSession.Callback {
             } else if (keyAction == KeyEvent.ACTION_UP) {
                 handleKeyEvent(event);
             }
+            return true;
         }
+        return super.onMediaButtonEvent(mediaButtonIntent);
     }
 }
