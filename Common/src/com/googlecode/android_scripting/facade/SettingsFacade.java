@@ -179,6 +179,11 @@ public class SettingsFacade extends RpcReceiver {
     }
   }
 
+  @Rpc(description = "return the system time since boot in nanoseconds")
+  public long getSystemElapsedRealtimeNanos() {
+      return SystemClock.elapsedRealtimeNanos();
+  }
+
   @Rpc(description = "Sets the the screen backlight brightness.",
        returns = "the original screen brightness.")
   public Integer setScreenBrightness(
