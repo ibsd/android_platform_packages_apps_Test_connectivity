@@ -315,7 +315,7 @@ public class JsonBuilder {
             throws JSONException {
         JSONObject result = new JSONObject();
         result.put("rssi", scanResult.getRssi());
-        result.put("timestampSeconds", scanResult.getTimestampNanos());
+        result.put("timestampNanos", scanResult.getTimestampNanos());
         result.put("deviceName", scanResult.getScanRecord().getDeviceName());
         result.put("txPowerLevel", scanResult.getScanRecord().getTxPowerLevel());
         result.put("advertiseFlags", scanResult.getScanRecord().getAdvertiseFlags());

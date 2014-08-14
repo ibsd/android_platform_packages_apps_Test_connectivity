@@ -412,7 +412,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
     /**
      * Get ScanSetting's report delay in milli seconds
      *
-     * @param index the ScanSetting object to use
+     * @param index the ScanSetting object to useSystemClock
      * @return the ScanSetting's report delay in milliseconds
      * @throws Exception
      */
@@ -729,7 +729,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"manufacturereDataId and/or manufacturerData\" to existing ScanFilter")
-    public void setScanFiltermanufacturerData(
+    public void setScanFilterManufacturerData(
             @RpcParameter(name = "manufacturerDataId")
             Integer manufacturerDataId,
             @RpcParameter(name = "manufacturerData")

@@ -539,6 +539,30 @@ public class BluetoothGattFacade extends RpcReceiver {
     }
 
     /**
+     * Request a connection parameter update.
+     * @param index the bluetooth gatt index
+     * @param connectionParameterUpdateRequest connection priority
+     * @return boolean True if successful False otherwise.
+     * @throws Exception
+     */
+    @Rpc(description = "Request a connection parameter update. from the Bluetooth Gatt")
+    public boolean bluetoothGattRequestConnectionParameterUpdate(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "connectionParameterUpdateRequest")
+            Integer connectionPriority
+            ) throws Exception {
+        boolean result = false;
+        if (mBluetoothGattList.get(index) != null) {
+            result = mBluetoothGattList.get(index).requestConnectionParameterUpdate(
+                    connectionPriority);
+        } else {
+            throw new Exception("Invalid index input:" + index);
+        }
+        return result;
+    }
+
+    /**
      * Sets the characteristic notification of a bluetooth gatt
      *
      * @param index the bluetooth gatt index
@@ -657,7 +681,7 @@ public class BluetoothGattFacade extends RpcReceiver {
                 Log.d("State Disconnecting from mac address "
                         + gatt.getDevice().getAddress() + " status " + status);
             }
-            mResults.putString("Type", "onConnectionSTateChange");
+            mResults.putString("Type", "onConnectionStateChange");
             mResults.putInt("Status", status);
             mResults.putInt("State", newState);
             mEventFacade

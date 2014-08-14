@@ -512,6 +512,24 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
+     * Set ble advertise data manufacturer id
+     *
+     * @param manufacturerId the manufacturer id to set
+     * @param manufacturerSpecificData the manufacturer specific data to set
+     * @throws Exception
+     */
+    @Rpc(description = "Set ble advertise data manufacturerId")
+    public void addAdvertiseDataManufacturerId(
+            @RpcParameter(name = "manufacturerId")
+            Integer manufacturerId,
+            @RpcParameter(name = "manufacturerSpecificData")
+            byte[] manufacturerSpecificData
+            ) {
+        mAdvertiseDataBuilder.addManufacturerData(manufacturerId,
+                manufacturerSpecificData);
+    }
+
+    /**
      * Set ble advertise settings advertise mode
      *
      * @param advertiseMode
@@ -565,6 +583,19 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Boolean includeTxPowerLevel
             ) {
         mAdvertiseDataBuilder.setIncludeTxPowerLevel(includeTxPowerLevel);
+    }
+
+    /**
+     * Set ble advertisement settings set timeout
+     *
+     * @param timeoutSeconds Limit advertising to a given amount of time.
+     */
+    @Rpc(description = "Set ble advertisement data include tx power level")
+    public void setAdvertiseSettingsTimeout(
+            @RpcParameter(name = "timeoutSeconds")
+            Integer timeoutSeconds
+            ) {
+        mAdvertiseSettingsBuilder.setTimeout(timeoutSeconds);
     }
 
     /**
