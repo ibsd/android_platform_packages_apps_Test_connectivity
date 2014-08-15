@@ -341,7 +341,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
             AdvertiseSettings mSettings = mAdvertiseSettingsList.get(index);
-            return mSettings.getIsConnectable();
+            return mSettings.isConnectable();
         } else {
             throw new Exception("Invalid index input:" + Integer.toString(index));
         }
@@ -568,7 +568,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             @RpcParameter(name = "value")
             Boolean value
             ) {
-        mAdvertiseSettingsBuilder.setIsConnectable(value);
+        mAdvertiseSettingsBuilder.setConnectable(value);
     }
 
     /**
