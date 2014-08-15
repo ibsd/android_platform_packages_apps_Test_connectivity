@@ -16,7 +16,6 @@
 
 package com.googlecode.android_scripting.facade.bluetooth;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -25,7 +24,6 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.AdvertiseData.Builder;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
@@ -40,8 +38,6 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.rpc.RpcStartEvent;
-import com.googlecode.android_scripting.rpc.RpcStopEvent;
 import com.googlecode.android_scripting.ConvertUtils;
 
 /**
@@ -509,24 +505,6 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             ) {
         mAdvertiseDataBuilder.addManufacturerData(manufacturerId,
                 ConvertUtils.convertStringToByteArray(manufacturerSpecificData));
-    }
-
-    /**
-     * Set ble advertise data manufacturer id
-     *
-     * @param manufacturerId the manufacturer id to set
-     * @param manufacturerSpecificData the manufacturer specific data to set
-     * @throws Exception
-     */
-    @Rpc(description = "Set ble advertise data manufacturerId")
-    public void addAdvertiseDataManufacturerId(
-            @RpcParameter(name = "manufacturerId")
-            Integer manufacturerId,
-            @RpcParameter(name = "manufacturerSpecificData")
-            byte[] manufacturerSpecificData
-            ) {
-        mAdvertiseDataBuilder.addManufacturerData(manufacturerId,
-                manufacturerSpecificData);
     }
 
     /**
