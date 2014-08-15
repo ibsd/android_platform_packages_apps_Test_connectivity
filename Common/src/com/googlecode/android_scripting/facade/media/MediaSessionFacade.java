@@ -11,7 +11,7 @@ import android.content.Context;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
-import android.media.session.MediaSessionManager.SessionListener;
+import android.media.session.MediaSessionManager.OnActiveSessionsChangedListener;
 import android.media.session.PlaybackState;
 import android.media.session.MediaSession.Callback;
 import android.view.KeyEvent;
@@ -36,7 +36,7 @@ public class MediaSessionFacade extends RpcReceiver {
     private final EventFacade mEventFacade;
     private final MediaSession mSession;
     private final MediaSessionManager mManager;
-    private final SessionListener mSessionListener;
+    private final OnActiveSessionsChangedListener mSessionListener;
     private final Callback mCallback;
 
     private List<MediaController> mActiveControllers = null;
@@ -50,17 +50,13 @@ public class MediaSessionFacade extends RpcReceiver {
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
         mManager = (MediaSessionManager) mService.getSystemService(Context.MEDIA_SESSION_SERVICE);
         mCallback = new MediaButtonCallback(mEventFacade);
-        mSessionListener = new MediaSessionListener(mService);
-        mManager.addActiveSessionsListener(mSessionListener,
+        mSessionListener = new MediaSessionListener();
+        mManager.addOnActiveSessionsChangedListener(mSessionListener,
                 new ComponentName(mService.getPackageName(), this.getClass().getName()));
         mSession.setActive(true);
     }
 
-    private class MediaSessionListener extends SessionListener {
-
-        public MediaSessionListener(Context context) {
-            super(context);
-        }
+    private class MediaSessionListener implements OnActiveSessionsChangedListener {
 
         @Override
         public void onActiveSessionsChanged(List<MediaController> controllers) {
