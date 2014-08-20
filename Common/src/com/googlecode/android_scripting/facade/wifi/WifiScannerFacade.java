@@ -33,6 +33,7 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,16 +71,9 @@ public class WifiScannerFacade extends RpcReceiver {
     wifiScannerResultList = new ConcurrentHashMap<Integer, ScanResult[]>();
   }
 
-  public static List<ScanResult> getWifiScanResult(Integer listener_index,
-                                                   List<ScanResult> scanResults){
-    synchronized (wifiScannerResultList) {
-      ScanResult[] scanArray = wifiScannerResultList.get(listener_index);
-      if (scanArray != null){
-        for(ScanResult scanresult :  scanArray)
-          scanResults.add(scanresult);
-      }
-      return scanResults;
-    }
+  public static List<ScanResult> getWifiScanResult(Integer listener_index){
+    ScanResult[] sr = wifiScannerResultList.get(listener_index);
+    return Arrays.asList(sr);
   }
 
   private class WifiActionListener implements WifiScanner.ActionListener {
@@ -314,7 +308,7 @@ public class WifiScannerFacade extends RpcReceiver {
    * @throws JSONException
    */
   @Rpc(description = "Starts a periodic WifiScanner scan")
-  public Integer startWifiScannerScan(@RpcParameter(name = "scanSettings") String scanSettings)
+  public Integer wifiStartScannerScan(@RpcParameter(name = "scanSettings") String scanSettings)
           throws JSONException {
     ScanSettings ss = parseScanSettings(scanSettings);
     Log.d("startWifiScannerScan with " + ss.channels);
@@ -350,6 +344,18 @@ public class WifiScannerFacade extends RpcReceiver {
       j += 1;
     }
     return result;
+  }
+
+  /**
+   * Starts tracking wifi changes
+   * @return the id of the change listener associated with this track
+   * @throws Exception
+   */
+  @Rpc(description = "Starts tracking wifi changes")
+  public Integer wifiStartTrackingChange() throws Exception{
+    ChangeListener listener = genWifiChangeListener();
+    mScan.startTrackingWifiChange(listener);
+    return listener.mIndex;
   }
 
   /**
