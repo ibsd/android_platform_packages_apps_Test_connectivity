@@ -21,23 +21,16 @@ import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.passpoint.WifiPasspointManager;
 import android.net.wifi.passpoint.WifiPasspointManager.Channel;
-import android.net.wifi.passpoint.WifiPasspointManager.ChannelListener;
 import android.os.Bundle;
-import android.os.Looper;
-
 import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.MainThread;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.rpc.RpcStartEvent;
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Exposes WifiPasspointManger functionality.
@@ -48,8 +41,9 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
   private final Service mService;
   private final EventFacade mEventFacade;
   private final WifiPasspointManager mWifiPasspointMgr;
-  private static int mWifiPasspointChannelALCnt;
-  private Hashtable<Integer, WifiPasspointChannelActionListener> mWifiPasspointChannelAlList;
+  private Hashtable<Integer, PasspointActionListener> mPasspointActionListeners;
+  private Hashtable<Integer, PasspointChannelListener> mPasspointChannelListeners;
+  private Hashtable<Integer, Channel> mChannels;
   private List<ScanResult> mScanResults;
 
   public WifiPasspointManagerFacade(FacadeManager facadeManager){
@@ -57,63 +51,72 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
     mService = facadeManager.getService();
     mEventFacade = facadeManager.getReceiver(EventFacade.class);
     mWifiPasspointMgr = (WifiPasspointManager)mService.getSystemService(Context.WIFI_PASSPOINT_SERVICE);
-    mWifiPasspointChannelAlList = new Hashtable<Integer, WifiPasspointChannelActionListener>();
+    mPasspointActionListeners = new Hashtable<Integer, PasspointActionListener>();
+    mPasspointChannelListeners = new Hashtable<Integer, PasspointChannelListener>();
+    mChannels = new Hashtable<Integer, Channel>();
     mScanResults = new ArrayList<ScanResult>();
 
   }
 
-  public class WifiPasspointChannelActionListener implements WifiPasspointManager.ActionListener{
-
-    private ChannelListener mChannelListener;
-    private Channel mChannel;
+  public static class PasspointActionListener implements WifiPasspointManager.ActionListener{
+    private static final String TAG = "PasspointAction";
+    private static int sIndex;
     private int mIndex;
-    private final Bundle mStatus;
+    private final Bundle msg = new Bundle();
+    private final EventFacade mEventFacade;
 
-    public WifiPasspointChannelActionListener(){
-      mChannelListener = new WifiPasspointManager.ChannelListener() {
-        @Override
-        public void onChannelDisconnected() {
-          Log.e("Channel Disconnected with WifiPasspoint Framwork");
-        }
-      };
-      mChannel  = mWifiPasspointMgr.initialize(mService.getApplicationContext(), Looper.getMainLooper() , mChannelListener);
-      mIndex = ++mWifiPasspointChannelALCnt;
-      mStatus = new Bundle();
+    public PasspointActionListener(EventFacade ef){
+      sIndex += 1;
+      mIndex = sIndex;
+      mEventFacade = ef;
     }
 
     @Override
     public void onSuccess() {
-      Log.d("onSuccess " + mEventType + " " + mIndex);
-      mStatus.putString("Type", "onSuccess");
-      mEventFacade.postEvent(mEventType + mIndex, mStatus.clone());
-      mStatus.clear();
+      mEventFacade.postEvent(TAG + mIndex + "onSuccess", null);
     }
 
     @Override
     public void onFailure(int reason){
       Log.d("onFailure " + mEventType + " " + mIndex);
-      mStatus.putString("Type", "onFailure");
-      mStatus.putInt("Reason", reason);
-      mEventFacade.postEvent(mEventType + mIndex, mStatus.clone());
-      mStatus.clear();
+      msg.putInt("Reason", reason);
+      mEventFacade.postEvent(TAG + mIndex + "onFailure", msg);
+      msg.clear();
     }
+  }
 
+  private static class PasspointChannelListener implements WifiPasspointManager.ChannelListener {
+    private static int sIndex;
+    private static EventFacade mEventFacade;
+    private static final String TAG = "PasspointChannel";
+    public final int mIndex;
+
+    public PasspointChannelListener(EventFacade ef) {
+        sIndex += 1;
+        mIndex = sIndex;
+        mEventFacade = ef;
+    }
+    @Override
+    public void onChannelDisconnected() {
+        Log.d("Wifi Passpoint channel disconnected.");
+        mEventFacade.postEvent(TAG + mIndex + "onChannelDisconnected", null);
+    }
+  }
+
+  private PasspointChannelListener genChangeListener() {
+      PasspointChannelListener l = new PasspointChannelListener(mEventFacade);
+      mPasspointChannelListeners.put(l.mIndex, l);
+      return l;
   }
 
   /**
    * Constructs a WifiPasspointChannelListener object and initialize it
    * @return WifiPasspointChannelListener
    */
-  private WifiPasspointChannelActionListener genWifiPasspointChannelAL() {
-    WifiPasspointChannelActionListener mWifiPpChannelAL =
-        MainThread.run(mService, new Callable<WifiPasspointChannelActionListener>() {
-      @Override
-      public WifiPasspointChannelActionListener call() throws Exception {
-        return new WifiPasspointChannelActionListener();
-      }
-    });
-    mWifiPasspointChannelAlList.put(mWifiPpChannelAL.mIndex, mWifiPpChannelAL);
-    return mWifiPpChannelAL;
+  private PasspointActionListener genPasspointActionListener() {
+    PasspointActionListener listener = new PasspointActionListener(mEventFacade);
+    mPasspointActionListeners.put(listener.mIndex, listener);
+    return listener;
   }
 
   /**
@@ -126,20 +129,31 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
 
   /** RPC Method Section */
 
+  @Rpc(description = "Initialize wifi passpoint.",
+       returns = "The index of the listener and channel associated with the passpoint.")
+  public Integer wifiPasspointInitialize() {
+      PasspointChannelListener listener = genChangeListener();
+      Channel c = mWifiPasspointMgr.initialize(mService, mService.getMainLooper(), listener);
+      mChannels.put(listener.mIndex, c);
+      return listener.mIndex;
+  }
+
   /**
    * Request ANQP Info of Passpoints
    * @param mask
    * @return the id of the Passpoint channel listener associated with this
    */
   @Rpc(description = "Request ANQP info.")
-  @RpcStartEvent("ANQPInfo")
-  public Integer requestAnqpInfoOfPasspoints(@RpcParameter(name = "scanIndex") Integer scanIndex,
+  public Integer requestAnqpInfoOfPasspoints(
+      @RpcParameter(name = "scanIndex") Integer scanIndex,
+      @RpcParameter(name = "channelIndex") Integer channelIndex,
       @RpcParameter(name = "mask") Integer mask) {
-    WifiScannerFacade.getWifiScanResult(scanIndex, mScanResults);
-    if(mScanResults != null && mScanResults.size() >= 0) {
-      WifiPasspointChannelActionListener mWifiPpChannelAL = genWifiPasspointChannelAL();
-      mWifiPasspointMgr.requestAnqpInfo(mWifiPpChannelAL.mChannel,  mScanResults, mask, mWifiPpChannelAL);
-      return mWifiPpChannelAL.mIndex;
+    List<ScanResult> sr = WifiScannerFacade.getWifiScanResult(scanIndex);
+    if(sr != null && sr.size() >= 0) {
+      PasspointActionListener listener = genPasspointActionListener();
+      Channel chl = mChannels.get(channelIndex);
+      mWifiPasspointMgr.requestAnqpInfo(chl, sr, mask, listener);
+      return listener.mIndex;
     }
     return -1;
   }
@@ -148,7 +162,8 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
    */
   @Override
   public void shutdown() {
-    mWifiPasspointChannelAlList.clear();
+    mPasspointActionListeners.clear();
+    mPasspointChannelListeners.clear();
     mScanResults.clear();
   }
 

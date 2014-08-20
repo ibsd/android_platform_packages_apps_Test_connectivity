@@ -101,25 +101,25 @@ public class WifiRttManagerFacade extends RpcReceiver {
       JSONObject j = new JSONObject(rttParam);
       RttParams result = new RttParams();
       if (j.has("deviceType")) {
-          result.deviceType = (int) j.get("deviceType"); 
+          result.deviceType = j.getInt("deviceType");
       }
       if (j.has("requestType")) {
-          result.requestType = (int) j.get("requestType"); 
+          result.requestType = j.getInt("requestType");
       }
       if (j.has("bssid")) {
-          result.bssid = (String) j.get("bssid"); 
+          result.bssid = j.getString("bssid");
       }
       if (j.has("frequency")) {
-          result.frequency = (int) j.get("frequency"); 
+          result.frequency = j.getInt("frequency");
       }
       if (j.has("channelWidth")) {
-          result.channelWidth = (int) j.get("channelWidth"); 
+          result.channelWidth = j.getInt("channelWidth");
       }
       if (j.has("num_samples")) {
-          result.num_samples = (int) j.get("num_samples"); 
+          result.num_samples = j.getInt("num_samples");
       }
       if (j.has("num_retries")) {
-          result.num_retries = (int) j.get("num_retries"); 
+          result.num_retries = j.getInt("num_retries");
       }
       return result;
   }
