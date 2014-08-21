@@ -19,8 +19,6 @@ package com.googlecode.android_scripting.facade.wifi;
 import android.app.Service;
 import android.content.Context;
 import android.net.wifi.ScanResult;
-import android.net.wifi.RttManager.RttResult;
-import android.net.wifi.passpoint.WifiPasspointInfo;
 import android.net.wifi.passpoint.WifiPasspointManager;
 import android.net.wifi.passpoint.WifiPasspointManager.Channel;
 import android.os.Bundle;
@@ -47,7 +45,6 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
   private Hashtable<Integer, PasspointChannelListener> mPasspointChannelListeners;
   private Hashtable<Integer, Channel> mChannels;
   private List<ScanResult> mScanResults;
-  private List<Parcelable> mParcelable;
 
   public WifiPasspointManagerFacade(FacadeManager facadeManager){
     super(facadeManager);
@@ -58,7 +55,7 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
     mPasspointChannelListeners = new Hashtable<Integer, PasspointChannelListener>();
     mChannels = new Hashtable<Integer, Channel>();
     mScanResults = new ArrayList<ScanResult>();
-    mParcelable = new ArrayList<Parcelable>();
+
   }
 
   public static class PasspointActionListener implements WifiPasspointManager.ActionListener{
@@ -130,35 +127,6 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
     this.shutdown();
   }
 
-  private ScanResult parseScanResult(String scanResult) throws JSONException {
-    JSONObject j = new JSONObject(scanResult);
-    ScanResult result = new ScanResult();
-    if (j.has("ssid")) {
-        result.SSID = (String) j.get("ssid");
-    }
-    if (j.has("bssid")) {
-        result.BSSID = (String) j.get("bssid");
-    }
-    if (j.has("capabilities")) {
-        result.capabilities = (String) j.get("capabilities");
-    }
-    if (j.has("frequency")) {
-        result.frequency = (int) j.get("frequency");
-    }
-    if (j.has("level")) {
-        result.level = (int) j.get("level");
-    }
-    if (j.has("timestamp")) {
-        result.timestamp = (long) j.get("timestamp");
-    }
-    if (j.has("distanceCm")) {
-        result.distanceCm = (int) j.get("distanceCm");
-    }
-    if (j.has("distanceSdCm")) {
-      result.distanceSdCm = (int) j.get("distanceSdCm");
-    }
-    return result;
-  }
   /** RPC Method Section */
 
   @Rpc(description = "Initialize wifi passpoint.",
