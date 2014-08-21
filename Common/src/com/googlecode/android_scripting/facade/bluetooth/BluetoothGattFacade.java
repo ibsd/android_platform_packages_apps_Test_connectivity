@@ -238,7 +238,7 @@ public class BluetoothGattFacade extends RpcReceiver {
             Integer mtu
             ) throws Exception {
         if (mBluetoothGattList.get(index) != null) {
-            return mBluetoothGattList.get(index).configureMTU(mtu);
+            return mBluetoothGattList.get(index).requestMtu(mtu);
         } else {
             throw new Exception("Invalid index input:" + index);
         }
@@ -554,8 +554,7 @@ public class BluetoothGattFacade extends RpcReceiver {
             ) throws Exception {
         boolean result = false;
         if (mBluetoothGattList.get(index) != null) {
-            result = mBluetoothGattList.get(index).requestConnectionParameterUpdate(
-                    connectionPriority);
+            result = mBluetoothGattList.get(index).requestConnectionPriority(connectionPriority);
         } else {
             throw new Exception("Invalid index input:" + index);
         }
@@ -784,8 +783,8 @@ public class BluetoothGattFacade extends RpcReceiver {
         }
 
         @Override
-        public void onConfigureMTU(BluetoothGatt gatt, int mtu, int status) {
-            Log.d("gatt_connect change onConfigureMTU " + mEventType + " " + index);
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            Log.d("gatt_connect change onMtuChanged " + mEventType + " " + index);
             mResults.putString("Type", "onConfigureMTU");
             mResults.putInt("Status", status);
             mResults.putInt("MTU", mtu);
