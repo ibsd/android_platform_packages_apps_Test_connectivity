@@ -170,7 +170,12 @@ public class TelephonyStateListeners {
             }
             event.putString("OperatorName", serviceState.getOperatorAlphaLong());
             event.putString("OperatorId", serviceState.getOperatorNumeric());
-            mEventFacade.postEvent("onServiceStateChanged", event);
+            event.putBoolean("ManualNwSelection", serviceState.getIsManualSelection());
+            event.putBoolean("Roaming", serviceState.getRoaming());
+            event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
+
+            mEventFacade.postEvent("onServiceStateChanged", event.clone());
+            event.clear();
         }
     }
 

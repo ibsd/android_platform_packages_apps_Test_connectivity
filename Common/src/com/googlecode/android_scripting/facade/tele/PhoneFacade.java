@@ -509,6 +509,32 @@ public class PhoneFacade extends RpcReceiver {
         return key;
     }
 
+    @Rpc(description = "Sets the preferred Network type")
+    public void setPreferredNetwork(Integer networktype) {
+        android.provider.Settings.Global.putInt(mService.getContentResolver(),
+                android.provider.Settings.Global.PREFERRED_NETWORK_MODE,
+                networktype );
+        mTelephonyManager.setPreferredNetworkType(networktype);
+    }
+
+    @Rpc(description = "Returns the current data connection state")
+    public String getDataConnectionState() {
+        int state = mTelephonyManager.getDataState();
+
+        switch(state) {
+            case TelephonyManager.DATA_DISCONNECTED:
+                return "DATA_DISCONNECTED";
+            case TelephonyManager.DATA_CONNECTING:
+                return "DATA_CONNECTING";
+            case TelephonyManager.DATA_CONNECTED:
+                return "DATA_CONNECTED";
+            case TelephonyManager.DATA_SUSPENDED:
+                return "DATA_SUSPENDED";
+            default:
+                return "DATA_UNKNOWN";
+        }
+    }
+
     @Override
     public void shutdown() {
         phoneStopTrackingCallStateChange();
