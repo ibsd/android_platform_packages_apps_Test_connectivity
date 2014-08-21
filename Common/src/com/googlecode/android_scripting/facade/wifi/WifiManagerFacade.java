@@ -92,7 +92,7 @@ public class WifiManagerFacade extends RpcReceiver {
       Log.d("Wifi connection scan finished, results available.");
       mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
       mResults.putString("Type", "onWifiScanReceive");
-      mEventFacade.postEvent("WifiScanFinished", mResults.clone());
+      mEventFacade.postEvent(mEventType, mResults.clone());
       mResults.clear();
       mService.unregisterReceiver(mScanFinishedReceiver);
     }
