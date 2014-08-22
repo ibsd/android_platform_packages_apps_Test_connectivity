@@ -34,14 +34,14 @@ import java.util.List;
 //TODO: make methods handle various wifi states properly
 //e.g. wifi connection result will be null when flight mode is on
 public class WifiManagerFacade extends RpcReceiver {
-  private final static String mEventType = "WiFiManager";
+  private final static String mEventType = "WifiManager";
   private final Service mService;
   private final WifiManager mWifi;
   private final EventFacade mEventFacade;
 
   private final IntentFilter mScanFilter;
   private final IntentFilter mStateChangeFilter;
-  private final WifiScanReceiver mScanFinishedReceiver;
+  private final WifiScanReceiver mScanResultsAvailableReceiver;
   private final WifiActionListener mWifiActionListener;
   private final WifiStateChangeReceiver mStateChangeReceiver;
 
@@ -61,7 +61,7 @@ public class WifiManagerFacade extends RpcReceiver {
     mStateChangeFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
     mStateChangeFilter.setPriority(999);
 
-    mScanFinishedReceiver = new WifiScanReceiver(mEventFacade);
+    mScanResultsAvailableReceiver = new WifiScanReceiver(mEventFacade);
     mWifiActionListener = new WifiActionListener(mEventFacade);
     mStateChangeReceiver = new WifiStateChangeReceiver();
   }
@@ -89,12 +89,14 @@ public class WifiManagerFacade extends RpcReceiver {
 
     @Override
     public void onReceive(Context c, Intent intent) {
-      Log.d("Wifi connection scan finished, results available.");
-      mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
-      mResults.putString("Type", "onWifiScanReceive");
-      mEventFacade.postEvent(mEventType, mResults.clone());
-      mResults.clear();
-      mService.unregisterReceiver(mScanFinishedReceiver);
+      String action = intent.getAction();
+      if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+          Log.d("Wifi connection scan finished, results available.");
+          mResults.putLong("Timestamp", System.currentTimeMillis()/1000);
+          mEventFacade.postEvent(mEventType + "ScanResultsAvailable", mResults);
+          mResults.clear();
+          mService.unregisterReceiver(mScanResultsAvailableReceiver);
+      }
     }
   }
 
@@ -165,7 +167,10 @@ public class WifiManagerFacade extends RpcReceiver {
           config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN); //?
           config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
       }
-      if (result.capabilities.contains("PSK")) {
+      if (result.capabilities.contains("WPA2-PSK")) {
+          config.allowedKeyManagement.set(KeyMgmt.WPA2_PSK);
+      }
+      if (result.capabilities.contains("WPA-PSK")) {
           config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
       }
       if (result.capabilities.contains("EAP")) {
@@ -174,7 +179,7 @@ public class WifiManagerFacade extends RpcReceiver {
           config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
       }
       if (result.capabilities.length() == 5 && result.capabilities.contains("ESS")) {
-          config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+          config.allowedKeyManagement.set(KeyMgmt.NONE);
       }
       config.BSSID = result.BSSID;
       config.scanResultCache = new HashMap<String, ScanResult>();
@@ -362,7 +367,7 @@ public class WifiManagerFacade extends RpcReceiver {
   @Rpc(description = "Starts a scan for Wifi access points.",
            returns = "True if the scan was initiated successfully.")
   public Boolean wifiStartScan() {
-    mService.registerReceiver(mScanFinishedReceiver, mScanFilter);
+    mService.registerReceiver(mScanResultsAvailableReceiver, mScanFilter);
     return mWifi.startScan();
   }
 
