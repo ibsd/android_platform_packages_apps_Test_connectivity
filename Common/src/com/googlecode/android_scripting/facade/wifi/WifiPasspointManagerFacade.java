@@ -55,7 +55,6 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
     mPasspointChannelListeners = new Hashtable<Integer, PasspointChannelListener>();
     mChannels = new Hashtable<Integer, Channel>();
     mScanResults = new ArrayList<ScanResult>();
-
   }
 
   public static class PasspointActionListener implements WifiPasspointManager.ActionListener{
