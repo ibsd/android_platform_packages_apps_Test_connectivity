@@ -386,7 +386,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         mScanSettingsBuilder.setCallbackType(callbackType);
         mScanSettingsBuilder.setScanMode(scanMode);
         mScanSettingsBuilder.setScanResultType(scanResultType);
-        mScanSettingsBuilder.setReportDelayMillis(reportDelayMillis);
+        mScanSettingsBuilder.setReportDelay(reportDelayMillis);
     }
 
     /**
