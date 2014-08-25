@@ -113,7 +113,6 @@ public class FacadeConfiguration {
       sFacadeClassList.add(ConnectivityManagerFacade.class);
       sFacadeClassList.add(DisplayFacade.class);
       sFacadeClassList.add(TelecommManagerFacade.class);
-      sFacadeClassList.add(WifiPasspointManagerFacade.class);
       sFacadeClassList.add(WifiRttManagerFacade.class);
       sFacadeClassList.add(WifiScannerFacade.class);
     }

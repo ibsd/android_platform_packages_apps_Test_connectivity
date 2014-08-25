@@ -293,8 +293,6 @@ public class JsonBuilder {
         result.put("level", scanResult.level);
         result.put("capabilities", scanResult.capabilities);
         result.put("timestamp", scanResult.timestamp);
-        if(scanResult.passpoint != null)
-          result.put("passpoint", scanResult.passpoint.toString());
         // The following fields are hidden for now, uncomment when they're unhidden
         // result.put("seen", scanResult.seen);
         // result.put("distanceCm", scanResult.distanceCm);
