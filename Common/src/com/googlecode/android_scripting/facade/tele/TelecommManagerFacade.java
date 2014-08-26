@@ -61,8 +61,8 @@ public class TelecommManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Returns whether there is an ongoing phone call.")
-    public Boolean telecommIsInAPhoneCall() {
-        return mTelecommManager.isInAPhoneCall();
+    public Boolean telecommIsInCall() {
+        return mTelecommManager.isInCall();
     }
 
     @Rpc(description = "Silences the rigner if there's a ringing call.")
