@@ -42,7 +42,6 @@ public class WifiManagerFacade extends RpcReceiver {
   private final IntentFilter mScanFilter;
   private final IntentFilter mStateChangeFilter;
   private final WifiScanReceiver mScanResultsAvailableReceiver;
-  private final WifiActionListener mWifiActionListener;
   private final WifiStateChangeReceiver mStateChangeReceiver;
 
   private WifiLock mLock;
@@ -62,7 +61,6 @@ public class WifiManagerFacade extends RpcReceiver {
     mStateChangeFilter.setPriority(999);
 
     mScanResultsAvailableReceiver = new WifiScanReceiver(mEventFacade);
-    mWifiActionListener = new WifiActionListener(mEventFacade);
     mStateChangeReceiver = new WifiStateChangeReceiver();
   }
 
@@ -102,27 +100,24 @@ public class WifiManagerFacade extends RpcReceiver {
 
   class WifiActionListener implements WifiManager.ActionListener{
     private final EventFacade mEventFacade;
-    private final Bundle mResults;
+    private final String TAG;
 
-    public WifiActionListener(EventFacade eventFacade) {
+    public WifiActionListener(EventFacade eventFacade, String tag) {
       mEventFacade = eventFacade;
-      mResults = new Bundle();
+      this.TAG = tag;
     }
 
     @Override
     public void onSuccess() {
-      Log.d("WifiActionListener  "+ mEventType);
-      mResults.putString("Type", "onSuccess");
-      mEventFacade.postEvent(mEventType, mResults.clone());
-      mResults.clear();
+      mEventFacade.postEvent(mEventType + TAG + "OnSuccess", null);
     }
 
     @Override
     public void onFailure(int reason) {
       Log.d("WifiActionListener  "+ mEventType);
-      mResults.putString("Type", "onFailure");
-      mEventFacade.postEvent(mEventType, mResults.clone());
-      mResults.clear();
+      Bundle msg = new Bundle();
+      msg.putInt("reason", reason);
+      mEventFacade.postEvent(mEventType + TAG + "OnFailure", msg);
     }
   }
 
@@ -132,8 +127,11 @@ public class WifiManagerFacade extends RpcReceiver {
         String action = intent.getAction();
         if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
             Log.d("Wifi network state changed.");
-            if (intent.hasExtra(WifiManager.EXTRA_WIFI_INFO)) {
-              WifiInfo wInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+            NetworkInfo nInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+            WifiInfo wInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+            Log.d("NetworkInfo " + nInfo);
+            Log.d("WifiInfo " + wInfo);
+            if (wInfo != null) {
               Bundle msg = new Bundle();
               String ssid = wInfo.getSSID();
               if (ssid.charAt(0)=='"' && ssid.charAt(ssid.length()-1)=='"') {
@@ -142,12 +140,9 @@ public class WifiManagerFacade extends RpcReceiver {
                   msg.putString("ssid", ssid);
               }
               msg.putString("bssid", wInfo.getBSSID());
+              Log.d("WifiNetworkConnected");
               mEventFacade.postEvent("WifiNetworkConnected", msg);
             }
-            NetworkInfo nInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-            WifiInfo wInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-            Log.d("NetworkInfo " + nInfo);
-            Log.d("WifiInfo " + wInfo);
         } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
             Log.d("Supplicant connection state changed.");
             mIsConnected = intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false);
@@ -290,7 +285,8 @@ public class WifiManagerFacade extends RpcReceiver {
    */
   @Rpc(description = "Forget a wifi network with priority")
   public void wifiForgetNetwork(@RpcParameter(name = "wifiSSID") Integer newtorkId ) {
-    mWifi.forget(newtorkId, mWifiActionListener);
+    WifiActionListener listener = new WifiActionListener(mEventFacade, "ForgetNetwork");
+    mWifi.forget(newtorkId, listener);
   }
 
   @Rpc(description = "Return a list of all the configured wifi networks.")
@@ -343,7 +339,8 @@ public class WifiManagerFacade extends RpcReceiver {
       wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
     else
       wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
-    mWifi.connect(wifiConfig, mWifiActionListener);
+    WifiActionListener listener = new WifiActionListener(mEventFacade, "PriorityConnect");
+    mWifi.connect(wifiConfig, listener);
   }
 
   @Rpc(description = "Reassociates with the currently active access point.",
