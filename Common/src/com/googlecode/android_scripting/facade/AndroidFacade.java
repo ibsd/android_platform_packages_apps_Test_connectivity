@@ -813,4 +813,9 @@ public class AndroidFacade extends RpcReceiver {
     }
     return result;
   }
+
+  @Rpc(description = "Get the end-user-visible name for the end product.")
+  public String getDeviceModel() {
+      return android.os.Build.MODEL;
+  }
 }
