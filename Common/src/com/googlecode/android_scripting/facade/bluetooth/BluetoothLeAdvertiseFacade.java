@@ -224,7 +224,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             throw new Exception("Invalid settingsIndex input:" + Integer.toString(settingsIndex));
         }
         if (mAdvertiseCallbackList.get(callbackIndex) != null) {
-            Log.d("bluetooth_le starting a background scan on callback index: "
+            Log.d("bluetooth_le starting a background advertise on callback index: "
                     + Integer.toString(callbackIndex));
             mAdvertise
                     .startAdvertising(mSettings, mData, mAdvertiseCallbackList.get(callbackIndex));
@@ -275,7 +275,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
                     + Integer.toString(settingsIndex));
         }
         if (mAdvertiseCallbackList.get(callbackIndex) != null) {
-            Log.d("bluetooth_le starting a background scan on callback index: "
+            Log.d("bluetooth_le starting a background advertise on callback index: "
                     + Integer.toString(callbackIndex));
             mAdvertise
                     .startAdvertising(mSettings, mData, mScanResponse,

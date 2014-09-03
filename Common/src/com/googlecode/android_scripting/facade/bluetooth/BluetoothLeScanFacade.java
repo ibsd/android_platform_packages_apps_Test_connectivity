@@ -768,7 +768,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
                     .setServiceData(
                             new ParcelUuid(UUID.randomUUID()),
                             ConvertUtils.convertStringToByteArray(serviceData),
-                            ConvertUtils.convertStringToByteArray(serviceDataMask));
+                            ConvertUtils.convertStringToByteArray(
+                                serviceDataMask));
         } else {
             mScanFilterBuilder.setServiceData(new ParcelUuid(UUID.randomUUID()),
                     ConvertUtils.convertStringToByteArray(serviceData));
