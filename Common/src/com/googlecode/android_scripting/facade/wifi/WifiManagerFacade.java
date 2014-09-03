@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiAdapter;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -193,14 +192,7 @@ public class WifiManagerFacade extends RpcReceiver {
 
   @Rpc(description = "Check if wifi scanner is supported on this device.")
   public Boolean wifiIsScannerSupported() {
-      List<WifiAdapter> adapters = mWifi.getAdapters();
-      boolean s = false;
-      for(WifiAdapter a : adapters) {
-          if (a.isWifiScannerSupported()) {
-              s = true;
-          }
-      }
-      return s;
+      return mWifi.isWifiScannerSupported();
   }
 
   @Rpc(description = "Add a network.")
