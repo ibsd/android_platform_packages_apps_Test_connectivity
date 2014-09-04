@@ -78,22 +78,15 @@ public class BluetoothGattFacade extends RpcReceiver {
     @Rpc(description = "Open new gatt server")
     public int openGattServer(
         @RpcParameter(name = "index")
-        Integer index,
-        @RpcParameter(name = "callbackIndex")
-        Integer callbackIndex
+        Integer index
         ) throws Exception {
         if (mBluetoothGattServerCallbackList.get(index) != null) {
-            if (mBluetoothGattServerCallbackList.get(callbackIndex) != null) {
-                BluetoothGattServer mGattServer = mBluetoothManager.openGattServer(
-                        mContext, mBluetoothGattServerCallbackList.get(callbackIndex));
-                GattServerCount += 1;
-                int in = GattServerCount;
-                mBluetoothGattServerList.put(in, mGattServer);
-                return in;
-            } else {
-                throw new Exception("Invalid callbackIndex input:"
-                        + Integer.toString(callbackIndex));
-            }
+            BluetoothGattServer mGattServer = mBluetoothManager.openGattServer(
+                    mContext, mBluetoothGattServerCallbackList.get(index));
+            GattServerCount += 1;
+            int in = GattServerCount;
+            mBluetoothGattServerList.put(in, mGattServer);
+            return in;
         }
         else {
             throw new Exception("Invalid index input:"
@@ -239,7 +232,6 @@ public class BluetoothGattFacade extends RpcReceiver {
             String serviceUuid,
             @RpcParameter(name = "characteristicIndex")
             Integer characteristicIndex
-
             ) throws Exception {
         if (mBluetoothGattList.get(index) != null
                 && mBluetoothGattList.get(index).getService(UUID.fromString(serviceUuid)) != null
@@ -807,10 +799,11 @@ public class BluetoothGattFacade extends RpcReceiver {
             index = idx;
         }
 
+        @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
             Log.d("gatt_server change onServiceAdded " + mEventType + " " + index);
             mResults.putString("serviceUuid", service.getUuid().toString());
-            mResults.putInt("", service.getInstanceId());
+            mResults.putInt("instanceId", service.getInstanceId());
             mEventFacade
                     .postEvent(mEventType + index + "onServiceAdded", mResults.clone());
             mResults.clear();
