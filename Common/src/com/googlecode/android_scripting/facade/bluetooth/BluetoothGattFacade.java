@@ -12,12 +12,17 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.os.Bundle;
 
+import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.MainThread;
 import com.googlecode.android_scripting.facade.EventFacade;
@@ -25,25 +30,33 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
 
 public class BluetoothGattFacade extends RpcReceiver {
     private final EventFacade mEventFacade;
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothManager mBluetoothManager;
     private final Service mService;
+    private final Context mContext;
     private final HashMap<Integer, myBluetoothGattCallback> mGattCallbackList;
     private final HashMap<Integer, BluetoothGatt> mBluetoothGattList;
     private final HashMap<Integer, BluetoothGattCharacteristic> mCharacteristicList;
     private final HashMap<Integer, BluetoothGattDescriptor> mDescriptorList;
+    private final HashMap<Integer, BluetoothGattServer> mBluetoothGattServerList;
+    private final HashMap<Integer, myBluetoothGattServerCallback> mBluetoothGattServerCallbackList;
+    private final HashMap<Integer, BluetoothGattService> mGattServiceList;
     private static int GattCallbackCount;
     private static int BluetoothGattCount;
     private static int CharacteristicCount;
     private static int DescriptorCount;
+    private static int GattServerCallbackCount;
+    private static int GattServerCount;
+    private static int GattServiceCount;
 
     public BluetoothGattFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
+        mContext = mService.getApplicationContext();
         mBluetoothAdapter = MainThread.run(mService,
                 new Callable<BluetoothAdapter>() {
                     @Override
@@ -51,12 +64,93 @@ public class BluetoothGattFacade extends RpcReceiver {
                         return BluetoothAdapter.getDefaultAdapter();
                     }
                 });
+        mBluetoothManager = (BluetoothManager) mContext.getSystemService(Service.BLUETOOTH_SERVICE);
         mEventFacade = manager.getReceiver(EventFacade.class);
         mGattCallbackList = new HashMap<Integer, myBluetoothGattCallback>();
         mCharacteristicList = new HashMap<Integer, BluetoothGattCharacteristic>();
         mBluetoothGattList = new HashMap<Integer, BluetoothGatt>();
         mDescriptorList = new HashMap<Integer, BluetoothGattDescriptor>();
+        mBluetoothGattServerList = new HashMap<Integer, BluetoothGattServer>();
+        mBluetoothGattServerCallbackList = new HashMap<Integer, myBluetoothGattServerCallback>();
+        mGattServiceList = new HashMap<Integer, BluetoothGattService>();
     }
+
+    @Rpc(description = "Open new gatt server")
+    public int openGattServer(
+        @RpcParameter(name = "index")
+        Integer index,
+        @RpcParameter(name = "callbackIndex")
+        Integer callbackIndex
+        ) throws Exception {
+        if (mBluetoothGattServerCallbackList.get(index) != null) {
+            if (mBluetoothGattServerCallbackList.get(callbackIndex) != null) {
+                BluetoothGattServer mGattServer = mBluetoothManager.openGattServer(
+                        mContext, mBluetoothGattServerCallbackList.get(callbackIndex));
+                GattServerCount += 1;
+                int in = GattServerCount;
+                mBluetoothGattServerList.put(in, mGattServer);
+                return in;
+            } else {
+                throw new Exception("Invalid callbackIndex input:"
+                        + Integer.toString(callbackIndex));
+            }
+        }
+        else {
+            throw new Exception("Invalid index input:"
+                    + Integer.toString(index));
+        }
+    }
+
+    @Rpc(description = "Add service to bluetooth gatt server")
+    public void gattServerAddService(
+        @RpcParameter(name = "index")
+        Integer index,
+        @RpcParameter(name = "serviceIndex")
+        Integer serviceIndex
+    ) throws Exception {
+        if (mBluetoothGattServerList.get(index) != null) {
+            if (mGattServiceList.get(serviceIndex) != null) {
+                mBluetoothGattServerList.get(index).addService(mGattServiceList.get(serviceIndex));
+            } else {
+                throw new Exception("Invalid serviceIndex input:"
+                        + Integer.toString(serviceIndex));
+            }
+        } else {
+            throw new Exception("Invalid index input:"
+                    + Integer.toString(index));
+        }
+    }
+
+    @Rpc(description = "Create new bluetooth gatt service")
+    public int createGattService(
+        @RpcParameter(name = "uuid")
+        String uuid,
+        @RpcParameter(name = "serviceType")
+        Integer serviceType
+    ) {
+        GattServiceCount += 1;
+        int index = GattServiceCount;
+        mGattServiceList.put(index, new BluetoothGattService(UUID.fromString(uuid), serviceType));
+        return index;
+    }
+
+    // TODO: Finish this for bluetooth device, need to create a bt device list.
+    /*
+    @Rpc(description = "cancel gatt server connection by device")
+    public void gattServerCancelConnection(
+        @RpcParameter(name = "index")
+        Integer index,
+        @RpcParameter(name = "deviceIndex")
+        Integer bluetoothDevice
+        ) throws Exception {
+        if (mBluetoothGattServerList.get(index) != null) {
+            mBluetoothGattServerList.get(index).cancelConnection(bluetoothDevice);
+        } else {
+            throw new Exception("Invalid index input:"
+                    + Integer.toString(index));
+        }
+    }
+    */
 
     /**
      * Create a BluetoothGatt connection
@@ -69,7 +163,6 @@ public class BluetoothGattFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Create a gatt connection")
-    @RpcStartEvent("GattConnect")
     public int connectGatt(
             @RpcParameter(name = "index")
             Integer index,
@@ -167,6 +260,25 @@ public class BluetoothGattFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Add a characteristic to a bluetooth gatt service")
+    public void bluetoothGattAddCharacteristicToService(
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "characteristicIndex")
+            Integer characteristicIndex
+
+    ) throws Exception {
+        if (mGattServiceList.get(index) != null) {
+            if (mCharacteristicList.get(characteristicIndex) != null) {
+                mGattServiceList.get(index).addCharacteristic(mCharacteristicList.get(characteristicIndex));
+            } else {
+                throw new Exception("Invalid index input:" + index);
+            }
+        } else {
+            throw new Exception("Invalid index input:" + index);
+        }
+    }
+
     /**
      * Abort reliable write of a bluetooth gatt
      *
@@ -231,7 +343,7 @@ public class BluetoothGattFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "true, if the new MTU value has been requested successfully")
-    public boolean bluetoothGattConfigureMTU(
+    public boolean bluetoothGattRequestMtu(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "mtu")
@@ -346,7 +458,6 @@ public class BluetoothGattFacade extends RpcReceiver {
      * Get the service from an input UUID
      *
      * @param index the bluetooth gatt index
-     * @param uuid the String uuid that matches the service
      * @return BluetoothGattService related to the bluetooth gatt
      * @throws Exception
      */
@@ -398,11 +509,11 @@ public class BluetoothGattFacade extends RpcReceiver {
      */
     @Rpc(description = "Reads the requested characteristic from the associated remote device.")
     public boolean bluetoothGattReadCharacteristic(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "characteristicIndex")
-            Integer characteristicIndex
-            ) throws Exception {
+        @RpcParameter(name = "index")
+        Integer index,
+        @RpcParameter(name = "characteristicIndex")
+        Integer characteristicIndex
+        ) throws Exception {
         if (mBluetoothGattList.get(index) != null) {
             if (mCharacteristicList.get(characteristicIndex) != null) {
                 return mBluetoothGattList.get(index).readCharacteristic(
@@ -415,6 +526,25 @@ public class BluetoothGattFacade extends RpcReceiver {
             throw new Exception("Invalid index input:" + index);
         }
     }
+
+    @Rpc(description = "add descriptor to blutooth gatt characteristic")
+    public void bluetoothGattCharacteristicAddDescriptor(
+        @RpcParameter(name = "index")
+        Integer index,
+        @RpcParameter(name = "descriptorIndex")
+        Integer descriptorIndex
+    ) throws Exception {
+        if(mCharacteristicList.get(index) != null) {
+            if(mDescriptorList.get(descriptorIndex) != null) {
+                mCharacteristicList.get(index).addDescriptor(mDescriptorList.get(descriptorIndex));
+            } else {
+                throw new Exception("Invalid descriptorIndex input:" + descriptorIndex);
+            }
+        } else {
+            throw new Exception("Invalid index input:" + index);
+        }
+    }
+
 
     /**
      * Writes a given characteristic and its values to the associated remote device.
@@ -541,20 +671,21 @@ public class BluetoothGattFacade extends RpcReceiver {
     /**
      * Request a connection parameter update.
      * @param index the bluetooth gatt index
-     * @param connectionParameterUpdateRequest connection priority
+     * @param connectionPriority connection priority
      * @return boolean True if successful False otherwise.
      * @throws Exception
      */
     @Rpc(description = "Request a connection parameter update. from the Bluetooth Gatt")
-    public boolean bluetoothGattRequestConnectionParameterUpdate(
+    public boolean bluetoothGattRequestConnectionPriority(
             @RpcParameter(name = "index")
             Integer index,
-            @RpcParameter(name = "connectionParameterUpdateRequest")
+            @RpcParameter(name = "connectionPriority")
             Integer connectionPriority
             ) throws Exception {
         boolean result = false;
         if (mBluetoothGattList.get(index) != null) {
-            result = mBluetoothGattList.get(index).requestConnectionPriority(connectionPriority);
+            result = mBluetoothGattList.get(index).requestConnectionPriority(
+                    connectionPriority);
         } else {
             throw new Exception("Invalid index input:" + index);
         }
@@ -631,6 +762,19 @@ public class BluetoothGattFacade extends RpcReceiver {
     }
 
     /**
+     * Create a new GattCallback object
+     *
+     * @return the index of the callback object
+     */
+    @Rpc(description = "Create a new GattCallback object")
+    public Integer createGattServerCallback() {
+        GattServerCallbackCount += 1;
+        int index = GattServerCallbackCount;
+        mBluetoothGattServerCallbackList.put(index, new myBluetoothGattServerCallback(index));
+        return index;
+    }
+
+    /**
      * Create a new Descriptor object
      *
      * @param descriptorUuid the UUID for this descriptor
@@ -650,6 +794,149 @@ public class BluetoothGattFacade extends RpcReceiver {
                 UUID.fromString(descriptorUuid), permissions);
         mDescriptorList.put(index, descriptor);
         return index;
+    }
+
+    private class myBluetoothGattServerCallback extends BluetoothGattServerCallback {
+        private final Bundle mResults;
+        private final int index;
+        private final String mEventType;
+
+        public myBluetoothGattServerCallback(int idx) {
+            mResults = new Bundle();
+            mEventType = "GattServer";
+            index = idx;
+        }
+
+        public void onServiceAdded(int status, BluetoothGattService service) {
+            Log.d("gatt_server change onServiceAdded " + mEventType + " " + index);
+            mResults.putString("serviceUuid", service.getUuid().toString());
+            mResults.putInt("", service.getInstanceId());
+            mEventFacade
+                    .postEvent(mEventType + index + "onServiceAdded", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
+                                                BluetoothGattCharacteristic characteristic) {
+            Log.d("gatt_server change onCharacteristicReadRequest " + mEventType + " " + index);
+            mResults.putInt("requestId", requestId);
+            mResults.putInt("offset", offset);
+            mResults.putInt("instanceId", characteristic.getInstanceId());
+            mResults.putInt("properties", characteristic.getProperties());
+            mResults.putString("uuid", characteristic.getUuid().toString());
+            mResults.putInt("permissions", characteristic.getPermissions());
+            mEventFacade
+                    .postEvent(mEventType + index + "onCharacteristicReadRequest", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId,
+                                                 BluetoothGattCharacteristic characteristic,
+                                                 boolean preparedWrite, boolean responseNeeded,
+                                                 int offset, byte[] value) {
+            Log.d("gatt_server change onCharacteristicWriteRequest " + mEventType + " " + index);
+            mResults.putInt("requestId", requestId);
+            mResults.putInt("offset", offset);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putBoolean("preparedWrite", preparedWrite);
+            mResults.putBoolean("responseNeeded", responseNeeded);
+            mResults.putString("value", ConvertUtils.convertByteArrayToString(value));
+            mResults.putInt("instanceId", characteristic.getInstanceId());
+            mResults.putInt("properties", characteristic.getProperties());
+            mResults.putString("uuid", characteristic.getUuid().toString());
+            mResults.putInt("permissions", characteristic.getPermissions());
+            mEventFacade
+                    .postEvent(mEventType + index + "onCharacteristicWriteRequest", mResults.clone());
+            mResults.clear();
+
+        }
+
+        @Override
+        public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
+                                            BluetoothGattDescriptor descriptor) {
+            Log.d("gatt_server change onDescriptorReadRequest " + mEventType + " " + index);
+            mResults.putInt("requestId", requestId);
+            mResults.putInt("offset", offset);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putInt("instanceId", descriptor.getInstanceId());
+            mResults.putInt("permissions", descriptor.getPermissions());
+            mResults.putString("uuid", descriptor.getUuid().toString());
+            mEventFacade
+                    .postEvent(mEventType + index + "onDescriptorReadRequest", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onDescriptorWriteRequest(BluetoothDevice device, int requestId,
+                                             BluetoothGattDescriptor descriptor,
+                                             boolean preparedWrite, boolean responseNeeded,
+                                             int offset, byte[] value) {
+            Log.d("gatt_server change onDescriptorWriteRequest " + mEventType + " " + index);
+            mResults.putInt("requestId", requestId);
+            mResults.putInt("offset", offset);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putBoolean("preparedWrite", preparedWrite);
+            mResults.putBoolean("responseNeeded", responseNeeded);
+            mResults.putString("value", ConvertUtils.convertByteArrayToString(value));
+            mResults.putInt("instanceId", descriptor.getInstanceId());
+            mResults.putInt("permissions", descriptor.getPermissions());
+            mResults.putString("uuid", descriptor.getUuid().toString());
+            mEventFacade
+                    .postEvent(mEventType + index + "onDescriptorWriteRequest", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+            Log.d("gatt_server change onExecuteWrite " + mEventType + " " + index);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putInt("requestId", requestId);
+            mResults.putBoolean("execute", execute);
+            mEventFacade
+                    .postEvent(mEventType + index + "onExecuteWrite", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onNotificationSent(BluetoothDevice device, int status) {
+            Log.d("gatt_server change onNotificationSent " + mEventType + " " + index);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putInt("status", status);
+            mEventFacade
+                    .postEvent(mEventType + index + "onNotificationSent", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onConnectionCongested(BluetoothDevice device, boolean congested) {
+            Log.d("gatt_server change onConnectionCongested " + mEventType + " " + index);
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putBoolean("congested", congested);
+            mEventFacade
+                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
+            mResults.clear();
+        }
+
+        @Override
+        public void onConnectionStateChange(BluetoothDevice device, int status,
+                                            int newState) {
+            Log.d("gatt_server change onConnectionStateChange " + mEventType + " " + index);
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.d("State Connected to mac address "
+                        + device.getAddress() + " status " + status);
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.d("State Disconnected from mac address "
+                        + device.getAddress() + " status " + status);
+            }
+            mResults.putParcelable("BluetoothDevice", device);
+            mResults.putInt("status", status);
+            mResults.putInt("newState", newState);
+            mEventFacade
+                    .postEvent(mEventType + index + "onConnectionStateChange", mResults.clone());
+            mResults.clear();
+        }
     }
 
     private class myBluetoothGattCallback extends BluetoothGattCallback {
@@ -789,7 +1076,7 @@ public class BluetoothGattFacade extends RpcReceiver {
             mResults.putInt("Status", status);
             mResults.putInt("MTU", mtu);
             mEventFacade
-                    .postEvent(mEventType + index + "onConfigureMTU", mResults.clone());
+                    .postEvent(mEventType + index + "onMtuChanged", mResults.clone());
             mResults.clear();
         }
 
