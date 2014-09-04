@@ -757,6 +757,8 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      */
     @Rpc(description = "Add filter \"serviceData and serviceDataMask\" to existing ScanFilter ")
     public void setScanFilterServiceData(
+            @RpcParameter(name = "serviceUuid")
+            String serviceUuid,
             @RpcParameter(name = "serviceData")
             String serviceData,
             @RpcParameter(name = "serviceDataMask")
@@ -766,12 +768,12 @@ public class BluetoothLeScanFacade extends RpcReceiver {
         if (serviceDataMask != null) {
             mScanFilterBuilder
                     .setServiceData(
-                            new ParcelUuid(UUID.randomUUID()),
+                            ParcelUuid.fromString(serviceUuid),
                             ConvertUtils.convertStringToByteArray(serviceData),
                             ConvertUtils.convertStringToByteArray(
                                 serviceDataMask));
         } else {
-            mScanFilterBuilder.setServiceData(new ParcelUuid(UUID.randomUUID()),
+            mScanFilterBuilder.setServiceData(ParcelUuid.fromString(serviceUuid),
                     ConvertUtils.convertStringToByteArray(serviceData));
         }
     }

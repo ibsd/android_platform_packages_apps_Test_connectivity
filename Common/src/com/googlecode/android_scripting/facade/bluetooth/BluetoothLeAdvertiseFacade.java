@@ -181,7 +181,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @param index the id of the advertisement to stop advertising on
      * @throws Exception
      */
-    @Rpc(description = "Stops an ongoing ble advertisement scan")
+    @Rpc(description = "Stops an ongoing ble advertisement")
     public void stopBleAdvertising(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
@@ -224,7 +224,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             throw new Exception("Invalid settingsIndex input:" + Integer.toString(settingsIndex));
         }
         if (mAdvertiseCallbackList.get(callbackIndex) != null) {
-            Log.d("bluetooth_le starting a background advertise on callback index: "
+            Log.d("bluetooth_le starting a background advertisement on callback index: "
                     + Integer.toString(callbackIndex));
             mAdvertise
                     .startAdvertising(mSettings, mData, mAdvertiseCallbackList.get(callbackIndex));
@@ -269,7 +269,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
             throw new Exception("Invalid settingsIndex input:" + Integer.toString(settingsIndex));
         }
         if (mAdvertiseDataList.get(scanResponseIndex) != null) {
-            mScanResponse = mAdvertiseDataList.get(settingsIndex);
+            mScanResponse = mAdvertiseDataList.get(scanResponseIndex);
         } else {
             throw new Exception("Invalid scanResponseIndex input:"
                     + Integer.toString(settingsIndex));
