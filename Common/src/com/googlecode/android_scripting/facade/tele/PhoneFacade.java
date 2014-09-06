@@ -162,7 +162,7 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Stops tracking service state change.")
-    public void phoneStopTrackingServicetateChange() {
+    public void phoneStopTrackingServiceStateChange() {
         mTelephonyManager.listen(mServiceStateChangeListener, PhoneStateListener.LISTEN_NONE);
     }
 
@@ -539,6 +539,6 @@ public class PhoneFacade extends RpcReceiver {
     public void shutdown() {
         phoneStopTrackingCallStateChange();
         phoneStopTrackingPowerLevelChange();
-        phoneStopTrackingServicetateChange();
+        phoneStopTrackingServiceStateChange();
     }
 }
