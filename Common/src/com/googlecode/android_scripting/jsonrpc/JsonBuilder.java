@@ -16,19 +16,6 @@
 
 package com.googlecode.android_scripting.jsonrpc;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.codec.binary.Base64Codec;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -43,6 +30,9 @@ import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.telecomm.PhoneAccountHandle;
@@ -54,7 +44,22 @@ import android.util.DisplayMetrics;
 import android.util.SparseArray;
 
 import com.googlecode.android_scripting.ConvertUtils;
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
+
+import org.apache.commons.codec.binary.Base64Codec;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class JsonBuilder {
 
@@ -96,8 +101,8 @@ public class JsonBuilder {
             return buildJsonList(items);
         }
         if (data instanceof Collection<?>) {
-          List<Object> items = new ArrayList<Object>((Collection<?>) data);
-          return buildJsonList(items);
+            List<Object> items = new ArrayList<Object>((Collection<?>) data);
+            return buildJsonList(items);
         }
         if (data instanceof List<?>) {
             return buildJsonList((List<?>) data);
@@ -122,7 +127,7 @@ public class JsonBuilder {
             return buildJsonMap((Map<String, ?>) data);
         }
         if (data instanceof ParcelUuid) {
-          return data.toString();
+            return data.toString();
         }
         if (data instanceof ScanResult) {
             return buildJsonScanResult((ScanResult) data);
@@ -157,6 +162,9 @@ public class JsonBuilder {
         if (data instanceof InetSocketAddress) {
             return buildInetSocketAddress((InetSocketAddress) data);
         }
+        if (data instanceof InetAddress) {
+            return buildInetAddress((InetAddress) data);
+        }
         if (data instanceof Point) {
             return buildPoint((Point) data);
         }
@@ -175,6 +183,15 @@ public class JsonBuilder {
         if (data instanceof WifiConfiguration) {
             return buildWifiConfiguration((WifiConfiguration) data);
         }
+        if (data instanceof WifiP2pDevice) {
+            return buildWifiP2pDevice((WifiP2pDevice) data);
+        }
+        if (data instanceof WifiP2pInfo) {
+            return buildWifiP2pInfo((WifiP2pInfo) data);
+        }
+        if (data instanceof WifiP2pGroup) {
+            return buildWifiP2pGroup((WifiP2pGroup) data);
+        }
         if (data instanceof byte[]) {
             return Base64Codec.encodeBase64((byte[]) data);
         }
@@ -185,7 +202,7 @@ public class JsonBuilder {
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
     }
 
-    private static Object buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
+    private static JSONObject buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
         JSONObject deviceInfo = new JSONObject();
         deviceInfo.put("address", data.getAddress());
         deviceInfo.put("state", data.getBondState());
@@ -206,6 +223,13 @@ public class JsonBuilder {
         JSONArray address = new JSONArray();
         address.put(data.getHostName());
         address.put(data.getPort());
+        return address;
+    }
+
+    private static Object buildInetAddress(InetAddress data) {
+        JSONArray address = new JSONArray();
+        address.put(data.getHostName());
+        address.put(data.getHostAddress());
         return address;
     }
 
@@ -324,9 +348,11 @@ public class JsonBuilder {
         ArrayList<String> manufacturerDataList = new ArrayList<String>();
         ArrayList<Integer> idList = new ArrayList<Integer>();
         if (scanResult.getScanRecord().getManufacturerSpecificData() != null) {
-            SparseArray<byte[]> manufacturerSpecificData = scanResult.getScanRecord().getManufacturerSpecificData();
-            for(int i = 0; i < manufacturerSpecificData.size(); i++) {
-                manufacturerDataList.add(ConvertUtils.convertByteArrayToString(manufacturerSpecificData.valueAt(i)));
+            SparseArray<byte[]> manufacturerSpecificData = scanResult.getScanRecord()
+                    .getManufacturerSpecificData();
+            for (int i = 0; i < manufacturerSpecificData.size(); i++) {
+                manufacturerDataList.add(ConvertUtils
+                        .convertByteArrayToString(manufacturerSpecificData.valueAt(i)));
                 idList.add(manufacturerSpecificData.keyAt(i));
             }
         }
@@ -336,9 +362,10 @@ public class JsonBuilder {
         ArrayList<String> serviceDataList = new ArrayList<String>();
         if (scanResult.getScanRecord().getServiceData() != null) {
             Map<ParcelUuid, byte[]> serviceDataMap = scanResult.getScanRecord().getServiceData();
-            for (ParcelUuid serviceUuid : serviceDataMap.keySet()){
+            for (ParcelUuid serviceUuid : serviceDataMap.keySet()) {
                 serviceUuidList.add(serviceUuid.toString());
-                serviceDataList.add(ConvertUtils.convertByteArrayToString(serviceDataMap.get(serviceUuid)));
+                serviceDataList.add(ConvertUtils.convertByteArrayToString(serviceDataMap
+                        .get(serviceUuid)));
             }
         }
         result.put("serviceUuidList", serviceUuidList);
@@ -442,19 +469,19 @@ public class JsonBuilder {
         JSONObject config = new JSONObject();
         config.put("networkId", data.networkId);
         // Trim the double quotes if exist
-        if (data.SSID.charAt(0)=='"' && data.SSID.charAt(data.SSID.length()-1)=='"') {
-            config.put("ssid", data.SSID.substring(1, data.SSID.length()-1));
+        if (data.SSID.charAt(0) == '"' && data.SSID.charAt(data.SSID.length() - 1) == '"') {
+            config.put("ssid", data.SSID.substring(1, data.SSID.length() - 1));
         } else {
             config.put("ssid", data.SSID);
         }
         config.put("bssid", data.BSSID);
         config.put("priority", data.priority);
         config.put("hiddenSSID", data.hiddenSSID);
-        if (data.status==WifiConfiguration.Status.CURRENT) {
+        if (data.status == WifiConfiguration.Status.CURRENT) {
             config.put("status", "CURRENT");
-        } else if (data.status==WifiConfiguration.Status.DISABLED) {
+        } else if (data.status == WifiConfiguration.Status.DISABLED) {
             config.put("status", "DISABLED");
-        } else if (data.status==WifiConfiguration.Status.ENABLED) {
+        } else if (data.status == WifiConfiguration.Status.ENABLED) {
             config.put("status", "ENABLED");
         } else {
             config.put("status", "UNKNOWN");
@@ -462,8 +489,36 @@ public class JsonBuilder {
         return config;
     }
 
+    private static JSONObject buildWifiP2pDevice(WifiP2pDevice data) throws JSONException {
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("Name", data.deviceName);
+        deviceInfo.put("Address", data.deviceAddress);
+        return deviceInfo;
+    }
+
+    private static JSONObject buildWifiP2pGroup(WifiP2pGroup data) throws JSONException {
+        JSONObject group = new JSONObject();
+        Log.d("build p2p group.");
+        group.put("ClientList", build(data.getClientList()));
+        group.put("Interface", data.getInterface());
+        group.put("Networkname", data.getNetworkName());
+        group.put("Owner", data.getOwner());
+        group.put("Passphrase", data.getPassphrase());
+        group.put("NetworkId", data.getNetworkId());
+        return group;
+    }
+
+    private static JSONObject buildWifiP2pInfo(WifiP2pInfo data) throws JSONException {
+        JSONObject info = new JSONObject();
+        Log.d("build p2p info.");
+        info.put("groupFormed", data.groupFormed);
+        info.put("isGroupOwner", data.isGroupOwner);
+        info.put("groupOwnerAddress", data.groupOwnerAddress);
+        return info;
+    }
+
     private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
-        throws JSONException {
+            throws JSONException {
         JSONObject result = new JSONObject();
         if (cellLocation instanceof GsmCellLocation) {
             GsmCellLocation location = (GsmCellLocation) cellLocation;
