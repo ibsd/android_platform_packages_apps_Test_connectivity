@@ -793,9 +793,13 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             @RpcOptional
             String serviceMask
             ) {
+        if (serviceMask != null) {
             mScanFilterBuilder
                     .setServiceUuid(ParcelUuid.fromString(serviceUuid),
                             ParcelUuid.fromString(serviceMask));
+        } else {
+            mScanFilterBuilder.setServiceUuid(ParcelUuid.fromString(serviceUuid));
+        }
     }
 
     /**
