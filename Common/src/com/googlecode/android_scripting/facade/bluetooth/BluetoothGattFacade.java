@@ -903,16 +903,6 @@ public class BluetoothGattFacade extends RpcReceiver {
         }
 
         @Override
-        public void onConnectionCongested(BluetoothDevice device, boolean congested) {
-            Log.d("gatt_server change onConnectionCongested " + mEventType + " " + index);
-            mResults.putParcelable("BluetoothDevice", device);
-            mResults.putBoolean("congested", congested);
-            mEventFacade
-                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
-            mResults.clear();
-        }
-
-        @Override
         public void onConnectionStateChange(BluetoothDevice device, int status,
                                             int newState) {
             Log.d("gatt_server change onConnectionStateChange " + mEventType + " " + index);
@@ -1070,16 +1060,6 @@ public class BluetoothGattFacade extends RpcReceiver {
             mResults.putInt("MTU", mtu);
             mEventFacade
                     .postEvent(mEventType + index + "onMtuChanged", mResults.clone());
-            mResults.clear();
-        }
-
-        @Override
-        public void onConnectionCongested(BluetoothGatt gatt, boolean congested) {
-            Log.d("gatt_connect change onConnectionCongested " + mEventType + " " + index);
-            mResults.putString("Type", "onConnectionCongested");
-            mResults.putBoolean("Congested", congested);
-            mEventFacade
-                    .postEvent(mEventType + index + "onConnectionCongested", mResults.clone());
             mResults.clear();
         }
     }
