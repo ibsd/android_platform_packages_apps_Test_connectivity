@@ -19,8 +19,8 @@ package com.googlecode.android_scripting.facade.tele;
 import java.util.List;
 
 import android.app.Service;
-import android.telecomm.PhoneAccountHandle;
-import android.telecomm.TelecommManager;
+import android.telecom.PhoneAccountHandle;
+import android.telecom.TelecomManager;
 
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -31,13 +31,13 @@ import com.googlecode.android_scripting.rpc.Rpc;
  *
  */
 public class TelecommManagerFacade extends RpcReceiver {
-    private final TelecommManager mTelecommManager;
+    private final TelecomManager mTelecommManager;
     private final Service mService;
 
     public TelecommManagerFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
-        mTelecommManager = new TelecommManager(mService);
+        mTelecommManager = new TelecomManager(mService);
     }
 
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
