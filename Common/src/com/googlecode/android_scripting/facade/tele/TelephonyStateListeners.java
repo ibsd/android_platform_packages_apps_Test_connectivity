@@ -36,21 +36,37 @@ public class TelephonyStateListeners {
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
             Bundle mCallStateEvent = new Bundle();
-            if (incomingNumber.length() > 0) {
-              mCallStateEvent.putString("incomingNumber", incomingNumber);
+            String subEvent = null;
+            String postIncomingNumberStr = null;
+            int len = incomingNumber.length();
+            if (len > 0) {
+                /**
+                 * Currently this incomingNumber modification is specific for US numbers.
+                 */
+                if ((12 == len) && ('+' == incomingNumber.charAt(0))) {
+                    postIncomingNumberStr = incomingNumber.substring(1);
+                } else if (10 == len) {
+                    postIncomingNumberStr = '1' + incomingNumber;
+                } else {
+                    postIncomingNumberStr = incomingNumber;
+                }
+                mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
             }
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
                     mCallStateEvent.putString("State", "IDLE");
+                    subEvent = "Idle";
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                     mCallStateEvent.putString("State", "OFFHOOK");
+                    subEvent = "Offhook";
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
                     mCallStateEvent.putString("State", "RINGING");
+                    subEvent = "Ringing";
                     break;
             }
-            mEventFacade.postEvent("onCallStateChanged", mCallStateEvent.clone());
+            mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent.clone());
             mCallStateEvent.clear();
         }
 
@@ -75,28 +91,38 @@ public class TelephonyStateListeners {
 
         private void processCallState(int newState, String which, PreciseCallState callState) {
             Bundle EventMsg = new Bundle();
+            String subEvent = null;
             EventMsg.putString("Type", which);
             if (newState == PreciseCallState.PRECISE_CALL_STATE_ACTIVE) {
                 EventMsg.putString("State", "ACTIVE");
+                subEvent = "Active";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_HOLDING) {
                 EventMsg.putString("State", "HOLDING)");
+                subEvent = "Holding";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DIALING) {
                 EventMsg.putString("State", "DIALING");
+                subEvent = "Dialing";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_ALERTING) {
                 EventMsg.putString("State", "ALERTING");
+                subEvent = "Alerting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
                 EventMsg.putString("State", "INCOMING");
+                subEvent = "Incoming";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_WAITING) {
                 EventMsg.putString("State", "WAITING");
+                subEvent = "Waiting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTED) {
                 EventMsg.putString("State", "DISCONNECTED");
+                subEvent = "Disconnected";
                 EventMsg.putInt("Cause", callState.getPreciseDisconnectCause());
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTING) {
                 EventMsg.putString("State", "DISCONNECTING");
+                subEvent = "Disconnecting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
                 EventMsg.putString("State", "IDLE");
+                subEvent = "Idle";
             }
-            mEventFacade.postEvent("onPreciseStateChanged", EventMsg);
+            mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
         }
     }
 
@@ -153,19 +179,24 @@ public class TelephonyStateListeners {
 
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
-            Bundle event = new Bundle();;
+            Bundle event = new Bundle();
+            String subEvent = null;
             switch(serviceState.getVoiceRegState()) {
                 case ServiceState.STATE_EMERGENCY_ONLY:
                     event.putString("State", "EMERGENCY_ONLY");
+                    subEvent = "EmergencyOnly";
                 break;
                 case ServiceState.STATE_IN_SERVICE:
                     event.putString("State", "IN_SERVICE");
+                    subEvent = "InService";
                 break;
                 case ServiceState.STATE_OUT_OF_SERVICE:
                     event.putString("State","OUT_OF_SERVICE");
+                    subEvent = "OutOfService";
                 break;
                 case ServiceState.STATE_POWER_OFF:
                     event.putString("State", "POWER_OFF");
+                    subEvent = "PowerOff";
                 break;
             }
             event.putString("OperatorName", serviceState.getOperatorAlphaLong());
@@ -174,7 +205,7 @@ public class TelephonyStateListeners {
             event.putBoolean("Roaming", serviceState.getRoaming());
             event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
 
-            mEventFacade.postEvent("onServiceStateChanged", event.clone());
+            mEventFacade.postEvent("onServiceStateChanged"+subEvent, event.clone());
             event.clear();
         }
     }
