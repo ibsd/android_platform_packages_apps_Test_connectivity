@@ -16,6 +16,20 @@
 
 package com.googlecode.android_scripting.jsonrpc;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.codec.binary.Base64Codec;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -26,6 +40,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
+import android.net.NetworkInfo;
 import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
@@ -35,6 +50,7 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
@@ -47,25 +63,7 @@ import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
 
-import org.apache.commons.codec.binary.Base64Codec;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 public class JsonBuilder {
-
-    private JsonBuilder() {
-        // This is a utility class.
-    }
 
     @SuppressWarnings("unchecked")
     public static Object build(Object data) throws JSONException {
@@ -159,6 +157,9 @@ public class JsonBuilder {
         if (data instanceof NeighboringCellInfo) {
             return buildNeighboringCellInfo((NeighboringCellInfo) data);
         }
+        if (data instanceof NetworkInfo) {
+            return buildNetworkInfo((NetworkInfo) data);
+        }
         if (data instanceof InetSocketAddress) {
             return buildInetSocketAddress((InetSocketAddress) data);
         }
@@ -168,8 +169,12 @@ public class JsonBuilder {
         if (data instanceof Point) {
             return buildPoint((Point) data);
         }
+
         if (data instanceof SmsMessage) {
             return buildSmsMessage((SmsMessage) data);
+        }
+        if (data instanceof PhoneAccount) {
+            return buildPhoneAccount((PhoneAccount) data);
         }
         if (data instanceof PhoneAccountHandle) {
             return buildPhoneAccountHandle((PhoneAccountHandle) data);
@@ -202,28 +207,13 @@ public class JsonBuilder {
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
     }
 
-    private static JSONObject buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
-        JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("address", data.getAddress());
-        deviceInfo.put("state", data.getBondState());
-        deviceInfo.put("name", data.getName());
-        deviceInfo.put("type", data.getType());
-        return deviceInfo;
-    }
-
-    private static JSONArray buildJSONArray(Object[] data) throws JSONException {
-        JSONArray result = new JSONArray();
-        for (Object o : data) {
-            result.put(build(o));
-        }
-        return result;
-    }
-
-    private static Object buildInetSocketAddress(InetSocketAddress data) {
-        JSONArray address = new JSONArray();
-        address.put(data.getHostName());
-        address.put(data.getPort());
-        return address;
+    private static Object buildDisplayMetrics(DisplayMetrics data) throws JSONException {
+        JSONObject dm = new JSONObject();
+        dm.put("widthPixels", data.widthPixels);
+        dm.put("heightPixels", data.heightPixels);
+        dm.put("noncompatHeightPixels", data.noncompatHeightPixels);
+        dm.put("noncompatWidthPixels", data.noncompatWidthPixels);
+        return dm;
     }
 
     private static Object buildInetAddress(InetAddress data) {
@@ -233,12 +223,11 @@ public class JsonBuilder {
         return address;
     }
 
-    private static <T> JSONArray buildJsonList(final List<T> list) throws JSONException {
-        JSONArray result = new JSONArray();
-        for (T item : list) {
-            result.put(build(item));
-        }
-        return result;
+    private static Object buildInetSocketAddress(InetSocketAddress data) {
+        JSONArray address = new JSONArray();
+        address.put(data.getHostName());
+        address.put(data.getPort());
+        return address;
     }
 
     private static JSONObject buildJsonAddress(Address address) throws JSONException {
@@ -256,84 +245,20 @@ public class JsonBuilder {
         return result;
     }
 
-    private static JSONObject buildJsonLocation(Location location) throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("altitude", location.getAltitude());
-        result.put("latitude", location.getLatitude());
-        result.put("longitude", location.getLongitude());
-        result.put("time", location.getTime());
-        result.put("accuracy", location.getAccuracy());
-        result.put("speed", location.getSpeed());
-        result.put("provider", location.getProvider());
-        result.put("bearing", location.getBearing());
-        return result;
-    }
-
-    private static JSONObject buildJsonBundle(Bundle bundle) throws JSONException {
-        JSONObject result = new JSONObject();
-        for (String key : bundle.keySet()) {
-            result.put(key, build(bundle.get(key)));
+    private static JSONArray buildJSONArray(Object[] data) throws JSONException {
+        JSONArray result = new JSONArray();
+        for (Object o : data) {
+            result.put(build(o));
         }
         return result;
     }
 
-    private static JSONObject buildJsonIntent(Intent data) throws JSONException {
+    private static JSONObject buildJsonBleAdvertiseSettings(AdvertiseSettings advertiseSettings)
+            throws JSONException {
         JSONObject result = new JSONObject();
-        result.put("data", data.getDataString());
-        result.put("type", data.getType());
-        result.put("extras", build(data.getExtras()));
-        result.put("categories", build(data.getCategories()));
-        result.put("action", data.getAction());
-        ComponentName component = data.getComponent();
-        if (component != null) {
-            result.put("packagename", component.getPackageName());
-            result.put("classname", component.getClassName());
-        }
-        result.put("flags", data.getFlags());
-        return result;
-    }
-
-    private static JSONObject buildJsonEvent(Event event) throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("name", event.getName());
-        result.put("data", build(event.getData()));
-        result.put("time", event.getCreationTime());
-        return result;
-    }
-
-    private static JSONObject buildJsonMap(Map<String, ?> map) throws JSONException {
-        JSONObject result = new JSONObject();
-        for (Entry<String, ?> entry : map.entrySet()) {
-            result.put(entry.getKey(), build(entry.getValue()));
-        }
-        return result;
-    }
-
-    private static JSONObject buildJsonScanResult(ScanResult scanResult) throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("bssid", scanResult.BSSID);
-        result.put("ssid", scanResult.SSID);
-        result.put("frequency", scanResult.frequency);
-        result.put("level", scanResult.level);
-        result.put("capabilities", scanResult.capabilities);
-        result.put("timestamp", scanResult.timestamp);
-        if(scanResult.passpoint != null)
-          result.put("passpoint", scanResult.passpoint.toString());
-        // The following fields are hidden for now, uncomment when they're unhidden
-        // result.put("seen", scanResult.seen);
-        // result.put("distanceCm", scanResult.distanceCm);
-        // result.put("distanceSdCm", scanResult.distanceSdCm);
-        // if (scanResult.informationElements != null){
-        // JSONArray infoEles = new JSONArray();
-        // for(ScanResult.InformationElement ie : scanResult.informationElements) {
-        // JSONObject infoEle = new JSONObject();
-        // infoEle.put("id", ie.id);
-        // infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes));
-        // infoEles.put(infoEle);
-        // }
-        // result.put("InfomationElements", infoEles);
-        // } else
-        // result.put("InfomationElements", null);
+        result.put("mode", advertiseSettings.getMode());
+        result.put("txPowerLevel", advertiseSettings.getTxPowerLevel());
+        result.put("isConnectable", advertiseSettings.isConnectable());
         return result;
     }
 
@@ -384,24 +309,13 @@ public class JsonBuilder {
         return result;
     }
 
-    private static JSONObject buildJsonBleAdvertiseSettings(AdvertiseSettings advertiseSettings)
-            throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("mode", advertiseSettings.getMode());
-        result.put("txPowerLevel", advertiseSettings.getTxPowerLevel());
-        result.put("isConnectable", advertiseSettings.isConnectable());
-        return result;
-    }
-
-    private static Object buildJsonBluetoothGattService(BluetoothGattService data)
-            throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("instanceId", data.getInstanceId());
-        result.put("type", data.getType());
-        result.put("gattCharacteristicList", build(data.getCharacteristics()));
-        result.put("includedServices", build(data.getIncludedServices()));
-        result.put("uuid", data.getUuid().toString());
-        return result;
+    private static JSONObject buildJsonBluetoothDevice(BluetoothDevice data) throws JSONException {
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("address", data.getAddress());
+        deviceInfo.put("state", data.getBondState());
+        deviceInfo.put("name", data.getName());
+        deviceInfo.put("type", data.getType());
+        return deviceInfo;
     }
 
     private static Object buildJsonBluetoothGattCharacteristic(BluetoothGattCharacteristic data)
@@ -429,92 +343,23 @@ public class JsonBuilder {
         return result;
     }
 
-    private static Object buildPoint(Point data) throws JSONException {
-        JSONObject point = new JSONObject();
-        point.put("x", data.x);
-        point.put("y", data.y);
-        return point;
+    private static Object buildJsonBluetoothGattService(BluetoothGattService data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("instanceId", data.getInstanceId());
+        result.put("type", data.getType());
+        result.put("gattCharacteristicList", build(data.getCharacteristics()));
+        result.put("includedServices", build(data.getIncludedServices()));
+        result.put("uuid", data.getUuid().toString());
+        return result;
     }
 
-    private static Object buildSmsMessage(SmsMessage data) throws JSONException {
-        JSONObject msg = new JSONObject();
-        msg.put("originatingAddress", data.getOriginatingAddress());
-        msg.put("messageBody", data.getMessageBody());
-        return msg;
-    }
-
-    private static Object buildPhoneAccountHandle(PhoneAccountHandle data) throws JSONException {
-        JSONObject msg = new JSONObject();
-        msg.put("id", data.getId());
-        return msg;
-    }
-
-    private static Object buildDisplayMetrics(DisplayMetrics data) throws JSONException {
-        JSONObject dm = new JSONObject();
-        dm.put("widthPixels", data.widthPixels);
-        dm.put("heightPixels", data.heightPixels);
-        dm.put("noncompatHeightPixels", data.noncompatHeightPixels);
-        dm.put("noncompatWidthPixels", data.noncompatWidthPixels);
-        return dm;
-    }
-
-    private static Object buildRttCapabilities(Capabilities data) throws JSONException {
-        JSONObject cap = new JSONObject();
-        cap.put("supportedType", data.supportedType);
-        cap.put("supportedPeerType", data.supportedPeerType);
-        return cap;
-    }
-
-    private static Object buildWifiConfiguration(WifiConfiguration data) throws JSONException {
-        JSONObject config = new JSONObject();
-        config.put("networkId", data.networkId);
-        // Trim the double quotes if exist
-        if (data.SSID.charAt(0) == '"' && data.SSID.charAt(data.SSID.length() - 1) == '"') {
-            config.put("ssid", data.SSID.substring(1, data.SSID.length() - 1));
-        } else {
-            config.put("ssid", data.SSID);
+    private static JSONObject buildJsonBundle(Bundle bundle) throws JSONException {
+        JSONObject result = new JSONObject();
+        for (String key : bundle.keySet()) {
+            result.put(key, build(bundle.get(key)));
         }
-        config.put("bssid", data.BSSID);
-        config.put("priority", data.priority);
-        config.put("hiddenSSID", data.hiddenSSID);
-        if (data.status == WifiConfiguration.Status.CURRENT) {
-            config.put("status", "CURRENT");
-        } else if (data.status == WifiConfiguration.Status.DISABLED) {
-            config.put("status", "DISABLED");
-        } else if (data.status == WifiConfiguration.Status.ENABLED) {
-            config.put("status", "ENABLED");
-        } else {
-            config.put("status", "UNKNOWN");
-        }
-        return config;
-    }
-
-    private static JSONObject buildWifiP2pDevice(WifiP2pDevice data) throws JSONException {
-        JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("Name", data.deviceName);
-        deviceInfo.put("Address", data.deviceAddress);
-        return deviceInfo;
-    }
-
-    private static JSONObject buildWifiP2pGroup(WifiP2pGroup data) throws JSONException {
-        JSONObject group = new JSONObject();
-        Log.d("build p2p group.");
-        group.put("ClientList", build(data.getClientList()));
-        group.put("Interface", data.getInterface());
-        group.put("Networkname", data.getNetworkName());
-        group.put("Owner", data.getOwner());
-        group.put("Passphrase", data.getPassphrase());
-        group.put("NetworkId", data.getNetworkId());
-        return group;
-    }
-
-    private static JSONObject buildWifiP2pInfo(WifiP2pInfo data) throws JSONException {
-        JSONObject info = new JSONObject();
-        Log.d("build p2p info.");
-        info.put("groupFormed", data.groupFormed);
-        info.put("isGroupOwner", data.isGroupOwner);
-        info.put("groupOwnerAddress", data.groupOwnerAddress);
-        return info;
+        return result;
     }
 
     private static JSONObject buildJsonCellLocation(CellLocation cellLocation)
@@ -526,6 +371,85 @@ public class JsonBuilder {
             result.put("cid", location.getCid());
         }
         // TODO(damonkohler): Add support for CdmaCellLocation. Not supported until API level 5.
+        return result;
+    }
+
+    private static JSONObject buildJsonEvent(Event event) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("name", event.getName());
+        result.put("data", build(event.getData()));
+        result.put("time", event.getCreationTime());
+        return result;
+    }
+
+    private static JSONObject buildJsonIntent(Intent data) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("data", data.getDataString());
+        result.put("type", data.getType());
+        result.put("extras", build(data.getExtras()));
+        result.put("categories", build(data.getCategories()));
+        result.put("action", data.getAction());
+        ComponentName component = data.getComponent();
+        if (component != null) {
+            result.put("packagename", component.getPackageName());
+            result.put("classname", component.getClassName());
+        }
+        result.put("flags", data.getFlags());
+        return result;
+    }
+
+    private static <T> JSONArray buildJsonList(final List<T> list) throws JSONException {
+        JSONArray result = new JSONArray();
+        for (T item : list) {
+            result.put(build(item));
+        }
+        return result;
+    }
+
+    private static JSONObject buildJsonLocation(Location location) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("altitude", location.getAltitude());
+        result.put("latitude", location.getLatitude());
+        result.put("longitude", location.getLongitude());
+        result.put("time", location.getTime());
+        result.put("accuracy", location.getAccuracy());
+        result.put("speed", location.getSpeed());
+        result.put("provider", location.getProvider());
+        result.put("bearing", location.getBearing());
+        return result;
+    }
+
+    private static JSONObject buildJsonMap(Map<String, ?> map) throws JSONException {
+        JSONObject result = new JSONObject();
+        for (Entry<String, ?> entry : map.entrySet()) {
+            result.put(entry.getKey(), build(entry.getValue()));
+        }
+        return result;
+    }
+
+    private static JSONObject buildJsonScanResult(ScanResult scanResult) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("bssid", scanResult.BSSID);
+        result.put("ssid", scanResult.SSID);
+        result.put("frequency", scanResult.frequency);
+        result.put("level", scanResult.level);
+        result.put("capabilities", scanResult.capabilities);
+        result.put("timestamp", scanResult.timestamp);
+        // The following fields are hidden for now, uncomment when they're unhidden
+        // result.put("seen", scanResult.seen);
+        // result.put("distanceCm", scanResult.distanceCm);
+        // result.put("distanceSdCm", scanResult.distanceSdCm);
+        // if (scanResult.informationElements != null){
+        // JSONArray infoEles = new JSONArray();
+        // for(ScanResult.InformationElement ie : scanResult.informationElements) {
+        // JSONObject infoEle = new JSONObject();
+        // infoEle.put("id", ie.id);
+        // infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes));
+        // infoEles.put(infoEle);
+        // }
+        // result.put("InfomationElements", infoEles);
+        // } else
+        // result.put("InfomationElements", null);
         return result;
     }
 
@@ -588,5 +512,112 @@ public class JsonBuilder {
         result.put("cid", data.getCid());
         result.put("rssi", data.getRssi());
         return result;
+    }
+
+    private static Object buildNetworkInfo(NetworkInfo data) throws JSONException {
+        JSONObject info = new JSONObject();
+        info.put("isAvailable", data.isAvailable());
+        info.put("isConnected", data.isConnected());
+        info.put("isConnected", data.isFailover());
+        info.put("isConnected", data.isRoaming());
+        info.put("ExtraInfo", data.getExtraInfo());
+        info.put("FailedReason", data.getReason());
+        info.put("TypeName", data.getTypeName());
+        info.put("SubtypeName", data.getSubtypeName());
+        info.put("State", data.getState().name().toString());
+        return info;
+    }
+
+    private static JSONObject buildPhoneAccount(PhoneAccount data) throws JSONException {
+        JSONObject acct = new JSONObject();
+        acct.put("Address", data.getAddress().toSafeString());
+        acct.put("SubscriptionAddress", data.getSubscriptionAddress().toSafeString());
+        acct.put("Label", data.getLabel().toString());
+        acct.put("ShortDescription", data.getShortDescription().toString());
+        return acct;
+    }
+
+    private static Object buildPhoneAccountHandle(PhoneAccountHandle data) throws JSONException {
+        JSONObject msg = new JSONObject();
+        msg.put("id", data.getId());
+        msg.put("ComponentName", data.getComponentName().flattenToString());
+        return msg;
+    }
+
+    private static Object buildPoint(Point data) throws JSONException {
+        JSONObject point = new JSONObject();
+        point.put("x", data.x);
+        point.put("y", data.y);
+        return point;
+    }
+
+    private static Object buildRttCapabilities(Capabilities data) throws JSONException {
+        JSONObject cap = new JSONObject();
+        cap.put("supportedType", data.supportedType);
+        cap.put("supportedPeerType", data.supportedPeerType);
+        return cap;
+    }
+
+    private static Object buildSmsMessage(SmsMessage data) throws JSONException {
+        JSONObject msg = new JSONObject();
+        msg.put("originatingAddress", data.getOriginatingAddress());
+        msg.put("messageBody", data.getMessageBody());
+        return msg;
+    }
+
+    private static Object buildWifiConfiguration(WifiConfiguration data) throws JSONException {
+        JSONObject config = new JSONObject();
+        config.put("networkId", data.networkId);
+        // Trim the double quotes if exist
+        if (data.SSID.charAt(0) == '"' && data.SSID.charAt(data.SSID.length() - 1) == '"') {
+            config.put("ssid", data.SSID.substring(1, data.SSID.length() - 1));
+        } else {
+            config.put("ssid", data.SSID);
+        }
+        config.put("bssid", data.BSSID);
+        config.put("priority", data.priority);
+        config.put("hiddenSSID", data.hiddenSSID);
+        if (data.status == WifiConfiguration.Status.CURRENT) {
+            config.put("status", "CURRENT");
+        } else if (data.status == WifiConfiguration.Status.DISABLED) {
+            config.put("status", "DISABLED");
+        } else if (data.status == WifiConfiguration.Status.ENABLED) {
+            config.put("status", "ENABLED");
+        } else {
+            config.put("status", "UNKNOWN");
+        }
+        return config;
+    }
+
+    private static JSONObject buildWifiP2pDevice(WifiP2pDevice data) throws JSONException {
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("Name", data.deviceName);
+        deviceInfo.put("Address", data.deviceAddress);
+        return deviceInfo;
+    }
+
+    private static JSONObject buildWifiP2pGroup(WifiP2pGroup data) throws JSONException {
+        JSONObject group = new JSONObject();
+        Log.d("build p2p group.");
+        group.put("ClientList", build(data.getClientList()));
+        group.put("Interface", data.getInterface());
+        group.put("Networkname", data.getNetworkName());
+        group.put("Owner", data.getOwner());
+        group.put("Passphrase", data.getPassphrase());
+        group.put("NetworkId", data.getNetworkId());
+        return group;
+    }
+
+    private static JSONObject buildWifiP2pInfo(WifiP2pInfo data) throws JSONException {
+        JSONObject info = new JSONObject();
+        Log.d("build p2p info.");
+        info.put("groupFormed", data.groupFormed);
+        info.put("isGroupOwner", data.isGroupOwner);
+        info.put("groupOwnerAddress", data.groupOwnerAddress);
+        return info;
+    }
+
+    private JsonBuilder() {
+        // This is a utility class.
     }
 }
