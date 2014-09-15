@@ -35,7 +35,7 @@ import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
 import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
-import com.googlecode.android_scripting.facade.tele.TelecommManagerFacade;
+import com.googlecode.android_scripting.facade.tele.TelecomManagerFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiManagerFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiP2pManagerFacade;
@@ -133,7 +133,7 @@ public class FacadeConfiguration {
             sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
             sFacadeClassList.add(ConnectivityManagerFacade.class);
             sFacadeClassList.add(DisplayFacade.class);
-            sFacadeClassList.add(TelecommManagerFacade.class);
+            sFacadeClassList.add(TelecomManagerFacade.class);
             sFacadeClassList.add(WifiRttManagerFacade.class);
             sFacadeClassList.add(WifiScannerFacade.class);
         }

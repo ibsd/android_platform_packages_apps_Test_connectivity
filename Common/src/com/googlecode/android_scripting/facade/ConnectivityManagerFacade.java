@@ -31,15 +31,6 @@ import com.googlecode.android_scripting.rpc.Rpc;
  * Access ConnectivityManager functions.
  */
 public class ConnectivityManagerFacade extends RpcReceiver {
-    private final Service mService;
-    private final ConnectivityManager mCon;
-
-    public ConnectivityManagerFacade(FacadeManager manager) {
-        super(manager);
-        mService = manager.getService();
-        mCon = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
-    }
-
     class ConnectivityReceiver extends BroadcastReceiver {
 
         @Override
@@ -51,6 +42,51 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         }
     }
 
+    private final ConnectivityManager mCon;
+
+    private final Service mService;
+
+    public ConnectivityManagerFacade(FacadeManager manager) {
+        super(manager);
+        mService = manager.getService();
+        mCon = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+
+    @Rpc(description = "Get the extra information about the network state provided by lower network layers.")
+    public String networkGetActiveConnectionExtraInfo() {
+        NetworkInfo current = mCon.getActiveNetworkInfo();
+        if (current == null) {
+            Log.d("No network is active at the moment.");
+            return null;
+        }
+        return current.getExtraInfo();
+    }
+
+    @Rpc(description = "Return the subtype name of the current network, null if not connected")
+    public String networkGetActiveConnectionSubtypeName() {
+        NetworkInfo current = mCon.getActiveNetworkInfo();
+        if (current == null) {
+            Log.d("No network is active at the moment.");
+            return null;
+        }
+        return current.getSubtypeName();
+    }
+
+    @Rpc(description = "Return a human-readable name describe the type of the network, e.g. WIFI")
+    public String networkGetActiveConnectionTypeName() {
+        NetworkInfo current = mCon.getActiveNetworkInfo();
+        if (current == null) {
+            Log.d("No network is active at the moment.");
+            return null;
+        }
+        return current.getTypeName();
+    }
+
+    @Rpc(description = "Get connection status information about all network types supported by the device.")
+    public NetworkInfo[] networkGetAllInfo() {
+        return mCon.getAllNetworkInfo();
+    }
+
     @Rpc(description = "Check whether the active network is connected to the Internet.")
     public Boolean networkIsConnected() {
         NetworkInfo current = mCon.getActiveNetworkInfo();
@@ -59,29 +95,6 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             return false;
         }
         return current.isConnected();
-    }
-
-    @Rpc(description = "Return the type of the current network. Null if not connected")
-    public String networkGetConnectionType() {
-        NetworkInfo current = mCon.getActiveNetworkInfo();
-        if (current == null) {
-            Log.d("No network is active at the moment.");
-            return null;
-        }
-        int type = current.getType();
-        String typrStr = null;
-        if (type == ConnectivityManager.TYPE_BLUETOOTH) {
-            typrStr = "BLUETOOTH";
-        } else if (type == ConnectivityManager.TYPE_ETHERNET) {
-            typrStr = "ETHERNET";
-        } else if (ConnectivityManager.isNetworkTypeMobile(type)) {
-            typrStr = "MOBILE";
-        } else if (ConnectivityManager.isNetworkTypeWifi(type)) {
-            typrStr = "WIFI";
-        } else if (type == ConnectivityManager.TYPE_WIMAX) {
-            typrStr = "WIMAX";
-        }
-        return typrStr;
     }
 
     @Override
