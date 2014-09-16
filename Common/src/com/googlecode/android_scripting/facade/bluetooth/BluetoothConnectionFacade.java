@@ -381,7 +381,6 @@ public class BluetoothConnectionFacade extends RpcReceiver {
             String deviceID) throws Exception {
         BluetoothDevice mDevice = BluetoothFacade.getDevice(mBluetoothAdapter.getBondedDevices(),
                 deviceID);
-        mDevice.setTrust(true);
         connectProfile(mDevice, deviceID);
     }
 
