@@ -16,6 +16,16 @@
 
 package com.googlecode.android_scripting.facade;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import com.google.common.collect.Maps;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothA2dpFacade;
@@ -37,6 +47,7 @@ import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
 import com.googlecode.android_scripting.facade.tele.TelecomManagerFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
+import com.googlecode.android_scripting.facade.wifi.HttpFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiManagerFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiP2pManagerFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiRttManagerFacade;
@@ -48,16 +59,6 @@ import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
 import com.googlecode.android_scripting.webcam.WebCamFacade;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * Encapsulates the list of supported facades and their construction.
@@ -95,6 +96,7 @@ public class FacadeConfiguration {
         sFacadeClassList.add(SpeechRecognitionFacade.class);
         sFacadeClassList.add(ToneGeneratorFacade.class);
         sFacadeClassList.add(WakeLockFacade.class);
+        sFacadeClassList.add(HttpFacade.class);
         sFacadeClassList.add(WifiManagerFacade.class);
         sFacadeClassList.add(UiFacade.class);
 
