@@ -102,9 +102,9 @@ public class TelecomManagerFacade extends RpcReceiver {
         return modeStr;
     }
 
-    @Rpc(description = "Get the list of enabled PhoneAccountHandles.")
+    @Rpc(description = "Get the list of PhoneAccountHandles with calling capability.")
     public List<PhoneAccountHandle> telecomGetEnabledPhoneAccounts() {
-        mEnabledAccountHandles = mTelecomManager.getEnabledPhoneAccounts();
+        mEnabledAccountHandles = mTelecomManager.getCallCapablePhoneAccounts();
         return mEnabledAccountHandles;
     }
 
