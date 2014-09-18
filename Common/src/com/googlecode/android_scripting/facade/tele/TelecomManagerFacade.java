@@ -37,21 +37,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
  * Exposes TelecomManager functionality.
  */
 public class TelecomManagerFacade extends RpcReceiver {
-    private final Service mService;
-    private final TelecomManager mTelecomManager;
-
-    private List<PhoneAccountHandle> mEnabledAccountHandles = null;
-
-    public TelecomManagerFacade(FacadeManager manager) {
-        super(manager);
-        mService = manager.getService();
-        mTelecomManager = new TelecomManager(mService);
-    }
-
-    @Override
-    public void shutdown() {
-    }
-
     /**
      * Returns an identifier of the call. When a phone number is available, the number will be
      * returned. Otherwise, the standard object toString result of the Call object. e.g. A
@@ -72,10 +57,55 @@ public class TelecomManagerFacade extends RpcReceiver {
             return call.toString();
         }
     }
+    private final Service mService;
+
+    private final TelecomManager mTelecomManager;
+
+    private List<PhoneAccountHandle> mEnabledAccountHandles = null;
+
+    public TelecomManagerFacade(FacadeManager manager) {
+        super(manager);
+        mService = manager.getService();
+        mTelecomManager = new TelecomManager(mService);
+    }
+
+    @Override
+    public void shutdown() {
+    }
 
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
     public void telecomAcceptRingingCall() {
         mTelecomManager.acceptRingingCall();
+    }
+
+    @Rpc(description = "Disconnect call by callId.")
+    public void telecomCallDisconnect(@RpcParameter(name = "callId") String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        call.disconnect();
+    }
+
+    @Rpc(description = "Hold call by callId")
+    public void telecomCallHold(@RpcParameter(name = "callId") String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        call.hold();
+    }
+
+    @Rpc(description = "Merge call to conference by callId")
+    public void telecomCallMergeToConf(@RpcParameter(name = "callId") String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        call.mergeConference();
+    }
+
+    @Rpc(description = "Split call from conference by callId.")
+    public void telecomCallSplitFromConf(@RpcParameter(name = "callId") String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        call.splitFromConference();
+    }
+
+    @Rpc(description = "Unhold call by callId")
+    public void telecomCallUnhold(@RpcParameter(name = "callId") String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        call.unhold();
     }
 
     @Rpc(description = "Removes the missed-call notification if one is present.")
@@ -137,7 +167,6 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Get the user-chosen default PhoneAccount for making outgoing phone calls.")
     public PhoneAccountHandle telecomGetUserSelectedOutgoingPhoneAccount() {
         return mTelecomManager.getUserSelectedOutgoingPhoneAccount();
-
     }
 
     @Rpc(description = "Returns whether there is an ongoing phone call.")
@@ -158,8 +187,16 @@ public class TelecomManagerFacade extends RpcReceiver {
         callOne.conference(callTwo);
     }
 
+    @Rpc(description = "Obtains the current call audio state of the phone.")
+    public AudioState telecomPhoneGetAudioState() {
+        return InCallServiceImpl.mPhone.getAudioState();
+    }
+
     @Rpc(description = "Lists the IDs (phone numbers or hex hashes) of the current calls.")
     public ArrayList<String> telecomPhoneGetCallIds() {
+        if (InCallServiceImpl.mPhone == null) {
+            return null;
+        }
         ArrayList<String> ids = new ArrayList<String>();
         for (Call call : InCallServiceImpl.mPhone.getCalls()) {
             ids.add(getCallId(call));
@@ -190,11 +227,6 @@ public class TelecomManagerFacade extends RpcReceiver {
     public void telecomPhoneSetProximitySensorOff(
             @RpcParameter(name = "screenOnImmediately") Boolean screenOnImmediately) {
         InCallServiceImpl.mPhone.setProximitySensorOff(screenOnImmediately);
-    }
-
-    @Rpc(description = "Obtains the current call audio state of the phone.")
-    public AudioState telecomPhoneGetAudioState() {
-        return InCallServiceImpl.mPhone.getAudioState();
     }
 
     @Rpc(description = "Silences the rigner if there's a ringing call.")
