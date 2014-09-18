@@ -16,17 +16,22 @@
 
 package com.googlecode.android_scripting.facade.tele;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Service;
+import android.telecom.AudioState;
+import android.telecom.Call;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * Exposes TelecomManager functionality.
@@ -45,6 +50,27 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
+    }
+
+    /**
+     * Returns an identifier of the call. When a phone number is available, the number will be
+     * returned. Otherwise, the standard object toString result of the Call object. e.g. A
+     * conference call does not have a single number associated with it, thus the toString Id will
+     * be returned.
+     *
+     * @param call
+     * @return
+     */
+    public static String getCallId(Call call) {
+        try {
+            String handle = call.getDetails().getHandle().toString();
+            int idx = handle.indexOf(":");
+            String number = handle.substring(idx + 1).trim();
+            return number;
+        } catch (NullPointerException e) {
+            Log.d("Failed to get a number from the call object, using toString.");
+            return call.toString();
+        }
     }
 
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
@@ -122,6 +148,53 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns whether there is a ringing incoming call.")
     public Boolean telecomIsRinging() {
         return mTelecomManager.isRinging();
+    }
+
+    @Rpc(description = "Joins two calls into a conference call. Calls are identified by their IDs listed by telecomPhoneGetCallIds")
+    public void telecomJoinCallsInConf(@RpcParameter(name = "callIdOne") String callIdOne,
+            @RpcParameter(name = "callIdTwo") String callIdTwo) {
+        Call callOne = InCallServiceImpl.mCalls.get(callIdOne);
+        Call callTwo = InCallServiceImpl.mCalls.get(callIdTwo);
+        callOne.conference(callTwo);
+    }
+
+    @Rpc(description = "Lists the IDs (phone numbers or hex hashes) of the current calls.")
+    public ArrayList<String> telecomPhoneGetCallIds() {
+        ArrayList<String> ids = new ArrayList<String>();
+        for (Call call : InCallServiceImpl.mPhone.getCalls()) {
+            ids.add(getCallId(call));
+        }
+        return ids;
+    }
+
+    @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
+    public void telecomPhoneSetAudioRoute(@RpcParameter(name = "route") String route) {
+        int r = 0;
+        if (route == "BLUETOOTH") {
+            r = AudioState.ROUTE_BLUETOOTH;
+        } else if (route == "EARPIECE") {
+            r = AudioState.ROUTE_EARPIECE;
+        } else if (route == "SPEAKER") {
+            r = AudioState.ROUTE_SPEAKER;
+        } else if (route == "WIRED_HEADSET") {
+            r = AudioState.ROUTE_WIRED_HEADSET;
+        } else if (route == "ALL") {
+            r = AudioState.ROUTE_ALL;
+        } else if (route == "WIRED_OR_EARPIECE") {
+            r = AudioState.ROUTE_WIRED_OR_EARPIECE;
+        }
+        InCallServiceImpl.mPhone.setAudioRoute(r);
+    }
+
+    @Rpc(description = "Turns the proximity sensor off. If screenOnImmediately is true, the screen will be turned on immediately")
+    public void telecomPhoneSetProximitySensorOff(
+            @RpcParameter(name = "screenOnImmediately") Boolean screenOnImmediately) {
+        InCallServiceImpl.mPhone.setProximitySensorOff(screenOnImmediately);
+    }
+
+    @Rpc(description = "Obtains the current call audio state of the phone.")
+    public AudioState telecomPhoneGetAudioState() {
+        return InCallServiceImpl.mPhone.getAudioState();
     }
 
     @Rpc(description = "Silences the rigner if there's a ringing call.")
