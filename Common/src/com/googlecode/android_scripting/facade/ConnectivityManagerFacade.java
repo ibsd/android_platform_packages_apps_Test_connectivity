@@ -97,6 +97,29 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         return current.isConnected();
     }
 
+    @Rpc(description = "Return the type of the current network. Null if not connected")
+    public String networkGetConnectionType() {
+        NetworkInfo current = mCon.getActiveNetworkInfo();
+        if (current == null) {
+            Log.d("No network is active at the moment.");
+            return null;
+        }
+        int type = current.getType();
+        String typrStr = null;
+        if (type == ConnectivityManager.TYPE_BLUETOOTH) {
+            typrStr = "BLUETOOTH";
+        } else if (type == ConnectivityManager.TYPE_ETHERNET) {
+            typrStr = "ETHERNET";
+        } else if (ConnectivityManager.isNetworkTypeMobile(type)) {
+            typrStr = "MOBILE";
+        } else if (ConnectivityManager.isNetworkTypeWifi(type)) {
+            typrStr = "WIFI";
+        } else if (type == ConnectivityManager.TYPE_WIMAX) {
+            typrStr = "WIMAX";
+        }
+        return typrStr;
+    }
+
     @Override
     public void shutdown() {
     }
