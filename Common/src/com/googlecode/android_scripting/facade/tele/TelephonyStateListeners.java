@@ -54,15 +54,12 @@ public class TelephonyStateListeners {
             }
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
-                    mCallStateEvent.putString("State", "IDLE");
                     subEvent = "Idle";
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-                    mCallStateEvent.putString("State", "OFFHOOK");
                     subEvent = "Offhook";
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
-                    mCallStateEvent.putString("State", "RINGING");
                     subEvent = "Ringing";
                     break;
             }
@@ -94,32 +91,23 @@ public class TelephonyStateListeners {
             String subEvent = null;
             EventMsg.putString("Type", which);
             if (newState == PreciseCallState.PRECISE_CALL_STATE_ACTIVE) {
-                EventMsg.putString("State", "ACTIVE");
                 subEvent = "Active";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_HOLDING) {
-                EventMsg.putString("State", "HOLDING)");
                 subEvent = "Holding";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DIALING) {
-                EventMsg.putString("State", "DIALING");
                 subEvent = "Dialing";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_ALERTING) {
-                EventMsg.putString("State", "ALERTING");
                 subEvent = "Alerting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
-                EventMsg.putString("State", "INCOMING");
                 subEvent = "Incoming";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_WAITING) {
-                EventMsg.putString("State", "WAITING");
                 subEvent = "Waiting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTED) {
-                EventMsg.putString("State", "DISCONNECTED");
                 subEvent = "Disconnected";
                 EventMsg.putInt("Cause", callState.getPreciseDisconnectCause());
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTING) {
-                EventMsg.putString("State", "DISCONNECTING");
                 subEvent = "Disconnecting";
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
-                EventMsg.putString("State", "IDLE");
                 subEvent = "Idle";
             }
             mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
@@ -145,20 +133,60 @@ public class TelephonyStateListeners {
         @Override
         public void onDataConnectionRealTimeInfoChanged(DataConnectionRealTimeInfo dcRtInfo) {
             Bundle event = new Bundle();
+            String subEvent = null;
             event.putString("Type", "modemPowerLvl");
             event.putLong("Time", dcRtInfo.getTime());
 
             int state = dcRtInfo.getDcPowerState();
             if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_LOW) {
-                event.putString("PowerLevel", "LOW");
+                subEvent = "Low";
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_HIGH) {
-                event.putString("PowerLevel", "MEDIUM");
+                subEvent = "High";
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_MEDIUM) {
-                event.putString("PowerLevel", "HIGH");
+                subEvent = "Medium";
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
-                event.putString("PowerLevel", "UNKNOWN");
+                subEvent = "Unknown";
             }
-            mEventFacade.postEvent("onModemPowerLevelChanged", event);
+            mEventFacade.postEvent("onModemPowerLevelChanged"+subEvent, event);
+        }
+    }
+
+    public static class DataConnectionStateChangeListener extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+        public static final int sListeningStates =
+                PhoneStateListener.LISTEN_DATA_CONNECTION_STATE;
+
+        public DataConnectionStateChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public DataConnectionStateChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        @Override
+        public void onDataConnectionStateChanged(int state) {
+            Bundle event = new Bundle();
+            String subEvent = null;
+            event.putString("Type", "DataConnectionState");
+            if (state == TelephonyManager.DATA_DISCONNECTED) {
+                subEvent = "Disconnected";
+            } else if (state == TelephonyManager.DATA_CONNECTING) {
+                subEvent = "Connecting";
+            } else if (state == TelephonyManager.DATA_CONNECTED) {
+                subEvent = "Connected";
+            } else if (state == TelephonyManager.DATA_SUSPENDED) {
+                subEvent = "Suspended";
+            } else if (state == TelephonyManager.DATA_UNKNOWN) {
+                subEvent = "Unknown";
+            } else {
+                subEvent = "UnknownStateCode";
+                event.putInt("UnknownStateCode", state);
+            }
+            mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
         }
     }
 
@@ -183,19 +211,15 @@ public class TelephonyStateListeners {
             String subEvent = null;
             switch(serviceState.getVoiceRegState()) {
                 case ServiceState.STATE_EMERGENCY_ONLY:
-                    event.putString("State", "EMERGENCY_ONLY");
                     subEvent = "EmergencyOnly";
                 break;
                 case ServiceState.STATE_IN_SERVICE:
-                    event.putString("State", "IN_SERVICE");
                     subEvent = "InService";
                 break;
                 case ServiceState.STATE_OUT_OF_SERVICE:
-                    event.putString("State","OUT_OF_SERVICE");
                     subEvent = "OutOfService";
                 break;
                 case ServiceState.STATE_POWER_OFF:
-                    event.putString("State", "POWER_OFF");
                     subEvent = "PowerOff";
                 break;
             }

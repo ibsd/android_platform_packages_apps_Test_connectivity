@@ -44,6 +44,8 @@ import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .DataConnectionChangeListener;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+                                                   .DataConnectionStateChangeListener;
+import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .ServiceStateChangeListener;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
@@ -74,6 +76,7 @@ public class PhoneFacade extends RpcReceiver {
 
     private CallStateChangeListener mCallStateChangeListener;
     private DataConnectionChangeListener mDataConnectionChangeListener;
+    private DataConnectionStateChangeListener mDataConnectionStateChangeListener;
     private ServiceStateChangeListener mServiceStateChangeListener;
 
     private ITelephony mITelephony;
@@ -116,6 +119,7 @@ public class PhoneFacade extends RpcReceiver {
             public Object call() throws Exception {
                 mCallStateChangeListener = new CallStateChangeListener(mEventFacade);
                 mDataConnectionChangeListener = new DataConnectionChangeListener(mEventFacade);
+                mDataConnectionStateChangeListener = new DataConnectionStateChangeListener(mEventFacade);
                 mServiceStateChangeListener = new ServiceStateChangeListener(mEventFacade);
                 return null;
             }
@@ -153,6 +157,17 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Stops tracking power level change.")
     public void phoneStopTrackingPowerLevelChange() {
         mTelephonyManager.listen(mDataConnectionChangeListener, PhoneStateListener.LISTEN_NONE);
+    }
+
+    @Rpc(description = "Starts tracking data connection state change.")
+    public void phoneStartTrackingDataConnectionStateChange() {
+        mTelephonyManager.listen(mDataConnectionStateChangeListener,
+                                 DataConnectionStateChangeListener.sListeningStates);
+    }
+
+    @Rpc(description = "Stops tracking data connection state change.")
+    public void phoneStopTrackingDataConnectionStateChange() {
+        mTelephonyManager.listen(mDataConnectionStateChangeListener, PhoneStateListener.LISTEN_NONE);
     }
 
     @Rpc(description = "Starts tracking service state change.")
