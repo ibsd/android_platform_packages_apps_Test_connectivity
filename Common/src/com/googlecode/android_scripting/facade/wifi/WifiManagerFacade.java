@@ -80,14 +80,13 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     };
 
-    private WifiLock mLock;
-    private boolean mIsConnected;
+    private WifiLock mLock = null;
+    private boolean mIsConnected = false;
 
     public WifiManagerFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
         mWifi = (WifiManager) mService.getSystemService(Context.WIFI_SERVICE);
-        mLock = null;
         mEventFacade = manager.getReceiver(EventFacade.class);
 
         mScanFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
