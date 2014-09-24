@@ -104,14 +104,20 @@ public class BluetoothFacade extends RpcReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            // TODO: Keep track of the separate states be a separate method.
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                Bundle msg = new Bundle();
                 if (state == BluetoothAdapter.STATE_ON) {
-                    Bundle msg = new Bundle();
                     msg.putString("State", "ON");
-                    mEventFacade.postEvent("BluetoothOn", msg);
+                    mEventFacade.postEvent("BluetoothStateChangedOn", msg);
+                    mService.unregisterReceiver(mStateReceiver);
+                } else if(state == BluetoothAdapter.STATE_OFF) {
+                    msg.putString("State", "OFF");
+                    mEventFacade.postEvent("BluetoothStateChangedOff", msg);
                     mService.unregisterReceiver(mStateReceiver);
                 }
+                msg.clear();
             }
         }
     }
@@ -261,6 +267,7 @@ public class BluetoothFacade extends RpcReceiver {
         return enabled;
     }
 
+
     @Rpc(description = "Start the remote device discovery process. ",
          returns = "true on success, false on error")
     public Boolean bluetoothStartDiscovery() {
@@ -286,6 +293,14 @@ public class BluetoothFacade extends RpcReceiver {
         while (bluetoothIsDiscovering())
             ;
         return DiscoveredDevices.values();
+    }
+
+    @Rpc(description = "Enable or disable the Bluetooth HCI snoop log")
+    public boolean bluetoothConfigHciSnoopLog(
+            @RpcParameter(name = "value", description = "enable or disable log")
+            Boolean value
+            ) {
+        return mBluetoothAdapter.configHciSnoopLog(value);
     }
 
     @Override
