@@ -31,6 +31,7 @@ import android.telephony.TelephonyManager;
 import android.provider.Telephony;
 
 import com.android.internal.telephony.ITelephony;
+import com.android.internal.telephony.RILConstants;
 import com.android.internal.telephony.TelephonyProperties;
 
 import android.content.ContentValues;
@@ -124,6 +125,81 @@ public class PhoneFacade extends RpcReceiver {
                 return null;
             }
         });
+    }
+
+    @Rpc(description = "Set preferred network setting.")
+    public boolean phoneSetPreferredNetworkType(String mode){
+        int networkType;
+        int phoneType = mTelephonyManager.getPhoneType();
+        if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
+            if (mode.equalsIgnoreCase("LTE")) {
+                networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
+            } else if (mode.equalsIgnoreCase("Global")) {
+                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+            } else if (mode.equalsIgnoreCase("3G")) {
+                networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
+            } else if (mode.equalsIgnoreCase("2G")) {
+                networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
+            } else {
+                return false;
+            }
+        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
+            if (mode.equalsIgnoreCase("LTE")) {
+                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
+            } else if (mode.equalsIgnoreCase("Global")) {
+                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+            } else if (mode.equalsIgnoreCase("3G")) {
+                networkType = RILConstants.NETWORK_MODE_CDMA;
+            } else if (mode.equalsIgnoreCase("1X")) {
+                networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
+            } else {
+                return false;
+            }
+        } else{
+            return false;
+        }
+        Log.v("SL4A: Setting the preferred network setting to:" + networkType);
+        mTelephonyManager.setPreferredNetworkType(networkType);
+        return true;
+    }
+
+    @Rpc(description = "Get preferred network setting. Return value is integer.")
+    public int phoneGetPreferredNetworkTypeInteger(){
+        return mTelephonyManager.getPreferredNetworkType();
+    }
+
+    @Rpc(description = "Get preferred network setting. Return value is String.")
+    public String phoneGetPreferredNetworkTypeString(){
+        int mode = mTelephonyManager.getPreferredNetworkType();
+        int phoneType = mTelephonyManager.getPhoneType();
+        if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
+            if (mode == RILConstants.NETWORK_MODE_LTE_GSM_WCDMA){
+                return "LTE";
+            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
+                return "Global";
+            } else if (mode == RILConstants.NETWORK_MODE_WCDMA_PREF) {
+                return "3G";
+            } else if (mode == RILConstants.NETWORK_MODE_GSM_ONLY) {
+                return "2G";
+            } else {
+                Log.d("Unknown mode in phone type GSM: " + mode);
+            }
+        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA){
+            if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO){
+                return "LTE";
+            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
+                return "Global";
+            } else if (mode == RILConstants.NETWORK_MODE_CDMA) {
+                return "3G";
+            } else if (mode == RILConstants.NETWORK_MODE_CDMA_NO_EVDO) {
+                return "1X";
+            } else {
+                Log.d("Unknown mode in phone type CDMA: " + mode);
+            }
+        } else {
+            Log.d("Unknown phone type: " + phoneType);
+        }
+        return null;
     }
 
     @Rpc(description = "Starts tracking call state change.")
@@ -296,6 +372,8 @@ public class PhoneFacade extends RpcReceiver {
                 return "lte";
             case TelephonyManager.NETWORK_TYPE_EHRPD:
                 return "ehrpd";
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+                return "hspa";
             case TelephonyManager.NETWORK_TYPE_HSPAP:
                 return "hspap";
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
