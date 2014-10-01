@@ -44,6 +44,7 @@ import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
 import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
 import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
+import com.googlecode.android_scripting.facade.tele.ImsManagerFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
 import com.googlecode.android_scripting.facade.tele.TelecomManagerFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
@@ -83,6 +84,7 @@ public class FacadeConfiguration {
         sFacadeClassList.add(CommonIntentsFacade.class);
         sFacadeClassList.add(ContactsFacade.class);
         sFacadeClassList.add(EventFacade.class);
+	sFacadeClassList.add(ImsManagerFacade.class);
         sFacadeClassList.add(LocationFacade.class);
         sFacadeClassList.add(PhoneFacade.class);
         sFacadeClassList.add(PreferencesFacade.class);
