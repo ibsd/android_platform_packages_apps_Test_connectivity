@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -33,7 +32,6 @@ public class HttpFacade extends RpcReceiver {
 
     private final Service mService;
     private ServerSocket mServerSocket = null;
-    private int mSocketPort = 8081;
     private int mServerTimeout = -1;
     private HashMap<Integer, Socket> mSockets = null;
     private int socketCnt = 0;
@@ -42,7 +40,6 @@ public class HttpFacade extends RpcReceiver {
         super(manager);
         mService = manager.getService();
         mSockets = new HashMap<Integer, Socket>();
-        mServerSocket = new ServerSocket(mSocketPort);
     }
 
     private void inputStreamToOutputStream(InputStream in, OutputStream out) throws IOException {
@@ -113,7 +110,7 @@ public class HttpFacade extends RpcReceiver {
 
     @Rpc(description = "Start waiting for a connection request on a specified port.",
             returns = "The index of the connection.")
-    public Integer httpAcceptConnection(int port) throws IOException {
+    public Integer httpAcceptConnection(Integer port) throws IOException {
         mServerSocket = new ServerSocket(port);
         if (mServerTimeout > 0) {
             mServerSocket.setSoTimeout(mServerTimeout);
@@ -179,7 +176,7 @@ public class HttpFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Set how many milliseconds to wait for an incoming connection.")
-    public void httpSetServerTimeout(@RpcParameter(name = "timeout") int timeout)
+    public void httpSetServerTimeout(@RpcParameter(name = "timeout") Integer timeout)
             throws SocketException {
         mServerSocket.setSoTimeout(timeout);
         mServerTimeout = timeout;
