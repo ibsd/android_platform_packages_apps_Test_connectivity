@@ -18,6 +18,7 @@ package com.googlecode.android_scripting.facade.tele;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import android.app.Service;
 import android.telecom.AudioState;
@@ -57,6 +58,7 @@ public class TelecomManagerFacade extends RpcReceiver {
             return call.toString();
         }
     }
+
     private final Service mService;
 
     private final TelecomManager mTelecomManager;
@@ -193,15 +195,8 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Lists the IDs (phone numbers or hex hashes) of the current calls.")
-    public ArrayList<String> telecomPhoneGetCallIds() {
-        if (InCallServiceImpl.mPhone == null) {
-            return null;
-        }
-        ArrayList<String> ids = new ArrayList<String>();
-        for (Call call : InCallServiceImpl.mPhone.getCalls()) {
-            ids.add(getCallId(call));
-        }
-        return ids;
+    public Set<String> telecomPhoneGetCallIds() {
+        return InCallServiceImpl.mCalls.keySet();
     }
 
     @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")

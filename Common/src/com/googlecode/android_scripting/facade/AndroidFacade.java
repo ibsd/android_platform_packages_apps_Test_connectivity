@@ -30,6 +30,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -452,6 +453,41 @@ public class AndroidFacade extends RpcReceiver {
                           @RpcOptional @RpcDefault(value = "copiedText")
                           String label) {
     getClipboardManager().setPrimaryClip(ClipData.newPlainText(label, text));
+  }
+
+  @Rpc(description = "Returns the board name.")
+  public String getBuildBoard() {
+    return Build.BOARD;
+  }
+
+  @Rpc(description = "Returns the brand name.")
+  public String getBuildBrand() {
+    return Build.BRAND;
+  }
+
+  @Rpc(description = "Returns the manufacturer name.")
+  public String getBuildManufacturer() {
+    return Build.MANUFACTURER;
+  }
+
+  @Rpc(description = "Returns the model name.")
+  public String getBuildModel() {
+    return Build.MODEL;
+  }
+
+  @Rpc(description = "Returns the build number.")
+  public String getBuildNumber() {
+    return Build.FINGERPRINT;
+  }
+
+@Rpc(description = "Returns the SDK version.")
+  public Integer getBuildSdkVersion() {
+    return Build.VERSION.SDK_INT;
+  }
+
+@Rpc(description = "Returns the current device time.")
+  public Long getBuildTime() {
+    return Build.TIME;
   }
 
   @Rpc(description = "Read all text strings copied by setTextClip from the clipboard.")
