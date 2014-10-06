@@ -159,6 +159,8 @@ public final class MethodDescriptor {
           result[i] = list.getString(i);
         }
         return result;
+      } else if (type == JSONObject.class) {
+          return parameters.getJSONObject(index);
       } else {
         // Magically cast the parameter to the right Java type.
         return ((Class<?>) type).cast(parameters.get(index));
