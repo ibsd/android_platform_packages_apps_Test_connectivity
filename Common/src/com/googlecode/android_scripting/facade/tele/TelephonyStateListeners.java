@@ -13,6 +13,57 @@ import android.telephony.TelephonyManager;
  */
 public class TelephonyStateListeners {
 
+    private static String getNetworkTypeString(int type) {
+        switch(type) {
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+                return "GPRS";
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+                return "EDGE";
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+                return "UMTS";
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+                return "HSDPA";
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+                return "HSUPA";
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+                return "HSPA";
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+                return "CDMA";
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+                return "1xRTT";
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                return "EVDO_0";
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                return "EVDO_A";
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                return "EVDO_B";
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+                return "EHRPD";
+            case TelephonyManager.NETWORK_TYPE_LTE:
+                return "LTE";
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                return "HSPAP";
+            case TelephonyManager.NETWORK_TYPE_GSM:
+                return "GSM";
+        }
+        return "UNKNOWN";
+    }
+
+    private static String getNetworkStateString(int state) {
+        switch(state) {
+            case ServiceState.STATE_EMERGENCY_ONLY:
+                return "EMERGENCY_ONLY";
+            case ServiceState.STATE_IN_SERVICE:
+                return "IN_SERVICE";
+            case ServiceState.STATE_OUT_OF_SERVICE:
+                return "OUT_OF_SERVICE";
+            case ServiceState.STATE_POWER_OFF:
+                return "POWER_OFF";
+            default:
+                return "UNKNOWN";
+        }
+   }
+
     public static class CallStateChangeListener extends PhoneStateListener {
 
         private final EventFacade mEventFacade;
@@ -63,7 +114,7 @@ public class TelephonyStateListeners {
                     subEvent = "Ringing";
                     break;
             }
-            mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent.clone());
+            mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent);
             mCallStateEvent.clear();
         }
 
@@ -111,6 +162,7 @@ public class TelephonyStateListeners {
                 subEvent = "Idle";
             }
             mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
+            EventMsg.clear();
         }
     }
 
@@ -148,23 +200,27 @@ public class TelephonyStateListeners {
                 subEvent = "Unknown";
             }
             mEventFacade.postEvent("onModemPowerLevelChanged"+subEvent, event);
+            event.clear();
         }
     }
 
     public static class DataConnectionStateChangeListener extends PhoneStateListener {
 
         private final EventFacade mEventFacade;
+        private final TelephonyManager mTelephonyManager;
         public static final int sListeningStates =
                 PhoneStateListener.LISTEN_DATA_CONNECTION_STATE;
 
-        public DataConnectionStateChangeListener(EventFacade ef) {
+        public DataConnectionStateChangeListener(EventFacade ef, TelephonyManager tm) {
             super();
             mEventFacade = ef;
+            mTelephonyManager = tm;
         }
 
-        public DataConnectionStateChangeListener(EventFacade ef, int subId) {
+        public DataConnectionStateChangeListener(EventFacade ef, TelephonyManager tm, int subId) {
             super(subId);
             mEventFacade = ef;
+            mTelephonyManager = tm;
         }
 
         @Override
@@ -178,6 +234,8 @@ public class TelephonyStateListeners {
                 subEvent = "Connecting";
             } else if (state == TelephonyManager.DATA_CONNECTED) {
                 subEvent = "Connected";
+                event.putString("DataNetworkType", getNetworkTypeString(
+                                 mTelephonyManager.getDataNetworkType()));
             } else if (state == TelephonyManager.DATA_SUSPENDED) {
                 subEvent = "Suspended";
             } else if (state == TelephonyManager.DATA_UNKNOWN) {
@@ -187,6 +245,7 @@ public class TelephonyStateListeners {
                 event.putInt("UnknownStateCode", state);
             }
             mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
+            event.clear();
         }
     }
 
@@ -209,7 +268,7 @@ public class TelephonyStateListeners {
         public void onServiceStateChanged(ServiceState serviceState) {
             Bundle event = new Bundle();
             String subEvent = null;
-            switch(serviceState.getVoiceRegState()) {
+            switch(serviceState.getState()) {
                 case ServiceState.STATE_EMERGENCY_ONLY:
                     subEvent = "EmergencyOnly";
                 break;
@@ -218,18 +277,42 @@ public class TelephonyStateListeners {
                 break;
                 case ServiceState.STATE_OUT_OF_SERVICE:
                     subEvent = "OutOfService";
+                    if(serviceState.isEmergencyOnly())
+                        subEvent = "EmergencyOnly";
                 break;
                 case ServiceState.STATE_POWER_OFF:
                     subEvent = "PowerOff";
                 break;
             }
+            event.putString("VoiceRegState", getNetworkStateString(
+                             serviceState.getVoiceRegState()));
+            event.putString("VoiceNetworkType", getNetworkTypeString(
+                             serviceState.getVoiceNetworkType()));
+            event.putString("DataRegState", getNetworkStateString(
+                             serviceState.getDataRegState()));
+            event.putString("DataNetworkType", getNetworkTypeString(
+                             serviceState.getDataNetworkType()));
             event.putString("OperatorName", serviceState.getOperatorAlphaLong());
             event.putString("OperatorId", serviceState.getOperatorNumeric());
-            event.putBoolean("ManualNwSelection", serviceState.getIsManualSelection());
+            event.putBoolean("isManualNwSelection", serviceState.getIsManualSelection());
             event.putBoolean("Roaming", serviceState.getRoaming());
             event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
 
-            mEventFacade.postEvent("onServiceStateChanged"+subEvent, event.clone());
+            if(subEvent.equals("InService")) {
+                switch(serviceState.getVoiceNetworkType()) {
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        subEvent = subEvent + "LTE" ;
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                        subEvent = subEvent + "UMTS";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_GSM:
+                        subEvent = subEvent + "GSM";
+                        break;
+                }
+            }
+
+            mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
             event.clear();
         }
     }

@@ -120,7 +120,7 @@ public class PhoneFacade extends RpcReceiver {
             public Object call() throws Exception {
                 mCallStateChangeListener = new CallStateChangeListener(mEventFacade);
                 mDataConnectionChangeListener = new DataConnectionChangeListener(mEventFacade);
-                mDataConnectionStateChangeListener = new DataConnectionStateChangeListener(mEventFacade);
+                mDataConnectionStateChangeListener = new DataConnectionStateChangeListener(mEventFacade, mTelephonyManager);
                 mServiceStateChangeListener = new ServiceStateChangeListener(mEventFacade);
                 return null;
             }
@@ -633,5 +633,6 @@ public class PhoneFacade extends RpcReceiver {
         phoneStopTrackingCallStateChange();
         phoneStopTrackingPowerLevelChange();
         phoneStopTrackingServiceStateChange();
+        phoneStopTrackingDataConnectionStateChange();
     }
 }
