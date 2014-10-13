@@ -30,94 +30,101 @@ import java.util.Map.Entry;
 
 /**
  * A facade exposing some of the functionality of the PowerManager, in particular wake locks.
- * 
+ *
  * @author Felix Arends (felixarends@gmail.com)
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class WakeLockFacade extends RpcReceiver {
 
-  private final static String WAKE_LOCK_TAG =
-      "com.googlecode.android_scripting.facade.PowerManagerFacade";
-  private final PowerManager mmPowerManager;
+    private final static String WAKE_LOCK_TAG =
+            "com.googlecode.android_scripting.facade.PowerManagerFacade";
+    private final PowerManager mmPowerManager;
 
-  private enum WakeLockType {
-    FULL, PARTIAL, BRIGHT, DIM
-  }
-
-  private class WakeLockManager {
-    private final Map<WakeLockType, WakeLock> mmLocks = new HashMap<WakeLockType, WakeLock>();
-
-    public WakeLockManager(PowerManager mmPowerManager) {
-      addWakeLock(WakeLockType.PARTIAL, PowerManager.PARTIAL_WAKE_LOCK);
-      addWakeLock(WakeLockType.FULL, PowerManager.FULL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE);
-      addWakeLock(WakeLockType.BRIGHT, PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-          | PowerManager.ON_AFTER_RELEASE);
-      addWakeLock(WakeLockType.DIM, PowerManager.SCREEN_DIM_WAKE_LOCK
-          | PowerManager.ON_AFTER_RELEASE);
+    private enum WakeLockType {
+        FULL, PARTIAL, BRIGHT, DIM
     }
 
-    private void addWakeLock(WakeLockType type, int flags) {
-      WakeLock full = mmPowerManager.newWakeLock(flags, WAKE_LOCK_TAG);
-      full.setReferenceCounted(false);
-      mmLocks.put(type, full);
-    }
+    private class WakeLockManager {
+        private final Map<WakeLockType, WakeLock> mmLocks = new HashMap<WakeLockType, WakeLock>();
 
-    public void acquire(WakeLockType type) {
-      mmLocks.get(type).acquire();
-      for (Entry<WakeLockType, WakeLock> entry : mmLocks.entrySet()) {
-        if (entry.getKey() != type) {
-          entry.getValue().release();
+        public WakeLockManager(PowerManager mmPowerManager) {
+            addWakeLock(WakeLockType.PARTIAL, PowerManager.PARTIAL_WAKE_LOCK);
+            addWakeLock(WakeLockType.FULL, PowerManager.FULL_WAKE_LOCK
+                    | PowerManager.ON_AFTER_RELEASE);
+            addWakeLock(WakeLockType.BRIGHT, PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+                    | PowerManager.ON_AFTER_RELEASE);
+            addWakeLock(WakeLockType.DIM, PowerManager.SCREEN_DIM_WAKE_LOCK
+                    | PowerManager.ON_AFTER_RELEASE);
         }
-      }
+
+        private void addWakeLock(WakeLockType type, int flags) {
+            WakeLock full = mmPowerManager.newWakeLock(flags, WAKE_LOCK_TAG);
+            full.setReferenceCounted(false);
+            mmLocks.put(type, full);
+        }
+
+        public void acquire(WakeLockType type) {
+            mmLocks.get(type).acquire();
+            for (Entry<WakeLockType, WakeLock> entry : mmLocks.entrySet()) {
+                if (entry.getKey() != type) {
+                    entry.getValue().release();
+                }
+            }
+        }
+
+        public void release() {
+            for (Entry<WakeLockType, WakeLock> entry : mmLocks.entrySet()) {
+                entry.getValue().release();
+            }
+        }
     }
 
-    public void release() {
-      for (Entry<WakeLockType, WakeLock> entry : mmLocks.entrySet()) {
-        entry.getValue().release();
-      }
+    private final WakeLockManager mManager;
+
+    public WakeLockFacade(FacadeManager manager) {
+        super(manager);
+        mmPowerManager = (PowerManager) manager.getService()
+                .getSystemService(Context.POWER_SERVICE);
+        mManager = new WakeLockManager(mmPowerManager);
     }
-  }
 
-  private final WakeLockManager mManager;
+    @Rpc(description = "Issue a request to put the device to sleep right away.")
+    public void goToSleepNow() {
+        mmPowerManager.goToSleep(SystemClock.uptimeMillis());
+    }
 
-  public WakeLockFacade(FacadeManager manager) {
-    super(manager);
-    mmPowerManager = (PowerManager) manager.getService().getSystemService(Context.POWER_SERVICE);
-    mManager = new WakeLockManager(mmPowerManager);
-  }
+    @Rpc(description = "Issue a request to wake the device up right away.")
+    public void wakeUpNow() {
+        mmPowerManager.wakeUp(SystemClock.uptimeMillis());
+    }
 
-  @Rpc(description = "Issue a request to put the device to sleep right away.")
-  public void goToSleepNow() {
-    mmPowerManager.goToSleep(SystemClock.uptimeMillis());
-  }
+    @Rpc(description = "Acquires a full wake lock (CPU on, screen bright, keyboard bright).")
+    public void wakeLockAcquireFull() {
+        mManager.acquire(WakeLockType.FULL);
+    }
 
-  @Rpc(description = "Acquires a full wake lock (CPU on, screen bright, keyboard bright).")
-  public void wakeLockAcquireFull() {
-    mManager.acquire(WakeLockType.FULL);
-  }
+    @Rpc(description = "Acquires a partial wake lock (CPU on).")
+    public void wakeLockAcquirePartial() {
+        mManager.acquire(WakeLockType.PARTIAL);
+    }
 
-  @Rpc(description = "Acquires a partial wake lock (CPU on).")
-  public void wakeLockAcquirePartial() {
-    mManager.acquire(WakeLockType.PARTIAL);
-  }
+    @Rpc(description = "Acquires a bright wake lock (CPU on, screen bright).")
+    public void wakeLockAcquireBright() {
+        mManager.acquire(WakeLockType.BRIGHT);
+    }
 
-  @Rpc(description = "Acquires a bright wake lock (CPU on, screen bright).")
-  public void wakeLockAcquireBright() {
-    mManager.acquire(WakeLockType.BRIGHT);
-  }
+    @Rpc(description = "Acquires a dim wake lock (CPU on, screen dim).")
+    public void wakeLockAcquireDim() {
+        mManager.acquire(WakeLockType.DIM);
+    }
 
-  @Rpc(description = "Acquires a dim wake lock (CPU on, screen dim).")
-  public void wakeLockAcquireDim() {
-    mManager.acquire(WakeLockType.DIM);
-  }
+    @Rpc(description = "Releases the wake lock.")
+    public void wakeLockRelease() {
+        mManager.release();
+    }
 
-  @Rpc(description = "Releases the wake lock.")
-  public void wakeLockRelease() {
-    mManager.release();
-  }
-
-  @Override
-  public void shutdown() {
-    wakeLockRelease();
-  }
+    @Override
+    public void shutdown() {
+        wakeLockRelease();
+    }
 }
