@@ -59,10 +59,10 @@ public class ImsManagerFacade extends RpcReceiver {
     @Rpc(description = "Set Enhanced 4G mode.")
     public void imsSetAdvanced4gMode(@RpcParameter(name = "enable") Boolean enable)
             throws ImsException{
-        SharedPreferences imsPref =
-                mContext.getSharedPreferences(ImsManager.IMS_SHARED_PREFERENCES,
-                        Context.MODE_WORLD_READABLE);
-        imsPref.edit().putBoolean(ImsManager.KEY_IMS_ON, enable).commit();
+        android.provider.Settings.Global.putInt(
+                  mContext.getContentResolver(),
+                  android.provider.Settings.Global.VOLTE_VT_ENABLED, enable ? 1 : 0);
+
         if (mImsManager != null) {
             Log.v("mImsManager is not null in setting ehanced 4G mode.");
             mImsManager.setAdvanced4GMode(enable);
