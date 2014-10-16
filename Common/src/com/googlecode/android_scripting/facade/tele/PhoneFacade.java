@@ -306,6 +306,16 @@ public class PhoneFacade extends RpcReceiver {
         phoneCall("tel:" + URLEncoder.encode(number, "ASCII"));
     }
 
+    @Rpc(description = "Calls an Emergency number.")
+    public void phoneCallEmergencyNumber(
+            @RpcParameter(name = "phone number")
+            final String number)
+            throws Exception {
+        String uriString = "tel:" + URLEncoder.encode(number, "ASCII");
+        mAndroidFacade.startActivity(Intent.ACTION_CALL_PRIVILEGED, uriString, null,
+                                     null, null, null, null);
+    }
+
     @Rpc(description = "Dials a contact/phone number by URI.")
     public void phoneDial(@RpcParameter(name = "uri")
     final String uri)
