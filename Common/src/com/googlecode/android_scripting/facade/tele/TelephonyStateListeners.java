@@ -115,7 +115,6 @@ public class TelephonyStateListeners {
                     break;
             }
             mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent);
-            mCallStateEvent.clear();
         }
 
         @Override
@@ -162,7 +161,6 @@ public class TelephonyStateListeners {
                 subEvent = "Idle";
             }
             mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
-            EventMsg.clear();
         }
     }
 
@@ -200,7 +198,6 @@ public class TelephonyStateListeners {
                 subEvent = "Unknown";
             }
             mEventFacade.postEvent("onModemPowerLevelChanged"+subEvent, event);
-            event.clear();
         }
     }
 
@@ -245,7 +242,6 @@ public class TelephonyStateListeners {
                 event.putInt("UnknownStateCode", state);
             }
             mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
-            event.clear();
         }
     }
 
@@ -313,7 +309,6 @@ public class TelephonyStateListeners {
             }
 
             mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
-            event.clear();
         }
     }
 

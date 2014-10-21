@@ -186,7 +186,6 @@ public class SmsFacade extends RpcReceiver {
                     mEventFacade.postEvent("onSmsSentFailure", event);
                 }
             }
-            event.clear();
         }
     }
 
@@ -213,7 +212,6 @@ public class SmsFacade extends RpcReceiver {
                     }
                     event.putString("Text", smsMsg.toString());
                     mEventFacade.postEvent("onSmsReceived", event);
-                    event.clear();
                 }
             }
         }
