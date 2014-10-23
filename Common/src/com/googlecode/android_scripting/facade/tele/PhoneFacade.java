@@ -352,10 +352,9 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getNetworkOperatorName();
     }
 
-    @Rpc(description = "Returns the current RAT in use on the device.")
-    public String getNetworkType() {
-        // TODO(damonkohler): API level 5 has many more types.
-        switch (mTelephonyManager.getNetworkType()) {
+    private String getNetworkTypeString(int networkType) {
+
+        switch (networkType) {
             case TelephonyManager.NETWORK_TYPE_EDGE:
                 return "edge";
             case TelephonyManager.NETWORK_TYPE_GPRS:
@@ -391,6 +390,54 @@ public class PhoneFacade extends RpcReceiver {
             default:
                 return null;
         }
+    }
+
+    @Rpc(description = "Returns the current RAT in use on the device.")
+    public String getNetworkType() {
+
+        Log.d("sl4a:getNetworkType() is deprecated!" +
+                "Please use getVoiceNetworkType()" +
+                " or getDataNetworkTpe()");
+
+        return getNetworkTypeString(mTelephonyManager.getNetworkType());
+    }
+
+    @Rpc(description = "Returns the current RAT in use on the device" +
+            " for a given Subscription.")
+    public String getNetworkTypeForSubscriber(
+            @RpcParameter(name = "subId") Long subId) {
+
+        Log.d("sl4a:getNetworkTypeForSubscriber() is deprecated!" +
+                "Please use getVoiceNetworkType()" +
+                " or getDataNetworkTpe()");
+
+        return getNetworkTypeString(mTelephonyManager.getNetworkType(subId));
+    }
+
+    @Rpc(description = "Returns the current voice RAT for" +
+            " the default voice subscription.")
+    public String getVoiceNetworkType() {
+        return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType());
+    }
+
+    @Rpc(description = "Returns the current voice RAT for" +
+            " the chosen voice subscription.")
+    public String getVoiceNetworkTypeForSubscriber(
+            @RpcParameter(name = "subId") Long subId) {
+        return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
+    }
+
+    @Rpc(description = "Returns the current data RAT for" +
+            " the defaut data subscription")
+    public String getDataNetworkType() {
+        return getNetworkTypeString(mTelephonyManager.getDataNetworkType());
+    }
+
+    @Rpc(description = "Returns the current data RAT for" +
+            " the defaut data subscription")
+    public String getDataNetworkTypeForSubscriber(
+            @RpcParameter(name = "subId") Long subId) {
+        return getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
     }
 
     @Rpc(description = "Returns the device phone type.")
