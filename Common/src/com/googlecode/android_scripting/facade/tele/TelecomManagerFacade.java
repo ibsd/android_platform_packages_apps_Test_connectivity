@@ -81,31 +81,39 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Disconnect call by callId.")
-    public void telecomCallDisconnect(@RpcParameter(name = "callId") String callId) {
+    public void telecomCallDisconnect(
+            @RpcParameter(name = "callId")
+            String callId) {
         Call call = InCallServiceImpl.mCalls.get(callId);
         call.disconnect();
     }
 
     @Rpc(description = "Hold call by callId")
-    public void telecomCallHold(@RpcParameter(name = "callId") String callId) {
+    public void telecomCallHold(@RpcParameter(name = "callId")
+    String callId) {
         Call call = InCallServiceImpl.mCalls.get(callId);
         call.hold();
     }
 
     @Rpc(description = "Merge call to conference by callId")
-    public void telecomCallMergeToConf(@RpcParameter(name = "callId") String callId) {
+    public void telecomCallMergeToConf(
+            @RpcParameter(name = "callId")
+            String callId) {
         Call call = InCallServiceImpl.mCalls.get(callId);
         call.mergeConference();
     }
 
     @Rpc(description = "Split call from conference by callId.")
-    public void telecomCallSplitFromConf(@RpcParameter(name = "callId") String callId) {
+    public void telecomCallSplitFromConf(
+            @RpcParameter(name = "callId")
+            String callId) {
         Call call = InCallServiceImpl.mCalls.get(callId);
         call.splitFromConference();
     }
 
     @Rpc(description = "Unhold call by callId")
-    public void telecomCallUnhold(@RpcParameter(name = "callId") String callId) {
+    public void telecomCallUnhold(@RpcParameter(name = "callId")
+    String callId) {
         Call call = InCallServiceImpl.mCalls.get(callId);
         call.unhold();
     }
@@ -166,6 +174,29 @@ public class TelecomManagerFacade extends RpcReceiver {
         return mEnabledAccountHandles;
     }
 
+    @Rpc(description = "Set the user-chosen default PhoneAccount for making outgoing phone calls.")
+    public void telecomSetUserSelectedOutgoingPhoneAccount(
+            @RpcParameter(name = "phoneAccountHandleId")
+            String phoneAccountHandleId) throws Exception {
+
+        List<PhoneAccountHandle> accountHandles = mTelecomManager
+                .getAllPhoneAccountHandles();
+        for (PhoneAccountHandle handle : accountHandles) {
+            if (handle.getId().equals(phoneAccountHandleId)) {
+                mTelecomManager.setUserSelectedOutgoingPhoneAccount(handle);
+                Log.d(String.format("Set default Outgoing Phone Account(%s)",
+                        phoneAccountHandleId));
+                return;
+            }
+        }
+        Log.d(String.format(
+                "Failed to find a matching phoneAccountHandleId(%s).",
+                phoneAccountHandleId));
+        throw new Exception(String.format(
+                "Failed to find a matching phoneAccountHandleId(%s).",
+                phoneAccountHandleId));
+    }
+
     @Rpc(description = "Get the user-chosen default PhoneAccount for making outgoing phone calls.")
     public PhoneAccountHandle telecomGetUserSelectedOutgoingPhoneAccount() {
         return mTelecomManager.getUserSelectedOutgoingPhoneAccount();
@@ -182,8 +213,11 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Joins two calls into a conference call. Calls are identified by their IDs listed by telecomPhoneGetCallIds")
-    public void telecomJoinCallsInConf(@RpcParameter(name = "callIdOne") String callIdOne,
-            @RpcParameter(name = "callIdTwo") String callIdTwo) {
+    public void telecomJoinCallsInConf(
+            @RpcParameter(name = "callIdOne")
+            String callIdOne,
+            @RpcParameter(name = "callIdTwo")
+            String callIdTwo) {
         Call callOne = InCallServiceImpl.mCalls.get(callIdOne);
         Call callTwo = InCallServiceImpl.mCalls.get(callIdTwo);
         callOne.conference(callTwo);
@@ -200,7 +234,9 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
-    public void telecomPhoneSetAudioRoute(@RpcParameter(name = "route") String route) {
+    public void telecomPhoneSetAudioRoute(
+            @RpcParameter(name = "route")
+            String route) {
         int r = 0;
         if (route == "BLUETOOTH") {
             r = AudioState.ROUTE_BLUETOOTH;
@@ -220,7 +256,8 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Turns the proximity sensor off. If screenOnImmediately is true, the screen will be turned on immediately")
     public void telecomPhoneSetProximitySensorOff(
-            @RpcParameter(name = "screenOnImmediately") Boolean screenOnImmediately) {
+            @RpcParameter(name = "screenOnImmediately")
+            Boolean screenOnImmediately) {
         InCallServiceImpl.mPhone.setProximitySensorOff(screenOnImmediately);
     }
 

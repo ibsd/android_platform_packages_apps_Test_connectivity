@@ -19,6 +19,7 @@ package com.googlecode.android_scripting.jsonrpc;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,9 @@ import android.telecom.PhoneAccountHandle;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionManager;
 import android.telephony.gsm.GsmCellLocation;
+import android.telephony.SubInfoRecord;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 
@@ -183,6 +186,9 @@ public class JsonBuilder {
         if (data instanceof PhoneAccountHandle) {
             return buildPhoneAccountHandle((PhoneAccountHandle) data);
         }
+        if (data instanceof SubInfoRecord) {
+            return buildSubscriptionInfoRecord((SubInfoRecord) data);
+        }
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
         }
@@ -207,6 +213,7 @@ public class JsonBuilder {
         if (data instanceof Object[]) {
             return buildJSONArray((Object[]) data);
         }
+
         return data.toString();
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
     }
@@ -552,6 +559,23 @@ public class JsonBuilder {
         JSONObject msg = new JSONObject();
         msg.put("id", data.getId());
         msg.put("ComponentName", data.getComponentName().flattenToString());
+        return msg;
+    }
+
+    private static Object buildSubscriptionInfoRecord(SubInfoRecord data) throws JSONException {
+        JSONObject msg = new JSONObject();
+        msg.put("subId", data.subId);
+        msg.put("iccId", data.iccId);
+        msg.put("slotId", data.slotId);
+        msg.put("displayName", data.displayName);
+        msg.put("nameSource", data.nameSource);
+        msg.put("color", data.color);
+        msg.put("number", data.number);
+        msg.put("displayNumberFormat", data.displayNumberFormat);
+        msg.put("dataRoaming", data.dataRoaming);
+        msg.put("simIconRes", Arrays.toString(data.simIconRes));
+        msg.put("mcc", data.mcc);
+        msg.put("mnc", data.mnc);
         return msg;
     }
 
