@@ -48,7 +48,7 @@ public class ImsManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Return True if Enhanced 4g Lte mode is enabled by platform.")
     public boolean imsIsEnhanced4gLteModeSettingEnabledByPlatform() {
-        return ImsManager.isEnhanced4gLteModeSettingEnabledByPlatform(mService);
+        return ImsManager.isVolteEnabledByPlatform(mService);
     }
 
     @Rpc(description = "Return True if Enhanced 4g Lte mode is enabled by user.")
