@@ -405,7 +405,7 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the current RAT in use on the device" +
             " for a given Subscription.")
     public String getNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Long subId) {
+            @RpcParameter(name = "subId") Integer subId) {
 
         Log.d("sl4a:getNetworkTypeForSubscriber() is deprecated!" +
                 "Please use getVoiceNetworkType()" +
@@ -423,7 +423,7 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the current voice RAT for" +
             " the chosen voice subscription.")
     public String getVoiceNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Long subId) {
+            @RpcParameter(name = "subId") Integer subId) {
         return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
     }
 
@@ -436,7 +436,7 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the current data RAT for" +
             " the defaut data subscription")
     public String getDataNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Long subId) {
+            @RpcParameter(name = "subId") Integer subId) {
         return getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
     }
 
