@@ -44,31 +44,31 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Return the default subscription ID")
-    public Long subscriptionGetDefaultSubId() {
+    public Integer subscriptionGetDefaultSubId() {
         return SubscriptionManager.getDefaultSubId();
     }
 
     @Rpc(description = "Return the default data subscription ID")
-    public Long subscriptionGetDefaultDataSubId() {
+    public Integer subscriptionGetDefaultDataSubId() {
         return SubscriptionManager.getDefaultDataSubId();
     }
 
     @Rpc(description = "Set the default data subscription ID")
     public void subscriptionSetDefaultDataSubId(
             @RpcParameter(name = "subId")
-            Long subId) {
+            Integer subId) {
         SubscriptionManager.setDefaultDataSubId(subId);
     }
 
     @Rpc(description = "Return the default voice subscription ID")
-    public Long subscriptionGetDefaultVoiceSubId() {
+    public Integer subscriptionGetDefaultVoiceSubId() {
         return SubscriptionManager.getDefaultVoiceSubId();
     }
 
     @Rpc(description = "Set the default voice subscription ID")
     public void subscriptionSetDefaultVoiceSubId(
             @RpcParameter(name = "subId")
-            Long subId) {
+            Integer subId) {
         SubscriptionManager.setDefaultVoiceSubId(subId);
     }
 
@@ -85,12 +85,12 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     @Rpc(description = "Return the Subscription Info for a Particular Subscription ID")
     public SubInfoRecord subscriptionGetSubInfoForSubscriber(
             @RpcParameter(name = "subId")
-            Long subId) {
+            Integer subId) {
         return SubscriptionManager.getSubInfoForSubscriber(subId);
     }
 
     @Rpc(description = "Set Data Roaming Enabled or Disabled for a particular Subscription ID")
-    public Integer subscriptionSetDataRoaming(Integer roaming, Long subId) {
+    public Integer subscriptionSetDataRoaming(Integer roaming, Integer subId) {
         if (roaming != SubscriptionManager.DATA_ROAMING_DISABLE) {
             return SubscriptionManager.setDataRoaming(
                     SubscriptionManager.DATA_ROAMING_ENABLE, subId);
