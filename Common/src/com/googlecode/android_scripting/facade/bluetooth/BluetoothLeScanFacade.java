@@ -95,7 +95,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer myScanCallback.index
      */
     @Rpc(description = "Generate a new myScanCallback Object")
-    public Integer genScanCallback() {
+    public Integer bleGenScanCallback() {
         ScanCallbackCount += 1;
         int index = ScanCallbackCount;
         myScanCallback mScan = new myScanCallback(index);
@@ -109,7 +109,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer myScanCallback.index
      */
     @Rpc(description = "Generate a new myScanCallback Object")
-    public Integer genLeScanCallback() {
+    public Integer bleGenLeScanCallback() {
         LeScanCallbackCount += 1;
         int index = LeScanCallbackCount;
         myLeScanCallback mScan = new myLeScanCallback(index);
@@ -123,7 +123,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer index
      */
     @Rpc(description = "Generate a new Filter list")
-    public Integer genFilterList() {
+    public Integer bleGenFilterList() {
         FilterListCount += 1;
         int index = FilterListCount;
         mScanFilterList.put(index, new ArrayList<ScanFilter>());
@@ -136,7 +136,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer index
      */
     @Rpc(description = "Generate a new Filter list")
-    public Integer buildScanFilter(
+    public Integer bleBuildScanFilter(
             @RpcParameter(name = "filterIndex")
             Integer filterIndex
             ) {
@@ -151,67 +151,12 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @return Integer index
      */
     @Rpc(description = "Generate a new scan settings Object")
-    public Integer buildScanSetting() {
+    public Integer bleBuildScanSetting() {
         ScanSettingsCount += 1;
         int index = ScanSettingsCount;
         mScanSettingsList.put(index, mScanSettingsBuilder.build());
         mScanSettingsBuilder = new android.bluetooth.le.ScanSettings.Builder();
         return index;
-    }
-
-    /**
-     * Removes a scan setting
-     *
-     * @return Integer index
-     * @throws Exception
-     */
-    @Rpc(description = "Removes a scan setting")
-    public void deleteScanSetting(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mScanSettingsList.get(index) != null) {
-            mScanSettingsList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
-     * Removes a scan callback
-     *
-     * @return Integer index
-     * @throws Exception
-     */
-    @Rpc(description = "Removes a scan callback")
-    public void deleteScanCallback(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mScanCallbackList.get(index) != null) {
-            mScanner.stopScan(mScanCallbackList.get(index));
-            mScanCallbackList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
-     * Removes a filter list
-     *
-     * @return Integer index
-     * @throws Exception
-     */
-    @Rpc(description = "Removes a filter list")
-    public void deleteFilterList(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
     }
 
     /**
@@ -221,7 +166,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing ble advertisement scan")
-    public void stopBleScan(
+    public void bleStopBleScan(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         Log.d("bluetooth_le_scan mScanCallback " + index);
@@ -240,7 +185,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing classic ble scan")
-    public void stopClassicBleScan(
+    public void bleStopClassicBleScan(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         Log.d("bluetooth_le_scan mLeScanCallback " + index);
@@ -259,7 +204,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a ble advertisement scan")
-    public void startBleScan(
+    public void bleStartBleScan(
             @RpcParameter(name = "filterListIndex")
             Integer filterListIndex,
             @RpcParameter(name = "scanSettingsIndex")
@@ -298,7 +243,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan")
-    public boolean startClassicBleScan(
+    public boolean bleStartClassicBleScan(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex
             ) throws Exception {
@@ -320,7 +265,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts a classic ble advertisement scan with service Uuids")
-    public boolean startClassicBleScanWithServiceUuids(
+    public boolean bleStartClassicBleScanWithServiceUuids(
             @RpcParameter(name = "leCallbackIndex")
             Integer leCallbackIndex,
             @RpcParameter(name = "serviceUuids")
@@ -350,7 +295,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Gets the results of the ble ScanCallback")
-    public void flushPendingScanResults(
+    public void bleFlushPendingScanResults(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex
             ) throws Exception {
@@ -373,22 +318,50 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @param scanResultType Bluetooth LE scan result type
      * @throws Exception
      */
-    @Rpc(description = "Set a new Scan Setting for ble scanning")
-    public void setScanSettings(
+
+    /**
+     * Set the scan setting's callback type
+     * @param callbackType Bluetooth LE scan callback type
+     */
+    @Rpc(description = "Set the scan setting's callback type")
+    public void bleSetScanSettingsCallbackType(
             @RpcParameter(name = "callbackType")
-            Integer callbackType,
-            @RpcParameter(name = "reportDelayMillis")
-            Long reportDelayMillis,
-            @RpcParameter(name = "scanMode")
-            Integer scanMode,
-            @RpcParameter(name = "scanResultType")
-            Integer scanResultType) {
+            Integer callbackType) {
         mScanSettingsBuilder.setCallbackType(callbackType);
-        mScanSettingsBuilder.setScanMode(scanMode);
-        mScanSettingsBuilder.setScanResultType(scanResultType);
+    }
+
+    /**
+     * Set the scan setting's report delay millis
+     * @param reportDelayMillis Time of delay for reporting the scan result
+     */
+    @Rpc(description = "Set the scan setting's report delay millis")
+    public void bleSetScanSettingsReportDelayMillis(
+            @RpcParameter(name = "reportDelayMillis")
+            Long reportDelayMillis) {
         mScanSettingsBuilder.setReportDelay(reportDelayMillis);
     }
 
+    /**
+     * Set the scan setting's scan mode
+     * @param scanMode Bluetooth LE scan mode.
+     */
+    @Rpc(description = "Set the scan setting's scan mode")
+    public void bleSetScanSettingsScanMode(
+            @RpcParameter(name = "scanMode")
+            Integer scanMode) {
+        mScanSettingsBuilder.setScanMode(scanMode);
+    }
+
+    /**
+     * Set the scan setting's scan result type
+     * @param scanResultType Bluetooth LE scan result type
+     */
+    @Rpc(description = "Set the scan setting's scan result type")
+    public void bleSetScanSettingsResultType(
+            @RpcParameter(name = "scanResultType")
+            Integer scanResultType) {
+        mScanSettingsBuilder.setScanResultType(scanResultType);
+    }
     /**
      * Get ScanSetting's callback type
      *
@@ -397,7 +370,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanSetting's callback type")
-    public Integer getScanSettingsCallbackType(
+    public Integer bleGetScanSettingsCallbackType(
             @RpcParameter(name = "index")
             Integer index
             ) throws Exception {
@@ -417,7 +390,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanSetting's report delay milliseconds")
-    public Long getScanSettingsReportDelayMillis(
+    public Long bleGetScanSettingsReportDelayMillis(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
@@ -436,7 +409,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanSetting's scan mode")
-    public Integer getScanSettingsScanMode(
+    public Integer bleGetScanSettingsScanMode(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
@@ -455,7 +428,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanSetting's scan result type")
-    public Integer getScanSettingsScanResultType(
+    public Integer bleGetScanSettingsScanResultType(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mScanSettingsList.get(index) != null) {
@@ -474,7 +447,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's Manufacturer Id")
-    public Integer getScanFilterManufacturerId(
+    public Integer bleGetScanFilterManufacturerId(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -500,7 +473,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's device address")
-    public String getScanFilterDeviceAddress(
+    public String bleGetScanFilterDeviceAddress(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -525,7 +498,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's device name")
-    public String getScanFilterDeviceName(
+    public String bleGetScanFilterDeviceName(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -550,7 +523,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's manufacturer data")
-    public String getScanFilterManufacturerData(
+    public String bleGetScanFilterManufacturerData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -576,7 +549,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's manufacturer data mask")
-    public String getScanFilterManufacturerDataMask(
+    public String bleGetScanFilterManufacturerDataMask(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -602,7 +575,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service data")
-    public String getScanFilterServiceData(
+    public String bleGetScanFilterServiceData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -628,7 +601,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service data mask")
-    public String getScanFilterServiceDataMask(
+    public String bleGetScanFilterServiceDataMask(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -654,7 +627,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service uuid")
-    public String getScanFilterServiceUuid(
+    public String bleGetScanFilterServiceUuid(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -684,7 +657,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ScanFilter's service uuid mask")
-    public String getScanFilterServiceUuidMask(
+    public String bleGetScanFilterServiceUuidMask(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "filterIndex")
@@ -714,7 +687,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"macAddress\" to existing ScanFilter")
-    public void setScanFilterDeviceAddress(
+    public void bleSetScanFilterDeviceAddress(
             @RpcParameter(name = "macAddress")
             String macAddress
             ) {
@@ -729,7 +702,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"manufacturereDataId and/or manufacturerData\" to existing ScanFilter")
-    public void setScanFilterManufacturerData(
+    public void bleSetScanFilterManufacturerData(
             @RpcParameter(name = "manufacturerDataId")
             Integer manufacturerDataId,
             @RpcParameter(name = "manufacturerData")
@@ -756,7 +729,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"serviceData and serviceDataMask\" to existing ScanFilter ")
-    public void setScanFilterServiceData(
+    public void bleSetScanFilterServiceData(
             @RpcParameter(name = "serviceUuid")
             String serviceUuid,
             @RpcParameter(name = "serviceData")
@@ -786,7 +759,7 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Add filter \"serviceUuid and/or serviceMask\" to existing ScanFilter")
-    public void setScanFilterServiceUuid(
+    public void bleSetScanFilterServiceUuid(
             @RpcParameter(name = "serviceUuid")
             String serviceUuid,
             @RpcParameter(name = "serviceMask")
@@ -809,32 +782,11 @@ public class BluetoothLeScanFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Sets the scan filter's device name")
-    public void setScanFilterDeviceName(
+    public void bleSetScanFilterDeviceName(
             @RpcParameter(name = "name")
             String name
             ) {
             mScanFilterBuilder.setDeviceName(name);
-    }
-
-    /**
-     * Remove a scanFilter from the scanFilterList
-     *
-     * @param index the index of the myScan
-     * @param filterIndex Integer of the filter to remove
-     * @throws Exception
-     */
-    @Rpc(description = "Remove a scanFilter from the scanFilterList")
-    public void removeScanFilterFromScanFilterList(
-            @RpcParameter(name = "index")
-            Integer index,
-            @RpcParameter(name = "filterIndex")
-            Integer filterIndex
-            ) throws Exception {
-        if (mScanFilterList.get(index) != null) {
-            mScanFilterList.get(index).remove(filterIndex);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
     }
 
     private class myScanCallback extends ScanCallback {
