@@ -85,7 +85,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @return myAdvertiseCallback.index
      */
     @Rpc(description = "Generate a new myAdvertisement Object")
-    public Integer genBleAdvertiseCallback() {
+    public Integer bleGenBleAdvertiseCallback() {
         BleAdvertiseCallbackCount += 1;
         int index = BleAdvertiseCallbackCount;
         myAdvertiseCallback mCallback = new myAdvertiseCallback(index);
@@ -100,7 +100,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @return index
      */
     @Rpc(description = "Constructs a new Builder obj for AdvertiseData and returns its index")
-    public Integer buildAdvertiseData() {
+    public Integer bleBuildAdvertiseData() {
         BleAdvertiseDataCount += 1;
         int index = BleAdvertiseDataCount;
         mAdvertiseDataList.put(index,
@@ -115,7 +115,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @return index
      */
     @Rpc(description = "Constructs a new Builder obj for AdvertiseData and returns its index")
-    public Integer buildAdvertisementSettings() {
+    public Integer bleBuildAdvertiseSettings() {
         BleAdvertiseSettingsCount += 1;
         int index = BleAdvertiseSettingsCount;
         mAdvertiseSettingsList.put(index,
@@ -125,64 +125,13 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
     }
 
     /**
-     * Stops Advertising and Removes a myAdvertiseCallback obj
-     *
-     * @throws Exception
-     */
-    @Rpc(description = "Stops Advertising and Removes a myAdvertiseCallback obj")
-    public void removeBleAdvertiseCallback(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mAdvertiseCallbackList.get(index) != null) {
-            mAdvertiseCallbackList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
-     * Removes a AdvertiseSettings obj
-     *
-     * @throws Exception
-     */
-    @Rpc(description = "Removes a AdvertiseSettings obj")
-    public void removeBleAdvertiseSetting(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mAdvertiseSettingsList.get(index) != null) {
-            mAdvertiseSettingsList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
-     * Removes a AdvertiseData obj
-     *
-     * @throws Exception
-     */
-    @Rpc(description = "Removes a AdvertiseData obj")
-    public void removeBleAdvertiseData(
-            @RpcParameter(name = "index")
-            Integer index
-            ) throws Exception {
-        if (mAdvertiseDataList.get(index) != null) {
-            mAdvertiseDataList.remove(index);
-        } else {
-            throw new Exception("Invalid index input:" + Integer.toString(index));
-        }
-    }
-
-    /**
      * Stops a ble advertisement
      *
      * @param index the id of the advertisement to stop advertising on
      * @throws Exception
      */
     @Rpc(description = "Stops an ongoing ble advertisement")
-    public void stopBleAdvertising(
+    public void bleStopBleAdvertising(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseCallbackList.get(index) != null) {
@@ -203,7 +152,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts ble advertisement")
-    public void startBleAdvertising(
+    public void bleStartBleAdvertising(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex,
             @RpcParameter(name = "dataIndex")
@@ -244,7 +193,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Starts ble advertisement")
-    public void startBleAdvertisingWithScanResponse(
+    public void bleStartBleAdvertisingWithScanResponse(
             @RpcParameter(name = "callbackIndex")
             Integer callbackIndex,
             @RpcParameter(name = "dataIndex")
@@ -293,7 +242,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement settings mode")
-    public int getAdvertisementSettingsMode(
+    public int bleGetAdvertiseSettingsMode(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
@@ -312,7 +261,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement settings tx power level")
-    public int getAdvertisementSettingsTxPowerLevel(
+    public int bleGetAdvertiseSettingsTxPowerLevel(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
@@ -332,7 +281,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement settings isConnectable value")
-    public boolean getAdvertisementSettingsIsConnectable(
+    public boolean bleGetAdvertiseSettingsIsConnectable(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseSettingsList.get(index) != null) {
@@ -351,7 +300,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement data include tx power level")
-    public Boolean getAdvertiseDataIncludeTxPowerLevel(
+    public Boolean bleGetAdvertiseDataIncludeTxPowerLevel(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
@@ -371,7 +320,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement data manufacturer specific data")
-    public String getAdvertiseDataManufacturerSpecificData(
+    public String bleGetAdvertiseDataManufacturerSpecificData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "manufacturerId")
@@ -397,7 +346,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement include device name")
-    public Boolean getAdvertiseDataIncludeDeviceName(
+    public Boolean bleGetAdvertiseDataIncludeDeviceName(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
@@ -417,7 +366,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Service Data")
-    public String getAdvertiseDataServiceData(
+    public String bleGetAdvertiseDataServiceData(
             @RpcParameter(name = "index")
             Integer index,
             @RpcParameter(name = "serviceUuid")
@@ -443,7 +392,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Get ble advertisement Service Uuids")
-    public List<ParcelUuid> getAdvertiseDataServiceUuids(
+    public List<ParcelUuid> bleGetAdvertiseDataServiceUuids(
             @RpcParameter(name = "index")
             Integer index) throws Exception {
         if (mAdvertiseDataList.get(index) != null) {
@@ -461,7 +410,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertisement data service uuids")
-    public void setAdvertiseDataSetServiceUuids(
+    public void bleSetAdvertiseDataSetServiceUuids(
             @RpcParameter(name = "uuidList")
             String[] uuidList
             ) {
@@ -478,7 +427,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data service uuids")
-    public void addAdvertiseDataServiceData(
+    public void bleAddAdvertiseDataServiceData(
             @RpcParameter(name = "serviceDataUuid")
             String serviceDataUuid,
             @RpcParameter(name = "serviceData")
@@ -497,7 +446,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise data manufacturerId")
-    public void addAdvertiseDataManufacturerId(
+    public void bleAddAdvertiseDataManufacturerId(
             @RpcParameter(name = "manufacturerId")
             Integer manufacturerId,
             @RpcParameter(name = "manufacturerSpecificData")
@@ -514,7 +463,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings advertise mode")
-    public void setAdvertisementSettingsAdvertiseMode(
+    public void bleSetAdvertiseSettingsAdvertiseMode(
             @RpcParameter(name = "advertiseMode")
             Integer advertiseMode
             ) {
@@ -528,7 +477,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings tx power level")
-    public void setAdvertisementSettingsTxPowerLevel(
+    public void bleSetAdvertiseSettingsTxPowerLevel(
             @RpcParameter(name = "txPowerLevel")
             Integer txPowerLevel
             ) {
@@ -542,7 +491,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @throws Exception
      */
     @Rpc(description = "Set ble advertise settings isConnectable value")
-    public void setAdvertisementSettingsIsConnectable(
+    public void bleSetAdvertiseSettingsIsConnectable(
             @RpcParameter(name = "value")
             Boolean value
             ) {
@@ -556,7 +505,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      *            advertisement
      */
     @Rpc(description = "Set ble advertisement data include tx power level")
-    public void setAdvertiseDataIncludeTxPowerLevel(
+    public void bleSetAdvertiseDataIncludeTxPowerLevel(
             @RpcParameter(name = "includeTxPowerLevel")
             Boolean includeTxPowerLevel
             ) {
@@ -569,7 +518,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      * @param timeoutSeconds Limit advertising to a given amount of time.
      */
     @Rpc(description = "Set ble advertisement data include tx power level")
-    public void setAdvertiseSettingsTimeout(
+    public void bleSetAdvertiseSettingsTimeout(
             @RpcParameter(name = "timeoutSeconds")
             Integer timeoutSeconds
             ) {
@@ -583,7 +532,7 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
      *            advertisement
      */
     @Rpc(description = "Set ble advertisement data include device name")
-    public void setAdvertiseDataIncludeDeviceName(
+    public void bleSetAdvertiseDataIncludeDeviceName(
             @RpcParameter(name = "includeDeviceName")
             Boolean includeDeviceName
             ) {
