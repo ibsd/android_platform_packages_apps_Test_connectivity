@@ -350,7 +350,7 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getScanResults();
     }
 
-    @Rpc(description = "Gets the Wi-Fi AP Configuration.")
+    @Rpc(description = "Check if wifi scanner is supported on this device.")
     public WifiConfiguration wifiGetApConfiguration() {
         return mWifi.getWifiApConfiguration();
     }
@@ -360,7 +360,7 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.isWifiScannerSupported();
     }
 
-    @Rpc(description = "Return whether Wi-Fi AP is enabled or disabled.")
+    @Rpc(description = "Check if wifi scanner is supported on this device.")
     public Boolean wifiIsApEnabled() {
         return mWifi.isWifiApEnabled();
     }
