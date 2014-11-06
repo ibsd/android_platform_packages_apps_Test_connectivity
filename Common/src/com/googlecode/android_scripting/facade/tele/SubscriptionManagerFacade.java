@@ -19,7 +19,7 @@ package com.googlecode.android_scripting.facade.tele;
 import android.app.Service;
 import android.content.Context;
 import android.telephony.SubscriptionManager;
-import android.telephony.SubInfoRecord;
+import android.telephony.SubscriptionInfo;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
@@ -85,20 +85,20 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Return a List of all Subscription Info Records")
-    public List<SubInfoRecord> subscriptionGetAllSubInfoList() {
-        return SubscriptionManager.getAllSubInfoList();
+    public List<SubscriptionInfo> subscriptionGetAllSubInfoList() {
+        return SubscriptionManager.getAllSubscriptionInfoList();
     }
 
     @Rpc(description = "Return a List of all Active Subscription Info Records")
-    public List<SubInfoRecord> subscriptionGetActiveSubInfoList() {
-        return SubscriptionManager.getActiveSubInfoList();
+    public List<SubscriptionInfo> subscriptionGetActiveSubInfoList() {
+        return SubscriptionManager.getActiveSubscriptionInfoList();
     }
 
     @Rpc(description = "Return the Subscription Info for a Particular Subscription ID")
-    public SubInfoRecord subscriptionGetSubInfoForSubscriber(
+    public SubscriptionInfo subscriptionGetSubInfoForSubscriber(
             @RpcParameter(name = "subId")
             Integer subId) {
-        return SubscriptionManager.getSubInfoForSubscriber(subId);
+        return SubscriptionManager.getSubscriptionInfoForSubscriber(subId);
     }
 
     @Rpc(description = "Set Data Roaming Enabled or Disabled for a particular Subscription ID")

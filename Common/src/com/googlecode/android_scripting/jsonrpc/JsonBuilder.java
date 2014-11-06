@@ -59,7 +59,7 @@ import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
 import android.telephony.gsm.GsmCellLocation;
-import android.telephony.SubInfoRecord;
+import android.telephony.SubscriptionInfo;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 
@@ -186,8 +186,8 @@ public class JsonBuilder {
         if (data instanceof PhoneAccountHandle) {
             return buildPhoneAccountHandle((PhoneAccountHandle) data);
         }
-        if (data instanceof SubInfoRecord) {
-            return buildSubscriptionInfoRecord((SubInfoRecord) data);
+        if (data instanceof SubscriptionInfo) {
+            return buildSubscriptionInfoRecord((SubscriptionInfo) data);
         }
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
@@ -562,7 +562,7 @@ public class JsonBuilder {
         return msg;
     }
 
-    private static Object buildSubscriptionInfoRecord(SubInfoRecord data) throws JSONException {
+    private static Object buildSubscriptionInfoRecord(SubscriptionInfo data) throws JSONException {
         JSONObject msg = new JSONObject();
         msg.put("subscriptionId", data.getSubscriptionId());
         msg.put("iccId", data.getIccId());
