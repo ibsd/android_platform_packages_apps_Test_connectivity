@@ -564,12 +564,12 @@ public class JsonBuilder {
 
     private static Object buildSubscriptionInfoRecord(SubInfoRecord data) throws JSONException {
         JSONObject msg = new JSONObject();
-        msg.put("subId", data.getSubscriptionId());
+        msg.put("subscriptionId", data.getSubscriptionId());
         msg.put("iccId", data.getIccId());
-        msg.put("slotId", data.getSimSlotIndex());
+        msg.put("simSlotIndex", data.getSimSlotIndex());
         msg.put("displayName", data.getDisplayName());
         msg.put("nameSource", data.getNameSource());
-        msg.put("color", data.getColor());
+        msg.put("iconTint", data.getIconTint());
         msg.put("number", data.getNumber());
         msg.put("dataRoaming", data.getDataRoaming());
         msg.put("mcc", data.getMcc());
