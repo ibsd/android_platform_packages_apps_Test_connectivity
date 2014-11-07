@@ -466,6 +466,13 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getSimOperator();
     }
 
+    @Rpc(description = "Returns the MCC+MNC by subId")
+    public String getSimOperatorBySubId(
+            @RpcParameter(name = "subId")
+            Integer subId) {
+        return mTelephonyManager.getSimOperator(subId);
+    }
+
     @Rpc(description = "Returns the Service Provider Name (SPN).")
     public String getSimOperatorName() {
         return mTelephonyManager.getSimOperatorName();
@@ -474,6 +481,13 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the serial number of the SIM, or Null if unavailable")
     public String getSimSerialNumber() {
         return mTelephonyManager.getSimSerialNumber();
+    }
+
+    @Rpc(description = "Returns the serial number of the SIM by SubId, or Null if unavailable")
+    public String getSimSerialNumberBySubId(
+            @RpcParameter(name = "subId")
+            Integer subId) {
+        return mTelephonyManager.getSimSerialNumber(subId);
     }
 
     @Rpc(description = "Returns the state of the device SIM card.")
@@ -516,9 +530,23 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.isNetworkRoaming();
     }
 
+    @Rpc(description = "Returns true if the device is in a roaming state")
+    public Boolean checkNetworkRoamingBySubId(
+            @RpcParameter(name = "subId")
+            Integer subId){
+        return mTelephonyManager.isNetworkRoaming(subId);
+    }
+
     @Rpc(description = "Returns the unique device ID such as MEID or IMEI, null if unavailable")
     public String getDeviceId() {
         return mTelephonyManager.getDeviceId();
+    }
+
+    @Rpc(description = "Returns the unique device ID such as MEID or IMEI by slotId, null if unavailable")
+    public String getDeviceIdBySlotId(
+            @RpcParameter(name = "slotId")
+            Integer slotId){
+        return mTelephonyManager.getDeviceId(slotId);
     }
 
     @Rpc(description = "Returns the modem sw version, such as IMEI-SV; null if unavailable")

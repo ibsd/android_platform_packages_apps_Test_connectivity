@@ -72,6 +72,18 @@ public class SubscriptionManagerFacade extends RpcReceiver {
         SubscriptionManager.setDefaultVoiceSubId(subId);
     }
 
+    @Rpc(description = "Return the default sms subscription ID")
+    public Integer subscriptionGetDefaultSmsSubId() {
+        return SubscriptionManager.getDefaultSmsSubId();
+    }
+
+    @Rpc(description = "Set the default sms subscription ID")
+    public void subscriptionSetDefaultSmsSubId(
+            @RpcParameter(name = "subId")
+            Integer subId) {
+        SubscriptionManager.setDefaultSmsSubId(subId);
+    }
+
     @Rpc(description = "Return a List of all Subscription Info Records")
     public List<SubInfoRecord> subscriptionGetAllSubInfoList() {
         return SubscriptionManager.getAllSubInfoList();
