@@ -14,6 +14,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager.WifiLock;
+import android.net.wifi.WpsInfo;
 import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
@@ -192,6 +193,30 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
+    public class WifiWpsCallback extends WifiManager.WpsCallback {
+        private static final String tag = "WifiWps";
+
+        @Override
+        public void onStarted(String pin) {
+            Bundle msg = new Bundle();
+            msg.putString("pin", pin);
+            mEventFacade.postEvent(tag + "OnStarted", msg);
+        }
+
+        @Override
+        public void onSucceeded() {
+            Log.d("Wps op succeeded");
+            mEventFacade.postEvent(tag + "OnSucceeded", null);
+        }
+
+        @Override
+        public void onFailed(int reason) {
+            Bundle msg = new Bundle();
+            msg.putInt("reason", reason);
+            mEventFacade.postEvent(tag + "OnFailed", msg);
+        }
+    }
+
     private WifiConfiguration wifiConfigurationFromScanResult(ScanResult result) {
         if (result == null)
             return null;
@@ -244,6 +269,25 @@ public class WifiManagerFacade extends RpcReceiver {
         return config;
     }
 
+    private WpsInfo parseWpsInfo(String infoStr) throws JSONException {
+        if (infoStr == null) {
+            return null;
+        }
+        JSONObject j = new JSONObject(infoStr);
+        WpsInfo info = new WpsInfo();
+        if (j.has("setup")) {
+            info.setup = j.getInt("setup");
+        }
+        if (j.has("BSSID")) {
+            info.BSSID = j.getString("BSSID");
+        }
+        if (j.has("pin")) {
+            info.pin = j.getString("pin");
+        }
+        return info;
+
+    }
+
     private boolean matchScanResult(ScanResult result, String id) {
         if (result.BSSID.equals(id) || result.SSID.equals(id)) {
             return true;
@@ -263,6 +307,12 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.addNetwork(wifiConfigurationFromScanResult(target));
     }
 
+    @Rpc(description = "Cancel Wi-fi Protected Setup.")
+    public void wifiCancelWps() throws JSONException {
+        WifiWpsCallback listener = new WifiWpsCallback();
+        mWifi.cancelWps(listener);
+    }
+
     @Rpc(description = "Checks Wifi state.", returns = "True if Wifi is enabled.")
     public Boolean wifiCheckState() {
         return mWifi.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
@@ -278,28 +328,19 @@ public class WifiManagerFacade extends RpcReceiver {
      */
     @Rpc(description = "Connects a wifi network by ssid",
             returns = "True if the operation succeeded.")
-    public Boolean wifiConnectWPA(@RpcParameter(name = "wifiSSID") String wifiSSID,
-            @RpcParameter(name = "wifiPassword") String wifiPassword) throws ConnectException {
+    public Boolean wifiConnect(
+            @RpcParameter(name = "wifiSSID") String wifiSSID,
+            @RpcParameter(name = "wifiPassword") @RpcOptional @RpcDefault(value = "") String wifiPassword)
+                    throws ConnectException {
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "\"" + wifiSSID + "\"";
-        if (wifiPassword == null)
+        if (wifiPassword.length() == 0)
             wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         else
             wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
 
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
-        Boolean found = false;
-        for (ScanResult sr : mWifi.getScanResults()) {
-            if (sr.SSID.equals(wifiSSID)) {
-                found = true;
-                break;
-            }
-        }
-        if (found == false) {
-            Log.e("Could not find wifi network with ssid " + wifiSSID);
-            throw new ConnectException("Could not find wifi network with ssid " + wifiSSID);
-        }
         for (WifiConfiguration conf : mWifi.getConfiguredNetworks()) {
             if (conf.SSID != null && conf.SSID.equals("\"" + wifiSSID + "\"")) {
                 mWifi.disconnect();
@@ -360,7 +401,7 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.isWifiScannerSupported();
     }
 
-    @Rpc(description = "Check if wifi scanner is supported on this device.")
+    @Rpc(description = "Return whether Wi-Fi AP is enabled or disabled.")
     public Boolean wifiIsApEnabled() {
         return mWifi.isWifiApEnabled();
     }
@@ -445,13 +486,24 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.startScan();
     }
 
-    @Rpc(description = "Start receiving wifi state change related broadcasts.")
+    @Rpc(description = "Start Wi-fi Protected Setup.")
+    public void wifiStartWps(
+            @RpcParameter(name = "config",
+                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+            throws JSONException {
+        WpsInfo info = parseWpsInfo(config);
+        WifiWpsCallback listener = new WifiWpsCallback();
+        Log.d("Starting wps with: " + info);
+        mWifi.startWps(info, listener);
+    }
+
+    @Rpc(description = "Start listening for wifi state change related broadcasts.")
     public void wifiStartTrackingStateChange() {
         mService.registerReceiver(mStateChangeReceiver, mStateChangeFilter);
         mService.registerReceiver(mTetherStateReceiver, mTetherFilter);
     }
 
-    @Rpc(description = "Stop receiving wifi state change related broadcasts.")
+    @Rpc(description = "Stop listening for wifi state change related broadcasts.")
     public void wifiStopTrackingStateChange() {
         mService.unregisterReceiver(mTetherStateReceiver);
         mService.unregisterReceiver(mStateChangeReceiver);
