@@ -229,8 +229,13 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Lists the IDs (phone numbers or hex hashes) of the current calls.")
-    public Set<String> telecomPhoneGetCallIds() {
+    public Set<String> telecomGetCallIds() {
         return InCallServiceImpl.mCalls.keySet();
+    }
+
+    @Rpc(description = "Reset the Call List.")
+    public void telecomClearCallList() {
+        InCallServiceImpl.mCalls.clear();
     }
 
     @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
