@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -161,6 +162,8 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     public class WifiStateChangeReceiver extends BroadcastReceiver {
+        String mCachedWifiInfo = "";
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -168,19 +171,35 @@ public class WifiManagerFacade extends RpcReceiver {
                 Log.d("Wifi network state changed.");
                 NetworkInfo nInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                 WifiInfo wInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+                String BSSID = intent.getParcelableExtra(WifiManager.EXTRA_BSSID);
                 Log.d("NetworkInfo " + nInfo);
                 Log.d("WifiInfo " + wInfo);
-                if (wInfo != null) {
-                    Bundle msg = new Bundle();
-                    String ssid = wInfo.getSSID();
-                    if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"') {
-                        msg.putString("ssid", ssid.substring(1, ssid.length() - 1));
+                Log.d("BSSID " + BSSID);
+                // If network info is of type wifi, send wifi events.
+                if (nInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    if (wInfo != null && nInfo.getDetailedState().equals(DetailedState.CONNECTED)) {
+                        Bundle msg = new Bundle();
+                        String ssid = wInfo.getSSID();
+                        if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"') {
+                            msg.putString("ssid", ssid.substring(1, ssid.length() - 1));
+                        } else {
+                            msg.putString("ssid", ssid);
+                        }
+                        String bssid = wInfo.getBSSID();
+                        msg.putString("bssid", bssid);
+                        if (bssid != null && !mCachedWifiInfo.equals(wInfo.toString())) {
+                            Log.d("WifiNetworkConnected");
+                            mEventFacade.postEvent("WifiNetworkConnected", msg);
+                        }
+                        mCachedWifiInfo = wInfo.toString();
                     } else {
-                        msg.putString("ssid", ssid);
+                        if (nInfo.getDetailedState().equals(DetailedState.DISCONNECTED)) {
+                            if (!mCachedWifiInfo.equals("")) {
+                                mCachedWifiInfo = "";
+                                mEventFacade.postEvent("WifiNetworkDisconnected", null);
+                            }
+                        }
                     }
-                    msg.putString("bssid", wInfo.getBSSID());
-                    Log.d("WifiNetworkConnected");
-                    mEventFacade.postEvent("WifiNetworkConnected", msg);
                 }
             } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
                 Log.d("Supplicant connection state changed.");
@@ -331,7 +350,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiConnect(
             @RpcParameter(name = "wifiSSID") String wifiSSID,
             @RpcParameter(name = "wifiPassword") @RpcOptional @RpcDefault(value = "") String wifiPassword)
-                    throws ConnectException {
+            throws ConnectException {
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "\"" + wifiSSID + "\"";
         if (wifiPassword.length() == 0)
@@ -489,8 +508,8 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
             @RpcParameter(name = "config",
-                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
-            throws JSONException {
+            description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+                    throws JSONException {
         WpsInfo info = parseWpsInfo(config);
         WifiWpsCallback listener = new WifiWpsCallback();
         Log.d("Starting wps with: " + info);
