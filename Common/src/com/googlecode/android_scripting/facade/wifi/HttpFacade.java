@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -151,11 +152,15 @@ public class HttpFacade extends RpcReceiver {
 
     @Rpc(description = "Make an http request and return the response message.")
     public String httpPing(@RpcParameter(name = "url") String url) throws IOException {
-        HttpURLConnection urlConnection = null;
-        urlConnection = httpRequest(url);
-        String resp = urlConnection.getResponseMessage();
-        Log.d("Fetched " + resp);
-        return resp;
+        try {
+            HttpURLConnection urlConnection = null;
+            urlConnection = httpRequest(url);
+            String resp = urlConnection.getResponseMessage();
+            Log.d("Fetched " + resp);
+            return resp;
+        } catch (UnknownHostException e) {
+            return null;
+        }
     }
 
     @Rpc(description = "Make an http request and only return the length of the response content.")
