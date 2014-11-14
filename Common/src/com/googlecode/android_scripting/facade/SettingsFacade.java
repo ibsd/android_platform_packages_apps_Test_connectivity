@@ -44,14 +44,10 @@ import java.lang.reflect.Method;
  */
 public class SettingsFacade extends RpcReceiver {
 
-    public static int AIRPLANE_MODE_OFF = 0;
-    public static int AIRPLANE_MODE_ON = 1;
-
     private final Service mService;
     private final AudioManager mAudio;
     private final PowerManager mPower;
     private final AlarmManager mAlarm;
-    private final ConnectivityManager mConnect;
 
     /**
      * Creates a new SettingsFacade.
@@ -64,7 +60,6 @@ public class SettingsFacade extends RpcReceiver {
         mAudio = (AudioManager) mService.getSystemService(Context.AUDIO_SERVICE);
         mPower = (PowerManager) mService.getSystemService(Context.POWER_SERVICE);
         mAlarm = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
-        mConnect = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     @Rpc(description = "Sets the screen timeout to this number of seconds.",
@@ -85,26 +80,6 @@ public class SettingsFacade extends RpcReceiver {
         } catch (SettingNotFoundException e) {
             return 0;
         }
-    }
-
-    @Rpc(description = "Checks the airplane mode setting.",
-            returns = "True if airplane mode is enabled.")
-    public Boolean checkAirplaneMode() {
-        try {
-            return android.provider.Settings.System.getInt(mService.getContentResolver(),
-                    android.provider.Settings.Global.AIRPLANE_MODE_ON) == AIRPLANE_MODE_ON;
-        } catch (SettingNotFoundException e) {
-            return false;
-        }
-    }
-
-    @Rpc(description = "Toggles airplane mode on and off.",
-            returns = "True if airplane mode is enabled.")
-    public void toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
-        if (enabled == null) {
-            enabled = !checkAirplaneMode();
-        }
-        mConnect.setAirplaneMode(enabled);
     }
 
     @Rpc(description = "Checks the ringer silent mode setting.",
