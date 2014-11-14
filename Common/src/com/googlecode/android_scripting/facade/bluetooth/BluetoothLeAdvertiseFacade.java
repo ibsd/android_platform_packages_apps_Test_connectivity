@@ -587,17 +587,21 @@ public class BluetoothLeAdvertiseFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
-        if (mAdvertiseCallbackList.isEmpty() == false) {
+        if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
             for (myAdvertiseCallback mAdvertise : mAdvertiseCallbackList
-                    .values()) {
+                .values()) {
                 if (mAdvertise != null) {
-                    mBluetoothAdapter.getBluetoothLeAdvertiser()
+                    try{
+                        mBluetoothAdapter.getBluetoothLeAdvertiser()
                             .stopAdvertising(mAdvertise);
+                    } catch (NullPointerException e) {
+                        Log.e("Failed to stop ble advertising.", e);
+                    }
                 }
             }
-            mAdvertiseCallbackList.clear();
-            mAdvertiseSettingsList.clear();
-            mAdvertiseDataList.clear();
         }
+        mAdvertiseCallbackList.clear();
+        mAdvertiseSettingsList.clear();
+        mAdvertiseDataList.clear();
     }
 }
