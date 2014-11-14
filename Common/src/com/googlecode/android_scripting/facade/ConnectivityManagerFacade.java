@@ -22,15 +22,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.provider.Settings.SettingNotFoundException;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * Access ConnectivityManager functions.
  */
 public class ConnectivityManagerFacade extends RpcReceiver {
+
+    public static int AIRPLANE_MODE_OFF = 0;
+    public static int AIRPLANE_MODE_ON = 1;
+
     class ConnectivityReceiver extends BroadcastReceiver {
 
         @Override
@@ -95,6 +102,26 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             return false;
         }
         return current.isConnected();
+    }
+
+    @Rpc(description = "Checks the airplane mode setting.",
+            returns = "True if airplane mode is enabled.")
+    public Boolean checkAirplaneMode() {
+        try {
+            return android.provider.Settings.System.getInt(mService.getContentResolver(),
+                    android.provider.Settings.Global.AIRPLANE_MODE_ON) == AIRPLANE_MODE_ON;
+        } catch (SettingNotFoundException e) {
+            return false;
+        }
+    }
+
+    @Rpc(description = "Toggles airplane mode on and off.",
+            returns = "True if airplane mode is enabled.")
+    public void toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
+        if (enabled == null) {
+            enabled = !checkAirplaneMode();
+        }
+        mCon.setAirplaneMode(enabled);
     }
 
     @Override
