@@ -20,7 +20,11 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceInfo;
 import android.os.Bundle;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 
+import com.android.internal.util.Protocol;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
@@ -28,6 +32,7 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,7 +53,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         private final String TAG;
 
         public WifiP2pActionListener(EventFacade eventFacade, String tag) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
             TAG = tag;
         }
@@ -82,7 +87,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         private final String mEventType;
 
         public WifiP2pConnectionInfoListener(EventFacade eventFacade) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
         }
 
@@ -91,19 +96,26 @@ public class WifiP2pManagerFacade extends RpcReceiver {
             Bundle msg = new Bundle();
             msg.putBoolean("groupFormed", info.groupFormed);
             msg.putBoolean("isGroupOwner", info.isGroupOwner);
-            msg.putString("groupOwnerHostName", info.groupOwnerAddress.getHostName());
-            msg.putString("groupOwnerHostAddress", info.groupOwnerAddress.getHostAddress());
+            InetAddress addr = info.groupOwnerAddress;
+            String hostName = null;
+            String hostAddress = null;
+            if (addr != null) {
+                hostName = addr.getHostName();
+                hostAddress = addr.getHostAddress();
+            }
+            msg.putString("groupOwnerHostName", hostName);
+            msg.putString("groupOwnerHostAddress", hostAddress);
             mEventFacade.postEvent(mEventType + "OnConnectionInfoAvailable", msg);
         }
     }
 
     class WifiP2pDnsSdServiceResponseListener implements
-    WifiP2pManager.DnsSdServiceResponseListener {
+            WifiP2pManager.DnsSdServiceResponseListener {
         private final EventFacade mEventFacade;
         private final String mEventType;
 
         public WifiP2pDnsSdServiceResponseListener(EventFacade eventFacade) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
         }
 
@@ -124,7 +136,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         private final String mEventType;
 
         public WifiP2pDnsSdTxtRecordListener(EventFacade eventFacade) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
         }
 
@@ -150,7 +162,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         private final String mEventType;
 
         public WifiP2pGroupInfoListener(EventFacade eventFacade) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
         }
 
@@ -186,7 +198,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         private final String mEventType;
 
         public WifiP2pPersistentGroupInfoListener(EventFacade eventFacade) {
-            mEventType = "WifiP2pManager";
+            mEventType = "WifiP2p";
             mEventFacade = eventFacade;
         }
 
@@ -263,7 +275,7 @@ public class WifiP2pManagerFacade extends RpcReceiver {
         }
     }
 
-    private final static String mEventType = "WifiP2pManager";
+    private final static String mEventType = "WifiP2p";
 
     private WifiP2pManager.Channel mChannel;
     private final EventFacade mEventFacade;
@@ -308,6 +320,26 @@ public class WifiP2pManagerFacade extends RpcReceiver {
     @Override
     public void shutdown() {
         mService.unregisterReceiver(mP2pStateChangedReceiver);
+    }
+
+    @Rpc(description = "Accept p2p connection invitation.")
+    public void wifiP2pAcceptConnection() throws RemoteException {
+        Log.d("Accepting p2p connection.");
+        Messenger m = mP2p.getP2pStateMachineMessenger();
+        int user_accept = Protocol.BASE_WIFI_P2P_SERVICE + 2;
+        Message msg = Message.obtain();
+        msg.what = user_accept;
+        m.send(msg);
+    }
+
+    @Rpc(description = "Reject p2p connection invitation.")
+    public void wifiP2pRejectConnection() throws RemoteException {
+        Log.d("Rejecting p2p connection.");
+        Messenger m = mP2p.getP2pStateMachineMessenger();
+        int user_accept = Protocol.BASE_WIFI_P2P_SERVICE + 3;
+        Message msg = Message.obtain();
+        msg.what = user_accept;
+        m.send(msg);
     }
 
     @Rpc(description = "Register a local service for service discovery. One of the \"CreateXxxServiceInfo functions needs to be called first.\"")
