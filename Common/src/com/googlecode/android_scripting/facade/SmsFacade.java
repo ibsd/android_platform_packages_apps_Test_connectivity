@@ -16,25 +16,26 @@
 
 package com.googlecode.android_scripting.facade;
 
-import java.util.ArrayList;
-
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-//import android.telephony.ServiceState;
-import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.provider.Telephony.Sms.Intents;
-import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.app.Activity;
+import android.provider.Telephony.Sms.Intents;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.Log;
+
+import java.util.ArrayList;
+
+//import android.telephony.ServiceState;
 
 /**
  * Exposes SmsManager functionality.
@@ -125,7 +126,7 @@ public class SmsFacade extends RpcReceiver {
 
     @Rpc(description = "Retrieves all messages currently stored on ICC.")
     public ArrayList<SmsMessage> smsGetAllMessagesFromIcc() {
-        return SmsManager.getAllMessagesFromIcc();
+        return SmsManager.getDefault().getAllMessagesFromIcc();
     }
 
     private class SmsSendListener extends BroadcastReceiver {
