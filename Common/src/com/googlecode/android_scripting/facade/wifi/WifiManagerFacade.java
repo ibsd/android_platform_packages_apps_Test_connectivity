@@ -13,6 +13,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager.WifiLock;
 import android.net.wifi.WpsInfo;
@@ -236,30 +237,28 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
+    private void applyingkeyMgmt(WifiConfiguration config, ScanResult result){
+        if (result.capabilities.contains("WEP")) {
+          config.allowedKeyManagement.set(KeyMgmt.NONE);
+          config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
+          config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
+        } else if (result.capabilities.contains("PSK")) {
+          config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
+        } else if (result.capabilities.contains("EAP")) {
+            // this is probably wrong, as we don't have a way to enter the enterprise config
+            config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
+            config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
+        } else {
+          config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        }
+    }
+
     private WifiConfiguration wifiConfigurationFromScanResult(ScanResult result) {
         if (result == null)
             return null;
         WifiConfiguration config = new WifiConfiguration();
         config.SSID = "\"" + result.SSID + "\"";
-        if (result.capabilities.contains("WEP")) {
-            config.allowedKeyManagement.set(KeyMgmt.NONE);
-            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN); // ?
-            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
-        }
-        if (result.capabilities.contains("WPA2-PSK")) {
-            config.allowedKeyManagement.set(KeyMgmt.WPA2_PSK);
-        }
-        if (result.capabilities.contains("WPA-PSK")) {
-            config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
-        }
-        if (result.capabilities.contains("EAP")) {
-            // this is probably wrong, as we don't have a way to enter the enterprise config
-            config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
-            config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
-        }
-        if (result.capabilities.length() == 5 && result.capabilities.contains("ESS")) {
-            config.allowedKeyManagement.set(KeyMgmt.NONE);
-        }
+        applyingkeyMgmt(config, result);
         config.BSSID = result.BSSID;
         config.scanResultCache = new HashMap<String, ScanResult>();
         if (config.scanResultCache == null)
@@ -337,6 +336,16 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
     }
 
+    private WifiConfiguration genWifiConfig(String SSID, String pwd) {
+        WifiConfiguration wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = "\"" + SSID + "\"";
+        if (pwd.length() == 0)
+            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        else
+            wifiConfig.preSharedKey = "\"" + pwd + "\"";
+        return wifiConfig;
+    }
+
     /**
      * Connects to a WPA protected wifi network
      *
@@ -348,20 +357,14 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Connects a wifi network by ssid",
             returns = "True if the operation succeeded.")
     public Boolean wifiConnect(
-            @RpcParameter(name = "wifiSSID") String wifiSSID,
-            @RpcParameter(name = "wifiPassword") @RpcOptional @RpcDefault(value = "") String wifiPassword)
+            @RpcParameter(name = "SSID") String SSID,
+            @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password)
             throws ConnectException {
-        WifiConfiguration wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "\"" + wifiSSID + "\"";
-        if (wifiPassword.length() == 0)
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        else
-            wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
-
+        WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
         for (WifiConfiguration conf : mWifi.getConfiguredNetworks()) {
-            if (conf.SSID != null && conf.SSID.equals("\"" + wifiSSID + "\"")) {
+            if (conf.SSID != null && conf.SSID.equals("\"" + SSID + "\"")) {
                 mWifi.disconnect();
                 mWifi.enableNetwork(conf.networkId, true);
                 status = mWifi.reconnect();
@@ -450,14 +453,9 @@ public class WifiManagerFacade extends RpcReceiver {
      * @param wifiPassword password for the wifi network
      */
     @Rpc(description = "Connects a wifi network as priority by pasing ssid")
-    public void wifiPriorityConnect(@RpcParameter(name = "wifiSSID") String wifiSSID,
-            @RpcParameter(name = "wifiPassword") String wifiPassword) {
-        WifiConfiguration wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "\"" + wifiSSID + "\"";
-        if (wifiPassword == null)
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        else
-            wifiConfig.preSharedKey = "\"" + wifiPassword + "\"";
+    public void wifiPriorityConnect(@RpcParameter(name = "SSID") String SSID,
+            @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password) {
+        WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         WifiActionListener listener = new WifiActionListener(mEventFacade, "PriorityConnect");
         mWifi.connect(wifiConfig, listener);
     }
