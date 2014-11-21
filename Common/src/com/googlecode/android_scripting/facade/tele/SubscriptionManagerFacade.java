@@ -21,7 +21,6 @@ import android.content.Context;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionInfo;
 
-import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
@@ -36,11 +35,13 @@ public class SubscriptionManagerFacade extends RpcReceiver {
 
     private final Service mService;
     private final Context mContext;
+    private final SubscriptionManager mSubscriptionManager;
 
     public SubscriptionManagerFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
         mContext = mService.getBaseContext();
+        mSubscriptionManager = SubscriptionManager.from(mContext);
     }
 
     @Rpc(description = "Return the default subscription ID")
@@ -57,7 +58,7 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     public void subscriptionSetDefaultDataSubId(
             @RpcParameter(name = "subId")
             Integer subId) {
-        SubscriptionManager.setDefaultDataSubId(subId);
+        mSubscriptionManager.setDefaultDataSubId(subId);
     }
 
     @Rpc(description = "Return the default voice subscription ID")
@@ -69,7 +70,7 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     public void subscriptionSetDefaultVoiceSubId(
             @RpcParameter(name = "subId")
             Integer subId) {
-        SubscriptionManager.setDefaultVoiceSubId(subId);
+        mSubscriptionManager.setDefaultVoiceSubId(subId);
     }
 
     @Rpc(description = "Return the default sms subscription ID")
@@ -81,33 +82,33 @@ public class SubscriptionManagerFacade extends RpcReceiver {
     public void subscriptionSetDefaultSmsSubId(
             @RpcParameter(name = "subId")
             Integer subId) {
-        SubscriptionManager.setDefaultSmsSubId(subId);
+        mSubscriptionManager.setDefaultSmsSubId(subId);
     }
 
     @Rpc(description = "Return a List of all Subscription Info Records")
     public List<SubscriptionInfo> subscriptionGetAllSubInfoList() {
-        return SubscriptionManager.getAllSubscriptionInfoList();
+        return mSubscriptionManager.getAllSubscriptionInfoList();
     }
 
     @Rpc(description = "Return a List of all Active Subscription Info Records")
     public List<SubscriptionInfo> subscriptionGetActiveSubInfoList() {
-        return SubscriptionManager.getActiveSubscriptionInfoList();
+        return mSubscriptionManager.getActiveSubscriptionInfoList();
     }
 
     @Rpc(description = "Return the Subscription Info for a Particular Subscription ID")
     public SubscriptionInfo subscriptionGetSubInfoForSubscriber(
             @RpcParameter(name = "subId")
             Integer subId) {
-        return SubscriptionManager.getSubscriptionInfoForSubscriber(subId);
+        return mSubscriptionManager.getActiveSubscriptionInfo(subId);
     }
 
     @Rpc(description = "Set Data Roaming Enabled or Disabled for a particular Subscription ID")
     public Integer subscriptionSetDataRoaming(Integer roaming, Integer subId) {
         if (roaming != SubscriptionManager.DATA_ROAMING_DISABLE) {
-            return SubscriptionManager.setDataRoaming(
+            return mSubscriptionManager.setDataRoaming(
                     SubscriptionManager.DATA_ROAMING_ENABLE, subId);
         } else {
-            return SubscriptionManager.setDataRoaming(
+            return mSubscriptionManager.setDataRoaming(
                     SubscriptionManager.DATA_ROAMING_DISABLE, subId);
         }
     }
