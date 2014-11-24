@@ -25,6 +25,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
 import com.googlecode.android_scripting.future.FutureResult;
 import com.googlecode.android_scripting.jsonrpc.JsonBuilder;
@@ -274,6 +275,7 @@ public class EventFacade extends RpcReceiver {
       if (mEventQueue.size() > MAX_QUEUE_SIZE) {
         mEventQueue.remove();
       }
+      Log.v(String.format("postEvent(%s)", name));
     }
     synchronized (mNamedEventObservers) {
       for (EventObserver observer : mNamedEventObservers.get(name)) {
