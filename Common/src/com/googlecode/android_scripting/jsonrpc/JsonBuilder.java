@@ -44,6 +44,7 @@ import android.location.Location;
 import android.net.NetworkInfo;
 import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -194,6 +195,9 @@ public class JsonBuilder {
         }
         if (data instanceof Capabilities) {
             return buildRttCapabilities((Capabilities) data);
+        }
+        if (data instanceof WifiActivityEnergyInfo) {
+            return buildWifiActivityEnergyInfo((WifiActivityEnergyInfo) data);
         }
         if (data instanceof WifiConfiguration) {
             return buildWifiConfiguration((WifiConfiguration) data);
@@ -468,6 +472,18 @@ public class JsonBuilder {
         // result.put("InfomationElements", infoEles);
         // } else
         // result.put("InfomationElements", null);
+        return result;
+    }
+
+    private static JSONObject buildWifiActivityEnergyInfo(WifiActivityEnergyInfo data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("ControllerEnergyUserd", data.getControllerEnergyUsed());
+        result.put("ControllerIdleTimeMillis", data.getControllerIdleTimeMillis());
+        result.put("ControllerRxTimeMillis", data.getControllerRxTimeMillis());
+        result.put("ControllerTxTimeMillis", data.getControllerTxTimeMillis());
+        result.put("StackState", data.getStackState());
+        result.put("TimeStamp", data.getTimeStamp());
         return result;
     }
 
