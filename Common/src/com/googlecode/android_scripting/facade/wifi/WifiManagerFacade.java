@@ -172,10 +172,8 @@ public class WifiManagerFacade extends RpcReceiver {
                 Log.d("Wifi network state changed.");
                 NetworkInfo nInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                 WifiInfo wInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                String BSSID = intent.getParcelableExtra(WifiManager.EXTRA_BSSID);
                 Log.d("NetworkInfo " + nInfo);
                 Log.d("WifiInfo " + wInfo);
-                Log.d("BSSID " + BSSID);
                 // If network info is of type wifi, send wifi events.
                 if (nInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                     if (wInfo != null && nInfo.getDetailedState().equals(DetailedState.CONNECTED)) {
@@ -237,19 +235,19 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
-    private void applyingkeyMgmt(WifiConfiguration config, ScanResult result){
+    private void applyingkeyMgmt(WifiConfiguration config, ScanResult result) {
         if (result.capabilities.contains("WEP")) {
-          config.allowedKeyManagement.set(KeyMgmt.NONE);
-          config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
-          config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
+            config.allowedKeyManagement.set(KeyMgmt.NONE);
+            config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
+            config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
         } else if (result.capabilities.contains("PSK")) {
-          config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
+            config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
         } else if (result.capabilities.contains("EAP")) {
             // this is probably wrong, as we don't have a way to enter the enterprise config
             config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
             config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
         } else {
-          config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         }
     }
 
@@ -339,10 +337,12 @@ public class WifiManagerFacade extends RpcReceiver {
     private WifiConfiguration genWifiConfig(String SSID, String pwd) {
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "\"" + SSID + "\"";
-        if (pwd.length() == 0)
+        if (pwd.length() == 0) {
             wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        else
+        } else {
+            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
             wifiConfig.preSharedKey = "\"" + pwd + "\"";
+        }
         return wifiConfig;
     }
 
