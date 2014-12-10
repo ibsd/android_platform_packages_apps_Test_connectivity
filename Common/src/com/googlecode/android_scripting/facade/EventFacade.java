@@ -78,10 +78,13 @@ public class EventFacade extends RpcReceiver {
   private final HashMap<String, BroadcastListener> mBroadcastListeners =
       new HashMap<String, BroadcastListener>();
   private final Context mContext;
+  private boolean bEventServerRunning;
 
   public EventFacade(FacadeManager manager) {
     super(manager);
     mContext = manager.getService().getApplicationContext();
+    Log.v("Creating new EventFacade Instance()");
+    bEventServerRunning = false;
   }
 
   /**
@@ -224,17 +227,20 @@ public class EventFacade extends RpcReceiver {
         synchronized (futureEvent) {
           if (!futureEvent.isDone()) {
             futureEvent.set(event);
-            removeEventObserver(this);
           }
+          removeEventObserver(this);
           mEventQueue.remove(event);
         }
       }
     };
     addGlobalEventObserver(observer);
     if (timeout != null) {
-      result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
+        result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
+        if(result == null){
+          result = new Event( "eventTimeout", null);
+        }
     } else {
-      result = futureEvent.get();
+        result = futureEvent.get();
     }
     removeEventObserver(observer); // Make quite sure this goes away.
     return result;
@@ -271,9 +277,11 @@ public class EventFacade extends RpcReceiver {
   public void postEvent(String name, Object data, boolean enqueue) {
     Event event = new Event(name, data);
     if (enqueue != false) {
-      mEventQueue.add(event);
-      if (mEventQueue.size() > MAX_QUEUE_SIZE) {
-        mEventQueue.remove();
+      synchronized (mEventQueue) {
+        while (mEventQueue.size() >= MAX_QUEUE_SIZE) {
+          mEventQueue.remove();
+        }
+        mEventQueue.add(event);
       }
       Log.v(String.format("postEvent(%s)", name));
     }
@@ -323,29 +331,35 @@ public class EventFacade extends RpcReceiver {
       }
       mEventServer = new EventServer(port);
       addGlobalEventObserver(mEventServer);
+      bEventServerRunning = true;
     }
     return mEventServer.getAddress().getPort();
   }
 
   @Rpc(description = "Stops the event server, you can't read in the port anymore")
   public void stopEventDispatcher() throws RuntimeException {
-    if (mEventServer == null) {
-      throw new RuntimeException("Not running");
+    if (bEventServerRunning == true) {
+      if (mEventServer == null) {
+        throw new RuntimeException("Not running");
+      }
+      bEventServerRunning = false;
+      mEventServer.shutdown();
+      removeEventObserver(mEventServer);
+      mEventServer = null;
     }
-    mEventServer.shutdown();
-    removeEventObserver(mEventServer);
-    mEventServer = null;
     return;
   }
 
   @Override
   public void shutdown() {
+
     try {
       stopEventDispatcher();
-    } catch (Exception err) {
+    } catch (Exception e) {
+      Log.e("Exception tearing down event dispatcher", e);
     }
-    // let others (like webviews) know we're going down
-    postEvent("sl4a", "{\"shutdown\": \"event-facade\"}");
+    mGlobalEventObservers.clear();
+    mEventQueue.clear();
   }
 
   public void addNamedEventObserver(String eventName, EventObserver observer) {

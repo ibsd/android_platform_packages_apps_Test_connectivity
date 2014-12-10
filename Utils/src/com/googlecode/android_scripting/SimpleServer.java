@@ -64,6 +64,8 @@ public abstract class SimpleServer {
                                               BufferedReader reader,
                                               PrintWriter writer) throws Exception;
 
+  protected void closeRPCConnection(Integer UID) throws Exception {}
+
   /** Adds an observer. */
   public void addObserver(SimpleServerObserver observer) {
     mObservers.add(observer);
@@ -332,10 +334,21 @@ public abstract class SimpleServer {
             result.put("status",false);
             result.put("error", "Termination error: session does not exist.");
           }else{
-            mConnectionThreads.get(uid).interrupt();
-            mConnectionThreads.remove(uid);
+            try {
+              closeRPCConnection(uid);
+            } catch (Exception e){
+              Log.e("Failed to close RPC Connection " + Integer.toString(uid), e);
+            }
             result.put("uid", uid);
             result.put("status",true);
+            writer.write(result + "\n");
+            writer.flush();
+            Log.v("Sent: " + result);
+
+            mConnectionThreads.get(uid).interrupt();
+            mConnectionThreads.remove(uid);
+
+            return;
           }
         }else {
           result.put("uid", uid);

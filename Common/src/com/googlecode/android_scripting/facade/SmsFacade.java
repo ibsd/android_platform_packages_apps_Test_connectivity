@@ -55,6 +55,7 @@ public class SmsFacade extends RpcReceiver {
     private int mNumReceivedDeliveredEvents;
     private Intent mSendIntent;
     private Intent mDeliveredIntent;
+    private boolean mListeningIncomingSms;
 
     private static final String MESSAGE_STATUS_DELIVERED_ACTION =
             "com.googlecode.android_scripting.sms.MESSAGE_STATUS_DELIVERED";
@@ -77,6 +78,7 @@ public class SmsFacade extends RpcReceiver {
         mNumReceivedSentEvents = 0;
         mNumExpectedDeliveredEvents = 0;
         mNumReceivedDeliveredEvents = 0;
+        mListeningIncomingSms=false;
 
         mSendIntent = new Intent(MESSAGE_SENT_ACTION);
         mDeliveredIntent = new Intent(MESSAGE_STATUS_DELIVERED_ACTION);
@@ -90,11 +92,17 @@ public class SmsFacade extends RpcReceiver {
     public void smsStartTrackingIncomingMessage() {
         mSmsReceived = new IntentFilter(MESSAGE_RECEIVED_ACTION);
         mService.registerReceiver(mSmsIncomingListener, mSmsReceived);
+        mListeningIncomingSms = true;
     }
 
     @Rpc(description = "Stops tracking incoming SMS.")
     public void smsStopTrackingIncomingMessage() {
+        mListeningIncomingSms = false;
+        try {
         mService.unregisterReceiver(mSmsIncomingListener);
+        } catch( Exception e ) {
+          Log.e( "Tried to unregister nonexistent SMS Listener!");
+        }
     }
 
     @Rpc(description = "Send a text message to a specified number.")
@@ -238,6 +246,9 @@ public class SmsFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
-        smsStopTrackingIncomingMessage();
+      mService.unregisterReceiver(mSmsSendListener);
+      if(mListeningIncomingSms) {
+              smsStopTrackingIncomingMessage();
+      }
     }
 }

@@ -53,6 +53,7 @@ public class WifiManagerFacade extends RpcReceiver {
     private final IntentFilter mTetherFilter;
     private final WifiScanReceiver mScanResultsAvailableReceiver;
     private final WifiStateChangeReceiver mStateChangeReceiver;
+    private boolean mTrackingWifiStateChange;
 
     private final BroadcastReceiver mTetherStateReceiver = new BroadcastReceiver() {
         @Override
@@ -104,6 +105,7 @@ public class WifiManagerFacade extends RpcReceiver {
 
         mScanResultsAvailableReceiver = new WifiScanReceiver(mEventFacade);
         mStateChangeReceiver = new WifiStateChangeReceiver();
+        mTrackingWifiStateChange = false;
     }
 
     private void makeLock(int wifiMode) {
@@ -529,12 +531,14 @@ public class WifiManagerFacade extends RpcReceiver {
     public void wifiStartTrackingStateChange() {
         mService.registerReceiver(mStateChangeReceiver, mStateChangeFilter);
         mService.registerReceiver(mTetherStateReceiver, mTetherFilter);
+        mTrackingWifiStateChange = true;
     }
 
     @Rpc(description = "Stop listening for wifi state change related broadcasts.")
     public void wifiStopTrackingStateChange() {
         mService.unregisterReceiver(mTetherStateReceiver);
         mService.unregisterReceiver(mStateChangeReceiver);
+        mTrackingWifiStateChange = false;
     }
 
     @Rpc(description = "Toggle Wifi on and off.", returns = "True if Wifi is enabled.")
@@ -549,6 +553,8 @@ public class WifiManagerFacade extends RpcReceiver {
     @Override
     public void shutdown() {
         wifiLockRelease();
-        mService.unregisterReceiver(mStateChangeReceiver);
+        if(mTrackingWifiStateChange == true) {
+          mService.unregisterReceiver(mStateChangeReceiver);
+        }
     }
 }

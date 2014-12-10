@@ -55,11 +55,21 @@ public class JsonRpcServer extends SimpleServer {
   public void shutdown() {
     super.shutdown();
     // Notify all RPC receiving objects. They may have to clean up some of their state.
-    for (RpcReceiverManager manager : mRpcReceiverManagerFactory.getRpcReceiverManagers().values()) {
+    for (RpcReceiverManager manager :
+        mRpcReceiverManagerFactory.getRpcReceiverManagers().values()) {
       manager.shutdown();
     }
   }
 
+  @Override
+  protected void closeRPCConnection(Integer UID) throws Exception {
+
+    Map<Integer, RpcReceiverManager> mgrs = mRpcReceiverManagerFactory.getRpcReceiverManagers();
+    if (mgrs.containsKey(UID)) {
+      mgrs.get(UID).shutdown();
+      mgrs.remove(UID);
+    }
+  }
 
   @Override
   protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader, PrintWriter writer) throws Exception {

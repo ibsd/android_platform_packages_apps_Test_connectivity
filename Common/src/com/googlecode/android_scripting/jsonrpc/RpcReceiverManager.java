@@ -89,8 +89,12 @@ public abstract class RpcReceiverManager {
 
   public void shutdown() {
     for (RpcReceiver receiver : mReceivers.values()) {
-      if (receiver != null) {
-        receiver.shutdown();
+      try {
+        if (receiver != null) {
+          receiver.shutdown();
+        }
+      }catch (Exception e ) {
+        Log.e("Failed to shut down an RpcReceiver", e);
       }
     }
   }
