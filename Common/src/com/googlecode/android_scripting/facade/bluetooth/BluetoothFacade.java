@@ -194,6 +194,13 @@ public class BluetoothFacade extends RpcReceiver {
         return mBluetoothAdapter.getName();
     }
 
+    @Rpc(description = "Sets the Bluetooth visible device name", returns = "true on success")
+    public boolean bluetoothSetLocalName(
+        @RpcParameter(name = "name", description = "New local name")
+        String name) {
+        return mBluetoothAdapter.setName(name);
+    }
+
     @Rpc(description = "Returns the hardware address of the local Bluetooth adapter. ")
     public String bluetoothGetLocalAddress() {
         return mBluetoothAdapter.getAddress();
@@ -233,13 +240,6 @@ public class BluetoothFacade extends RpcReceiver {
     @Rpc(description = "Checks Bluetooth state.", returns = "True if Bluetooth is enabled.")
     public Boolean bluetoothCheckState() {
         return mBluetoothAdapter.isEnabled();
-    }
-
-    @Rpc(description = "Sets the Bluetooth visible device name", returns = "true on success")
-    public boolean bluetoothSetLocalName(@RpcParameter(name = "name",
-                                                       description = "New local name")
-    String name) {
-        return mBluetoothAdapter.setName(name);
     }
 
     @Rpc(description = "Toggle Bluetooth on and off.", returns = "True if Bluetooth is enabled.")
