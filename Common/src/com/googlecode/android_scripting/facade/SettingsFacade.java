@@ -232,6 +232,11 @@ public class SettingsFacade extends RpcReceiver {
         mAlarm.setTime(currentTime);
     }
 
+    @Rpc(description = "Set the system time zone.")
+    public void setTimeZone(@RpcParameter(name = "timeZone") String timeZone) {
+        mAlarm.setTimeZone(timeZone);
+    }
+
     @Override
     public void shutdown() {
         // Nothing to do yet.

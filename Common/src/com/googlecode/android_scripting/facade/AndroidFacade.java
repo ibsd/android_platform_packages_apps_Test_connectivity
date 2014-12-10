@@ -455,6 +455,87 @@ public class AndroidFacade extends RpcReceiver {
     getClipboardManager().setPrimaryClip(ClipData.newPlainText(label, text));
   }
 
+  @Rpc(description = "Get the device serial number.")
+  public String getBuildSerial() {
+      return Build.SERIAL;
+  }
+
+  @Rpc(description = "Get the name of system bootloader version number.")
+  public String getBuildBootloader() {
+    return android.os.Build.BOOTLOADER;
+  }
+
+  @Rpc(description = "Get the name of the industrial design.")
+  public String getBuildIndustrialDesignName() {
+    return Build.DEVICE;
+  }
+
+  @Rpc(description = "Get the build ID string meant for displaying to the user")
+  public String getBuildDisplay() {
+    return Build.DISPLAY;
+  }
+
+  @Rpc(description = "Get the string that uniquely identifies this build.")
+  public String getBuildFingerprint() {
+    return Build.FINGERPRINT;
+  }
+
+  @Rpc(description = "Get the name of the hardware (from the kernel command "
+      + "line or /proc)..")
+  public String getBuildHardware() {
+    return Build.HARDWARE;
+  }
+
+  @Rpc(description = "Get the device host.")
+  public String getBuildHost() {
+    return Build.HOST;
+  }
+
+  @Rpc(description = "Get Either a changelist number, or a label like."
+      + " \"M4-rc20\".")
+  public String getBuildID() {
+    return android.os.Build.ID;
+  }
+
+  @Rpc(description = "Returns true if we are running a debug build such"
+      + " as \"user-debug\" or \"eng\".")
+  public boolean getBuildIsDebuggable() {
+    return Build.IS_DEBUGGABLE;
+  }
+
+  @Rpc(description = "Get the name of the overall product.")
+  public String getBuildProduct() {
+    return android.os.Build.PRODUCT;
+  }
+
+  @Rpc(description = "Get an ordered list of 32 bit ABIs supported by this "
+      + "device. The most preferred ABI is the first element in the list")
+  public String[] getBuildSupported32BitAbis() {
+    return Build.SUPPORTED_32_BIT_ABIS;
+  }
+
+  @Rpc(description = "Get an ordered list of 64 bit ABIs supported by this "
+      + "device. The most preferred ABI is the first element in the list")
+  public String[] getBuildSupported64BitAbis() {
+    return Build.SUPPORTED_64_BIT_ABIS;
+  }
+
+  @Rpc(description = "Get an ordered list of ABIs supported by this "
+      + "device. The most preferred ABI is the first element in the list")
+  public String[] getBuildSupportedBitAbis() {
+    return Build.SUPPORTED_ABIS;
+  }
+
+  @Rpc(description = "Get comma-separated tags describing the build,"
+      + " like \"unsigned,debug\".")
+  public String getBuildTags() {
+    return Build.TAGS;
+  }
+
+  @Rpc(description = "Get The type of build, like \"user\" or \"eng\".")
+  public String getBuildType() {
+    return Build.TYPE;
+  }
   @Rpc(description = "Returns the board name.")
   public String getBuildBoard() {
     return Build.BOARD;
@@ -480,12 +561,12 @@ public class AndroidFacade extends RpcReceiver {
     return Build.FINGERPRINT;
   }
 
-@Rpc(description = "Returns the SDK version.")
+  @Rpc(description = "Returns the SDK version.")
   public Integer getBuildSdkVersion() {
     return Build.VERSION.SDK_INT;
   }
 
-@Rpc(description = "Returns the current device time.")
+  @Rpc(description = "Returns the current device time.")
   public Long getBuildTime() {
     return Build.TIME;
   }
@@ -850,8 +931,4 @@ public class AndroidFacade extends RpcReceiver {
     return result;
   }
 
-  @Rpc(description = "Get the end-user-visible name for the end product.")
-  public String getDeviceModel() {
-      return android.os.Build.MODEL;
-  }
 }
