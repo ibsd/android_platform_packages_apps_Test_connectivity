@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -359,7 +360,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiConnect(
             @RpcParameter(name = "SSID") String SSID,
             @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password)
-            throws ConnectException {
+                    throws ConnectException {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
@@ -408,6 +409,11 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getConnectionInfo();
     }
 
+    @Rpc(description = "Returns wifi activity and energy usage info.")
+    public WifiActivityEnergyInfo getControllerActivityEnergyInfo() {
+        return mWifi.getControllerActivityEnergyInfo(0);
+    }
+
     @Rpc(description = "Returns the list of access points found during the most recent Wifi scan.")
     public List<ScanResult> wifiGetScanResults() {
         return mWifi.getScanResults();
@@ -418,14 +424,19 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getWifiApConfiguration();
     }
 
-    @Rpc(description = "Check if wifi scanner is supported on this device.")
-    public Boolean wifiIsScannerSupported() {
-        return mWifi.isWifiScannerSupported();
-    }
-
     @Rpc(description = "Return whether Wi-Fi AP is enabled or disabled.")
     public Boolean wifiIsApEnabled() {
         return mWifi.isWifiApEnabled();
+    }
+
+    @Rpc(description = "Check if this adapter supports advanced power/performance counters.")
+    public Boolean wifiIsEnhancedPowerReportingSupported() {
+        return mWifi.isEnhancedPowerReportingSupported();
+    }
+
+    @Rpc(description = "Check if wifi scanner is supported on this device.")
+    public Boolean wifiIsScannerSupported() {
+        return mWifi.isWifiScannerSupported();
     }
 
     @Rpc(description = "Acquires a full Wifi lock.")
