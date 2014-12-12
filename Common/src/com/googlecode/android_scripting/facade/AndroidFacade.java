@@ -90,6 +90,7 @@ public class AndroidFacade extends RpcReceiver {
    * An instance of this interface is passed to the facade. From this object, the resource IDs can
    * be obtained.
    */
+
   public interface Resources {
     int getLogo48();
   }
@@ -845,19 +846,58 @@ public class AndroidFacade extends RpcReceiver {
     return null;
   }
 
-  @Rpc(description = "Checks if SL4A's version is >= to the specified version.")
-  public boolean requiredVersion(@RpcParameter(name = "requiredVersion") final Integer version) {
+  @Rpc(description = "Checks if SL4A's version is >= the specified version.")
+  public boolean requiredVersion(
+          @RpcParameter(name = "requiredVersion") final Integer version) {
     boolean result = false;
-    int packageVersion = getPackageVersionCode("com.googlecode.android_scripting");
+    int packageVersion = getPackageVersionCode(
+            "com.googlecode.android_scripting");
     if (version > -1) {
       result = (packageVersion >= version);
     }
     return result;
   }
 
-  @Rpc(description = "Writes message to logcat.")
-  public void log(@RpcParameter(name = "message") String message) {
-    android.util.Log.v("SCRIPT", message);
+  @Rpc(description = "Writes message to logcat at verbose level")
+  public void logV(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.v("SL4A: ", message);
+  }
+
+  @Rpc(description = "Writes message to logcat at info level")
+  public void logI(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.i("SL4A: ", message);
+  }
+
+  @Rpc(description = "Writes message to logcat at debug level")
+  public void logD(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.d("SL4A: ", message);
+  }
+
+  @Rpc(description = "Writes message to logcat at warning level")
+  public void logW(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.w("SL4A: ", message);
+  }
+
+  @Rpc(description = "Writes message to logcat at error level")
+  public void logE(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.e("SL4A: ", message);
+  }
+
+  @Rpc(description = "Writes message to logcat at wtf level")
+  public void logWTF(
+          @RpcParameter(name = "message")
+          String message) {
+      android.util.Log.wtf("SL4A: ", message);
   }
 
   /**
