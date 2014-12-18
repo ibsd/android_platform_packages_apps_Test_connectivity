@@ -59,14 +59,7 @@ public class ImsManagerFacade extends RpcReceiver {
     @Rpc(description = "Set Enhanced 4G mode.")
     public void imsSetAdvanced4gMode(@RpcParameter(name = "enable") Boolean enable)
             throws ImsException{
-        android.provider.Settings.Global.putInt(
-                  mContext.getContentResolver(),
-                  android.provider.Settings.Global.ENHANCED_4G_MODE_ENABLED, enable ? 1 : 0);
-
-        if (mImsManager != null) {
-            Log.v("mImsManager is not null in setting ehanced 4G mode.");
-            mImsManager.setAdvanced4GMode(enable);
-        }
+        ImsManager.setEnhanced4gLteModeSetting(mService, enable);
     }
 
     @Override
