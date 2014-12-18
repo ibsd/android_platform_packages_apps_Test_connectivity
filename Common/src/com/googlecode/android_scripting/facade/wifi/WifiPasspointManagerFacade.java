@@ -147,13 +147,16 @@ public class WifiPasspointManagerFacade extends RpcReceiver {
       @RpcParameter(name = "scanIndex") Integer scanIndex,
       @RpcParameter(name = "channelIndex") Integer channelIndex,
       @RpcParameter(name = "mask") Integer mask) {
-    List<ScanResult> sr = WifiScannerFacade.getWifiScanResult(scanIndex);
+
+    /*
+    List<ScanResult> sr = WifiManagerFacade.wifiGetScanResults();
     if(sr != null && sr.size() >= 0) {
       PasspointActionListener listener = genPasspointActionListener();
       Channel chl = mChannels.get(channelIndex);
       mWifiPasspointMgr.requestAnqpInfo(chl, sr, mask, listener);
       return listener.mIndex;
     }
+    */
     return -1;
   }
   /*

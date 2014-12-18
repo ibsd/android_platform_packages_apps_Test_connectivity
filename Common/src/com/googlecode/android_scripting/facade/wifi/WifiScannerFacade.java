@@ -304,6 +304,10 @@ public class WifiScannerFacade extends RpcReceiver {
         public void onFound(ScanResult[] results) {
             mWAL.reportResult(results, "onFound");
         }
+
+        public void onLost(ScanResult[] results) {
+            mWAL.reportResult(results, "onLost");
+        }
     }
 
     private ScanSettings parseScanSettings(String scanSettings) throws JSONException {
