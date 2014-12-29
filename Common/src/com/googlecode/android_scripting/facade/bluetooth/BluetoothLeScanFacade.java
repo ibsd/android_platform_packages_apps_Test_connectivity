@@ -872,23 +872,30 @@ public class BluetoothLeScanFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
-        if (mScanCallbackList.isEmpty() == false) {
-            for (myScanCallback mScanCallback : mScanCallbackList.values()) {
-                if (mScanCallback != null) {
-                    mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
-                }
-            }
-        }
-        if (mLeScanCallbackList.isEmpty() == false) {
-            for (myLeScanCallback mLeScanCallback : mLeScanCallbackList.values()) {
-                if (mLeScanCallback != null) {
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                }
-            }
-        }
-        mScanCallbackList.clear();
-        mScanFilterList.clear();
-        mScanSettingsList.clear();
-        mLeScanCallbackList.clear();
+      if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
+          for (myScanCallback mScanCallback : mScanCallbackList.values()) {
+              if (mScanCallback != null) {
+                  try {
+                    mBluetoothAdapter.getBluetoothLeScanner()
+                      .stopScan(mScanCallback);
+                  } catch (NullPointerException e) {
+                    Log.e("Failed to stop ble scan callback.", e);
+                  }
+              }
+          }
+          for (myLeScanCallback mLeScanCallback : mLeScanCallbackList.values()) {
+              if (mLeScanCallback != null) {
+                  try {
+                      mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                  } catch (NullPointerException e) {
+                    Log.e("Failed to stop classic ble scan callback.", e);
+                  }
+              }
+          }
+      }
+      mScanCallbackList.clear();
+      mScanFilterList.clear();
+      mScanSettingsList.clear();
+      mLeScanCallbackList.clear();
     }
 }
