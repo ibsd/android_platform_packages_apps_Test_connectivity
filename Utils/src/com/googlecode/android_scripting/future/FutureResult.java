@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * FutureResult represents an eventual execution result for asynchronous operations.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class FutureResult<T> implements Future<T> {
 
   private final CountDownLatch mLatch = new CountDownLatch(1);
-  private volatile T mResult;
+  private volatile T mResult = null;
 
   public void set(T result) {
     mResult = result;

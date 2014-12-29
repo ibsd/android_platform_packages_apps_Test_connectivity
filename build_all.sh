@@ -46,6 +46,8 @@ APP_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/APPS
 APK_ROOT=$BRANCH_ROOT/out/target/product/$TP/system/priv-app/sl4a
 SL4A_PROJ_DIR=$SL4A_ROOT/ScriptingLayerForAndroid
 
+function sl4a_build {
+
 echo -e "${y}Removing intermediates of all the dependency libs${NC}"
 for i in "${lib_list[@]}"
 do
@@ -83,6 +85,10 @@ cd $SL4A_PROJ_DIR
 exec mm -B "building $APP_NAME.apk"
 echo
 
+}
+
+function sl4a_flash {
+
 echo -e "${y}Switching to root${NC}"
 adb root
 adb wait-for-device remount
@@ -96,6 +102,32 @@ cd $APK_ROOT
 #exec adb install $APP_NAME.apk "installing apk to device"
 #exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
 exec adb install -r $APP_NAME.apk "installing apk to previliged dir"
+
+}
+
+DO_BUILD=1
+DO_FLASH=1
+
+if [ $# -ne 0 ] ; then
+  DO_BUILD=0
+  DO_FLASH=0
+  while getopts "bf" ARG
+  do
+    case $ARG in
+      b) DO_BUILD=1 && echo "Build it we will.";;
+      f) DO_FLASH=1 && echo "Flash it we must.";;
+      ?) echo "Invalid Argument ${ARG}" && exit 1;;
+    esac
+  done
+fi
+
+if [ ${DO_BUILD} -eq "1" ] ; then
+  sl4a_build
+fi
+
+if [ ${DO_FLASH} -eq "1" ] ; then
+  sl4a_flash
+fi
 
 echo "All clear!"
 echo -e " ${r}U${brn}N${y}I${g}C${cy}O${lb}R${p}N ${r}P${brn}O${y}W${g}E${cy}R${lb}!${p}!${NC}"
