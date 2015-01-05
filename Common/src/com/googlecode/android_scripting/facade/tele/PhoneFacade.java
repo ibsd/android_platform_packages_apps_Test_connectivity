@@ -128,34 +128,52 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Set preferred network setting.")
-    public boolean phoneSetPreferredNetworkType(String mode){
+    public boolean phoneSetPreferredNetworkType(String mode) {
         int networkType;
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            if (mode.equalsIgnoreCase("LTE")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("Global")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("3G")) {
-                networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
-            } else if (mode.equalsIgnoreCase("2G")) {
-                networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
-            } else {
-                return false;
+            switch (mode.toUpperCase()) {
+                case "4G":
+                case "LTE":
+                    networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
+                    break;
+                case "3G":
+                case "WCDMA":
+                    networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
+                    break;
+                case "2G":
+                case "GSM":
+                    networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
+                    break;
+                case "GLOBAL":
+                    networkType =
+                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+                    break;
+                default:
+                    return false;
             }
         } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
-            if (mode.equalsIgnoreCase("LTE")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
-            } else if (mode.equalsIgnoreCase("Global")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("3G")) {
-                networkType = RILConstants.NETWORK_MODE_CDMA;
-            } else if (mode.equalsIgnoreCase("1X")) {
-                networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
-            } else {
-                return false;
+            switch (mode.toUpperCase()) {
+                case "4G":
+                case "LTE":
+                    networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
+                    break;
+                case "3G":
+                case "EVDO":
+                    networkType = RILConstants.NETWORK_MODE_CDMA;
+                    break;
+                case "2G":
+                case "1X":
+                    networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
+                    break;
+                case "GLOBAL":
+                    networkType =
+                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+                    break;
+                default:
+                    return false;
             }
-        } else{
+        } else {
             return false;
         }
         Log.v("SL4A: Setting the preferred network setting to:" + networkType);
@@ -169,38 +187,43 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Get preferred network setting. Return value is String.")
-    public String phoneGetPreferredNetworkTypeString(){
+    public String phoneGetPreferredNetworkType() {
         int mode = mTelephonyManager.getPreferredNetworkType();
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            if (mode == RILConstants.NETWORK_MODE_LTE_GSM_WCDMA){
-                return "LTE";
-            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
-                return "Global";
-            } else if (mode == RILConstants.NETWORK_MODE_WCDMA_PREF) {
-                return "3G";
-            } else if (mode == RILConstants.NETWORK_MODE_GSM_ONLY) {
-                return "2G";
-            } else {
-                Log.d("Unknown mode in phone type GSM: " + mode);
+            switch (mode) {
+                case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
+                    return "LTE";
+                case RILConstants.NETWORK_MODE_WCDMA_PREF:
+                    return "WCDMA";
+                case RILConstants.NETWORK_MODE_GSM_ONLY:
+                    return "GSM";
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                    return "GLOBAL";
+                default:
+                    Log.d("Unknown mode in phone type GSM: " + mode);
+                    return "UNKNOWN";
             }
-        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA){
-            if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO){
-                return "LTE";
-            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
-                return "Global";
-            } else if (mode == RILConstants.NETWORK_MODE_CDMA) {
-                return "3G";
-            } else if (mode == RILConstants.NETWORK_MODE_CDMA_NO_EVDO) {
-                return "1X";
-            } else {
-                Log.d("Unknown mode in phone type CDMA: " + mode);
+        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
+            switch (mode) {
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
+                    return "LTE";
+                case RILConstants.NETWORK_MODE_CDMA:
+                    return "EVDO";
+                case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
+                    return "1X";
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                    return "GLOBAL";
+                default:
+                    Log.d("Unknown mode in phone type CDMA: " + mode);
+                    return "UNKNOWN";
             }
         } else {
             Log.d("Unknown phone type: " + phoneType);
+            return null;
         }
-        return null;
     }
+     
 
     @Rpc(description = "Starts tracking call state change.")
     public void phoneStartTrackingCallState() {
@@ -711,6 +734,11 @@ public class PhoneFacade extends RpcReceiver {
             default:
                 return "DATA_UNKNOWN";
         }
+    }
+
+    @Rpc(description = "Returns a boolean of isImsRegistered()")
+    public Boolean isImsRegistered() {
+        return mTelephonyManager.isImsRegistered();
     }
 
     @Override

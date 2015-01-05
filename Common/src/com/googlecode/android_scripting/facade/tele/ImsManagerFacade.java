@@ -43,7 +43,7 @@ public class ImsManagerFacade extends RpcReceiver {
         mService = manager.getService();
         mContext = mService.getBaseContext();
         mImsManager = ImsManager.getInstance(mContext,
-                SubscriptionManager.getDefaultVoiceSubId());
+                SubscriptionManager.getDefaultVoicePhoneId());
     }
 
     @Rpc(description = "Return True if Enhanced 4g Lte mode is enabled by platform.")
