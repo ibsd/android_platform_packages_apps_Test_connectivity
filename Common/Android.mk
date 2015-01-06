@@ -5,6 +5,7 @@ include $(CLEAR_VARS)
 
 
 LOCAL_MODULE := sl4a.Common
+LOCAL_MODULE_OWNER := google
 
 LOCAL_STATIC_JAVA_LIBRARIES := guava android-common sl4a.Utils libGoogleAnalytics
 LOCAL_JAVA_LIBRARIES := telephony-common
