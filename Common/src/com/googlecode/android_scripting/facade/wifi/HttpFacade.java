@@ -25,6 +25,7 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
+import com.googlecode.android_scripting.rpc.RpcOptional;
 
 /**
  * Basic http operations.
@@ -185,6 +186,34 @@ public class HttpFacade extends RpcReceiver {
             throws SocketException {
         mServerSocket.setSoTimeout(timeout);
         mServerTimeout = timeout;
+    }
+
+    @Rpc(description = "Ping to host, return success (true) or fail (false).")
+    // The optional timeout parameter is in unit of second.
+    public Boolean pingHost(@RpcParameter(name = "url") String urlString,
+            @RpcParameter(name = "timeout") @RpcOptional Integer timeout) {
+        Log.d("url:" + urlString);
+        try {
+            URL url = new URL(urlString);
+            String host = url.getHost();
+            Log.d("Host:" + host);
+            String pingCmdString = "ping -c 1 ";
+            if (timeout != null) {
+                pingCmdString = pingCmdString + "-W " + timeout + " ";
+            }
+            pingCmdString = pingCmdString + host;
+            Log.d("Execute command: " + pingCmdString);
+            Process p1 = java.lang.Runtime.getRuntime().exec(pingCmdString);
+            int returnVal = p1.waitFor();
+            boolean reachable = (returnVal == 0);
+            Log.d("Ping return Value:" + returnVal);
+            return reachable;
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        /*TODO see b/18899134 for more information.
+        */
     }
 
     @Override
