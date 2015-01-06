@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 
 
 LOCAL_MODULE := sl4a.ScriptingLayer
-
+LOCAL_MODULE_OWNER := google
 
 LOCAL_STATIC_JAVA_LIBRARIES := guava android-common
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common
