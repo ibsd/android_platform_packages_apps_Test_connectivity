@@ -158,6 +158,12 @@ public class BluetoothFacade extends RpcReceiver {
         return false;
     }
 
+    @Rpc(description = "Requests that the device be made connectable.")
+    public void bluetoothMakeConnectable() {
+        mBluetoothAdapter
+                .setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE);
+    }
+
     @Rpc(description = "Requests that the device be discoverable for Bluetooth connections.")
     public void bluetoothMakeDiscoverable(
             @RpcParameter(name = "duration",
@@ -271,6 +277,7 @@ public class BluetoothFacade extends RpcReceiver {
     @Rpc(description = "Start the remote device discovery process. ",
          returns = "true on success, false on error")
     public Boolean bluetoothStartDiscovery() {
+        DiscoveredDevices.clear();
         mService.registerReceiver(mDiscoveryReceiver, discoveryFilter);
         return mBluetoothAdapter.startDiscovery();
     }
