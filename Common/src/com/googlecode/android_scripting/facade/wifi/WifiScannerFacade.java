@@ -61,7 +61,8 @@ public class WifiScannerFacade extends RpcReceiver {
     private final ConcurrentHashMap<Integer, WifiScanListener> scanListeners;
     private final ConcurrentHashMap<Integer, ChangeListener> trackChangeListeners;
     private final ConcurrentHashMap<Integer, WifiBssidListener> trackBssidListeners;
-    private static ConcurrentHashMap<Integer, ScanData[]> wifiScannerResultList;
+    private static ConcurrentHashMap<Integer, ScanResult[]> wifiScannerResultList;
+    private static ConcurrentHashMap<Integer, ScanData[]> wifiScannerDataList;
 
     public WifiScannerFacade(FacadeManager manager) {
         super(manager);
@@ -71,11 +72,12 @@ public class WifiScannerFacade extends RpcReceiver {
         scanListeners = new ConcurrentHashMap<Integer, WifiScanListener>();
         trackChangeListeners = new ConcurrentHashMap<Integer, ChangeListener>();
         trackBssidListeners = new ConcurrentHashMap<Integer, WifiBssidListener>();
-        wifiScannerResultList = new ConcurrentHashMap<Integer, ScanData[]>();
+        wifiScannerResultList = new ConcurrentHashMap<Integer, ScanResult[]>();
+        wifiScannerDataList = new ConcurrentHashMap<Integer, ScanData[]>();
     }
 
-    public static List<ScanData> getWifiScanResult(Integer listener_index) {
-        ScanData[] sr = wifiScannerResultList.get(listener_index);
+    public static List<ScanResult> getWifiScanResult(Integer listener_index) {
+        ScanResult[] sr = wifiScannerResultList.get(listener_index);
         return Arrays.asList(sr);
     }
 
@@ -117,24 +119,6 @@ public class WifiScannerFacade extends RpcReceiver {
             mEventFacade.postEvent(mEventType + mIndex + type, mResults.clone());
             mResults.clear();
         }
-
-        public void reportScanData(ScanData[] data, String type) {
-            Log.d("reportResult " + mEventType + " " + mIndex);
-            mResults.putLong("Timestamp", System.currentTimeMillis() / 1000);
-            mResults.putString("Type", type);
-            Bundle[] batches = new Bundle[data.length];
-            for (int i = 0; i < data.length; i++) {
-                ScanData d = data[i];
-                Bundle batch = new Bundle();
-                batch.putInt("Id", d.getId());
-                batch.putInt("Flags", d.getFlags());
-                batch.putParcelableArray("Results", d.getResults());
-                batches[i] = batch;
-            }
-            mResults.putParcelableArray("Batches", batches);
-            mEventFacade.postEvent(mEventType + mIndex + type, mResults.clone());
-            mResults.clear();
-        }
     }
 
     /**
@@ -157,11 +141,13 @@ public class WifiScannerFacade extends RpcReceiver {
     private class WifiScanListener implements WifiScanner.ScanListener {
         private static final String mEventType = "WifiScannerScan";
         protected final Bundle mScanResults;
+        protected final Bundle mScanData;
         private final WifiActionListener mWAL;
         public int mIndex;
 
         public WifiScanListener() {
             mScanResults = new Bundle();
+            mScanData = new Bundle();
             WifiScanListenerCnt += 1;
             mIndex = WifiScanListenerCnt;
             mWAL = new WifiActionListener(mEventType, mIndex, mScanResults);
@@ -190,15 +176,18 @@ public class WifiScannerFacade extends RpcReceiver {
         @Override
         public void onFullResult(ScanResult fullScanResult) {
             Log.d("onFullResult WifiScanListener " + mIndex);
-            mWAL.reportResult(new ScanResult[] {
-                    fullScanResult
-            }, "onFullResult");
+            mWAL.reportResult(new ScanResult[]{fullScanResult}, "onFullResult");
         }
 
         @Override
         public void onResults(ScanData[] results) {
-            wifiScannerResultList.put(mIndex, results);
-            mWAL.reportScanData(results, "onResults");
+            Log.d("onResult WifiScanListener " + mIndex);
+            wifiScannerDataList.put(mIndex, results);
+            mScanData.putLong("Timestamp", System.currentTimeMillis()/1000);
+            mScanData.putString("Type", "onResults");
+            mScanData.putParcelableArray("Results", results);
+            mEventFacade.postEvent(mEventType + mIndex + "onResults", mScanData.clone());
+            mScanData.clear();
         }
     }
 
@@ -320,14 +309,14 @@ public class WifiScannerFacade extends RpcReceiver {
             }
             result.channels = channels;
         }
+        if (j.has("maxScansToCache")) {
+            result.maxScansToCache = j.getInt("maxScansToCache");
+        }
         /* periodInMs and reportEvents are required */
         result.periodInMs = j.getInt("periodInMs");
         result.reportEvents = j.getInt("reportEvents");
         if (j.has("numBssidsPerScan")) {
             result.numBssidsPerScan = j.getInt("numBssidsPerScan");
-        }
-        if (j.has("maxScansToCache")) {
-            result.maxScansToCache = j.getInt("maxScansToCache");
         }
         return result;
     }
@@ -344,13 +333,12 @@ public class WifiScannerFacade extends RpcReceiver {
 
     /**
      * Starts periodic WifiScanner scan
-     *
-     * @param scanSettings A json string representing the scan settings
+     * @param scanSettings
      * @return the id of the scan listener associated with this scan
      * @throws JSONException
      */
-    @Rpc(description = "Starts a periodic WifiScanner scan")
-    public Integer wifiScannerStartScan(@RpcParameter(name = "scanSettings") String scanSettings)
+    @Rpc(description = "Starts a WifiScanner Background scan")
+    public Integer wifiScannerStartBackgroundScan(@RpcParameter(name = "scanSettings") String scanSettings)
             throws JSONException {
         ScanSettings ss = parseScanSettings(scanSettings);
         Log.d("startWifiScannerScan with " + ss.channels);
@@ -359,63 +347,56 @@ public class WifiScannerFacade extends RpcReceiver {
         return mListener.mIndex;
     }
 
+
     /**
-     * Starts a one shot WifiScanner scan.
-     *
-     * @param scanSettings A json string representing the scan settings
+     * Stops a WifiScanner scan
+     * @param listener_mIndex the id of the scan listener whose scan to stop
+     * @throws Exception
+     */
+    @Rpc(description = "Stops an ongoing  WifiScanner Background scan")
+    public void wifiScannerStopBackgroundScan(@RpcParameter(name = "listener") Integer listener_index)
+            throws Exception {
+        if(!scanListeners.containsKey(listener_index)) {
+          throw new Exception("Background scan session " + listener_index + " does not exist");
+        }
+        WifiScanListener mListener = scanListeners.get(listener_index);
+        Log.d("stopWifiScannerScan mListener "+ mListener.mIndex );
+        mScan.stopBackgroundScan(mListener);
+        wifiScannerResultList.remove(listener_index);
+        scanListeners.remove(listener_index);
+    }
+
+    /**
+     * Starts periodic WifiScanner scan
+     * @param scanSettings
      * @return the id of the scan listener associated with this scan
      * @throws JSONException
      */
-    @Rpc(description = "Starts a one shot WifiScanner scan.")
-    public Integer wifiScannerStartOneShotScan(
-            @RpcParameter(name = "scanSettings") String scanSettings)
+    @Rpc(description = "Starts a WifiScanner single scan")
+    public Integer wifiScannerStartScan(@RpcParameter(name = "scanSettings") String scanSettings)
             throws JSONException {
         ScanSettings ss = parseScanSettings(scanSettings);
-        Log.d("startWifiScannerOneShotScan with " + ss.channels);
+        Log.d("startWifiScannerScan with " + ss.channels);
         WifiScanListener mListener = genWifiScanListener();
         mScan.startScan(ss, mListener);
         return mListener.mIndex;
     }
 
-    /**
-     * Stops a WifiScanner one shot scan
-     *
-     * @param listener_mIndex the id of the scan listener whose scan to stop
-     * @throws Exception
-     */
-    @Rpc(description = "Stops an ongoing periodic WifiScanner scan")
-    public void wifiScannerStopOneShotScan(@RpcParameter(name = "listener") Integer listener_index)
-            throws Exception {
-        if (!scanListeners.containsKey(listener_index)) {
-            throw new Exception("Background scan session " + listener_index + " does not exist");
-        }
-        WifiScanListener mListener = scanListeners.get(listener_index);
-        Log.d("stopWifiScannerOneShotScan mListener " + mListener.mIndex);
-        mScan.stopScan(mListener);
-        wifiScannerResultList.remove(listener_index);
-        scanListeners.remove(listener_index);
-    }
-
-    @Rpc(description = "Get the currently completed scan results immediately. Results will be  through the listener")
-    public Boolean wifiScannerGetResults() {
-        return mScan.getScanResults();
-    }
 
     /**
      * Stops a WifiScanner scan
-     *
      * @param listener_mIndex the id of the scan listener whose scan to stop
      * @throws Exception
      */
-    @Rpc(description = "Stops an ongoing periodic WifiScanner scan")
+    @Rpc(description = "Stops an ongoing  WifiScanner single scan")
     public void wifiScannerStopScan(@RpcParameter(name = "listener") Integer listener_index)
             throws Exception {
-        if (!scanListeners.containsKey(listener_index)) {
-            throw new Exception("Background scan session " + listener_index + " does not exist");
+        if(!scanListeners.containsKey(listener_index)) {
+          throw new Exception("Background scan session " + listener_index + " does not exist");
         }
         WifiScanListener mListener = scanListeners.get(listener_index);
-        Log.d("stopWifiScannerScan mListener " + mListener.mIndex);
-        mScan.stopBackgroundScan(mListener);
+        Log.d("stopWifiScannerScan mListener "+ mListener.mIndex );
+        mScan.stopScan(mListener);
         wifiScannerResultList.remove(listener_index);
         scanListeners.remove(listener_index);
     }
