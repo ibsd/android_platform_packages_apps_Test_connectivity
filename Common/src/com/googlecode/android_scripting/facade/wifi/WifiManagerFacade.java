@@ -3,6 +3,7 @@ package com.googlecode.android_scripting.facade.wifi;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -19,6 +20,8 @@ import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager.WifiLock;
 import android.net.wifi.WpsInfo;
 import android.os.Bundle;
+import android.provider.Settings.Global;
+import android.provider.Settings.SettingNotFoundException;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.EventFacade;
@@ -550,11 +553,31 @@ public class WifiManagerFacade extends RpcReceiver {
         return enabled;
     }
 
+    @Rpc(description = "Toggle Wifi scan always available on and off.",
+            returns = "True if Wifi scan is always available.")
+    public Boolean wifiToggleScanAlwaysAvailable(
+            @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
+                    throws SettingNotFoundException {
+        ContentResolver cr = mService.getContentResolver();
+        int isSet = 0;
+        if (enabled == null) {
+            isSet = Global.getInt(cr, Global.WIFI_SCAN_ALWAYS_AVAILABLE);
+            isSet ^= 1;
+        } else if (enabled == true) {
+            isSet = 1;
+        }
+        Global.putInt(cr, Global.WIFI_SCAN_ALWAYS_AVAILABLE, isSet);
+        if (isSet == 1) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void shutdown() {
         wifiLockRelease();
-        if(mTrackingWifiStateChange == true) {
-          mService.unregisterReceiver(mStateChangeReceiver);
+        if (mTrackingWifiStateChange == true) {
+            mService.unregisterReceiver(mStateChangeReceiver);
         }
     }
 }
