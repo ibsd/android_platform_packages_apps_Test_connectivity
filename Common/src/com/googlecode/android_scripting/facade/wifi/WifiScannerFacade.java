@@ -352,6 +352,15 @@ public class WifiScannerFacade extends RpcReceiver {
         return mListener.mIndex;
     }
 
+    /**
+     * Get currently available scan results on appropriate listeners
+     * @return true if all scan results were reported correctly
+     * @throws JSONException
+     */
+    @Rpc(description = "Get currently available scan results on appropriate listeners")
+    public Boolean getScanResults() throws JSONException {
+        return mScan.getScanResults();
+    }
 
     /**
      * Stops a WifiScanner scan
