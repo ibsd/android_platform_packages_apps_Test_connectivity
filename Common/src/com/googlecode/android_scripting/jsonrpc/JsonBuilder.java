@@ -114,7 +114,7 @@ public class JsonBuilder {
             return buildJsonAddress((Address) data);
         }
         if (data instanceof AudioState) {
-            return buildJsonAudioState((AudioState) data);
+            // TODO: fill this in.
         }
         if (data instanceof Location) {
             return buildJsonLocation((Location) data);
@@ -220,13 +220,6 @@ public class JsonBuilder {
 
         return data.toString();
         // throw new JSONException("Failed to build JSON result. " + data.getClass().getName());
-    }
-
-    private static JSONObject buildJsonAudioState(AudioState data) throws JSONException {
-        JSONObject state = new JSONObject();
-        state.put("isMuted", data.isMuted);
-        state.put("AudioRoute", AudioState.audioRouteToString(data.route));
-        return state;
     }
 
     private static Object buildDisplayMetrics(DisplayMetrics data) throws JSONException {
