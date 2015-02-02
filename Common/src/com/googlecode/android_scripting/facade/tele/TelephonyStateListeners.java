@@ -89,7 +89,12 @@ public class TelephonyStateListeners {
             Bundle mCallStateEvent = new Bundle();
             String subEvent = null;
             String postIncomingNumberStr = null;
-            int len = incomingNumber.length();
+            int len = 0;
+            if (incomingNumber == null) {
+                len = 0;
+            } else {
+                len = incomingNumber.length();
+            }
             if (len > 0) {
                 /**
                  * Currently this incomingNumber modification is specific for US numbers.
