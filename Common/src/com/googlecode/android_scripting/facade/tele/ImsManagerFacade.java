@@ -43,7 +43,7 @@ public class ImsManagerFacade extends RpcReceiver {
         super(manager);
         mService = manager.getService();
         mContext = mService.getBaseContext();
-        mImsManager = ImsManager.getInstance(mContext,
+        mImsManager = ImsManager.getInstance(mContext, 
                 SubscriptionManager.getDefaultVoicePhoneId());
     }
 
@@ -60,7 +60,16 @@ public class ImsManagerFacade extends RpcReceiver {
     @Rpc(description = "Set Enhanced 4G mode.")
     public void imsSetEnhanced4gMode(@RpcParameter(name = "enable") Boolean enable)
             throws ImsException{
-        ImsManager.setEnhanced4gLteModeSetting(mService, enable);
+        ImsManager.setEnhanced4gLteModeSetting(mContext, enable);
+    }
+
+    @Rpc(description = "Set Modem Provisioning for VoLTE")
+    public void imsSetVolteProvisioning(
+            @RpcParameter(name = "enable") Boolean enable)
+            throws ImsException{
+        mImsManager.getConfigInterface().setProvisionedValue(
+                ImsConfig.ConfigConstants.VLT_SETTING_ENABLED,
+                enable? 1 : 0);
     }
 
     /**************************
