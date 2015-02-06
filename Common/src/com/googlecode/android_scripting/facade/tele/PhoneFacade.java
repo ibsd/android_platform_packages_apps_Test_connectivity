@@ -408,6 +408,8 @@ public class PhoneFacade extends RpcReceiver {
                 return "hspa";
             case TelephonyManager.NETWORK_TYPE_HSPAP:
                 return "hspap";
+            case TelephonyManager.NETWORK_TYPE_GSM:
+                return "gsm";
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
                 return "unknown";
             default:
