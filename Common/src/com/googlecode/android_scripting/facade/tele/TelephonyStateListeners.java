@@ -1,12 +1,14 @@
 package com.googlecode.android_scripting.facade.tele;
 
 import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.Log;
 import android.os.Bundle;
 import android.telephony.DataConnectionRealTimeInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.PreciseCallState;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
+import android.telephony.VoLteServiceState;
 
 /**
  * Store all subclasses of PhoneStateListener here.
@@ -314,6 +316,50 @@ public class TelephonyStateListeners {
             }
 
             mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
+        }
+    }
+
+    public static class VolteServiceStateChangeListener
+            extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+
+        public VolteServiceStateChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public VolteServiceStateChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        private static String getSrvccStateString(int srvccState) {
+            switch (srvccState) {
+                case VoLteServiceState.HANDOVER_STARTED:
+                    return "HANDOVER_STARTED";
+                case VoLteServiceState.HANDOVER_COMPLETED:
+                    return "HANDOVER_COMPLETED";
+                case VoLteServiceState.HANDOVER_FAILED:
+                    return "HANDOVER_FAILED";
+                case VoLteServiceState.HANDOVER_CANCELED:
+                    return "HANDOVER_CANCELED";
+                default:
+                    Log.e(String.format("getSrvccStateString():"
+                            + "unknown state %d", srvccState));
+                    return "UNKNOWN";
+            }
+        }
+
+        @Override
+        public void onVoLteServiceStateChanged(VoLteServiceState volteInfo) {
+            Bundle event = new Bundle();
+
+            event.putString("srvccState",
+                    getSrvccStateString(volteInfo.getSrvccState()));
+
+            mEventFacade.postEvent(
+                    "onVolteServiceStateChanged", event);
         }
     }
 
