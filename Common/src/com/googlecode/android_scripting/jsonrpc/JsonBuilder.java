@@ -552,8 +552,8 @@ public class JsonBuilder {
         JSONObject info = new JSONObject();
         info.put("isAvailable", data.isAvailable());
         info.put("isConnected", data.isConnected());
-        info.put("isConnected", data.isFailover());
-        info.put("isConnected", data.isRoaming());
+        info.put("isFailover", data.isFailover());
+        info.put("isRoaming", data.isRoaming());
         info.put("ExtraInfo", data.getExtraInfo());
         info.put("FailedReason", data.getReason());
         info.put("TypeName", data.getTypeName());
