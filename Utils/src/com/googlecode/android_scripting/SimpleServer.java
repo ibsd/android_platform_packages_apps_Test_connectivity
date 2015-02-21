@@ -64,8 +64,6 @@ public abstract class SimpleServer {
                                               BufferedReader reader,
                                               PrintWriter writer) throws Exception;
 
-  protected void closeRPCConnection(Integer UID) throws Exception {}
-
   /** Adds an observer. */
   public void addObserver(SimpleServerObserver observer) {
     mObservers.add(observer);
@@ -121,9 +119,9 @@ public abstract class SimpleServer {
         }
       } finally {
         close();
-        mConnectionThreads.remove(this);
+        mConnectionThreads.remove(this.UID);
         notifyOnDisconnect();
-        Log.v("Server thread " + getId() + " died.");
+        Log.v("Server thread " + getId() + " stopped.");
       }
     }
 
@@ -312,6 +310,7 @@ public abstract class SimpleServer {
           notifyOnConnect();
           result.put("uid", mUID);
           result.put("status",true);
+          result.put("error", null);
         }else if(cmd.equals("continue")) {
           Log.d("Continue an existing session");
           Log.d("keys: "+mConnectionThreads.keySet().toString());
@@ -326,29 +325,7 @@ public abstract class SimpleServer {
             notifyOnConnect();
             result.put("uid", uid);
             result.put("status",true);
-          }
-        }else if(cmd.equals("terminate")) {
-          Log.d("Terminate an existing session");
-          if(!mConnectionThreads.containsKey(uid)) {
-            result.put("uid", uid);
-            result.put("status",false);
-            result.put("error", "Termination error: session does not exist.");
-          }else{
-            try {
-              closeRPCConnection(uid);
-            } catch (Exception e){
-              Log.e("Failed to close RPC Connection " + Integer.toString(uid), e);
-            }
-            result.put("uid", uid);
-            result.put("status",true);
-            writer.write(result + "\n");
-            writer.flush();
-            Log.v("Sent: " + result);
-
-            mConnectionThreads.get(uid).interrupt();
-            mConnectionThreads.remove(uid);
-
-            return;
+            result.put("error", null);
           }
         }else {
           result.put("uid", uid);

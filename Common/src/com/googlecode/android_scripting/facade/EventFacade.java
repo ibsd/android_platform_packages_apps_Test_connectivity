@@ -16,6 +16,16 @@
 
 package com.googlecode.android_scripting.facade;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+
+import org.json.JSONException;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -36,16 +46,6 @@ import com.googlecode.android_scripting.rpc.RpcDeprecated;
 import com.googlecode.android_scripting.rpc.RpcName;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-
-import org.json.JSONException;
 
 /**
  * Manage the event queue. <br>
@@ -99,12 +99,9 @@ public class EventFacade extends RpcReceiver {
      */
     @Rpc(description = "Registers a listener for a new broadcast signal")
     public boolean eventRegisterForBroadcast(
-                        @RpcParameter(name = "category")
-            String category,
+            @RpcParameter(name = "category") String category,
             @RpcParameter(name = "enqueue",
-                    description = "Should this events be added to the event queue or only dispatched")
-            @RpcDefault(value = "true")
-            Boolean enqueue) {
+                    description = "Should this events be added to the event queue or only dispatched") @RpcDefault(value = "true") Boolean enqueue) {
         if (mBroadcastListeners.containsKey(category)) {
             return false;
         }
@@ -119,8 +116,7 @@ public class EventFacade extends RpcReceiver {
 
     @Rpc(description = "Stop listening for a broadcast signal")
     public void eventUnregisterForBroadcast(
-            @RpcParameter(name = "category")
-    String category) {
+            @RpcParameter(name = "category") String category) {
         if (!mBroadcastListeners.containsKey(category)) {
             return;
         }
@@ -162,9 +158,7 @@ public class EventFacade extends RpcReceiver {
     @Rpc(description = "Returns and removes the oldest n events (i.e. location or sensor update, etc.) from the event buffer.",
             returns = "A List of Maps of event properties.")
     public List<Event> eventPoll(
-            @RpcParameter(name = "number_of_events")
-            @RpcDefault("1")
-            Integer number_of_events) {
+            @RpcParameter(name = "number_of_events") @RpcDefault("1") Integer number_of_events) {
         List<Event> events = Lists.newArrayList();
         for (int i = 0; i < number_of_events; i++) {
             Event event = mEventQueue.poll();
@@ -179,13 +173,11 @@ public class EventFacade extends RpcReceiver {
     @Rpc(description = "Blocks until an event with the supplied name occurs. Event is removed from the buffer if removeEvent is True.",
             returns = "Map of event properties.")
     public Event eventWaitFor(
-                        @RpcParameter(name = "eventName")
+            @RpcParameter(name = "eventName")
             final String eventName,
-                        @RpcParameter(name = "removeEvent")
+            @RpcParameter(name = "removeEvent")
             final Boolean removeEvent,
-            @RpcParameter(name = "timeout", description = "the maximum time to wait (in ms)")
-            @RpcOptional
-            Integer timeout)
+            @RpcParameter(name = "timeout", description = "the maximum time to wait (in ms)") @RpcOptional Integer timeout)
             throws InterruptedException {
         Event result = null;
         final FutureResult<Event> futureEvent;
@@ -200,14 +192,15 @@ public class EventFacade extends RpcReceiver {
             }
             futureEvent = new FutureResult<Event>();
             addNamedEventObserver(eventName, new EventObserver() {
-                    @Override
+                @Override
                 public void onEventReceived(Event event) {
                     if (event.getName().equals(eventName)) {
                         synchronized (futureEvent) {
                             if (!futureEvent.isDone()) {
                                 futureEvent.set(event);
                                 // TODO(navtej) Remove log.
-                                Log.v(String.format("Removeing observer (%s) got event  (%s)", this,
+                                Log.v(String.format("Removeing observer (%s) got event  (%s)",
+                                        this,
                                         event));
                                 removeEventObserver(this);
                             }
@@ -231,9 +224,7 @@ public class EventFacade extends RpcReceiver {
     @Rpc(description = "Blocks until an event occurs. The returned event is removed from the buffer.",
             returns = "Map of event properties.")
     public Event eventWait(
-            @RpcParameter(name = "timeout", description = "the maximum time to wait")
-            @RpcOptional
-            Integer timeout)
+            @RpcParameter(name = "timeout", description = "the maximum time to wait") @RpcOptional Integer timeout)
             throws InterruptedException {
         Event result = null;
         final FutureResult<Event> futureEvent = new FutureResult<Event>();
@@ -243,7 +234,7 @@ public class EventFacade extends RpcReceiver {
                 return mEventQueue.poll(); // return it.
             }
             observer = new EventObserver() {
-                    @Override
+                @Override
                 public void onEventReceived(Event event) { // set up observer for any events.
                     synchronized (futureEvent) {
                         if (!futureEvent.isDone()) {
@@ -284,15 +275,10 @@ public class EventFacade extends RpcReceiver {
      */
     @Rpc(description = "Post an event to the event queue.")
     public void eventPost(
-                        @RpcParameter(name = "name", description = "Name of event")
-            String name,
-                        @RpcParameter(name = "data", description = "Data contained in event.")
-            String data,
+            @RpcParameter(name = "name", description = "Name of event") String name,
+            @RpcParameter(name = "data", description = "Data contained in event.") String data,
             @RpcParameter(name = "enqueue",
-                    description = "Set to False if you don't want your events to be added to the event queue, just dispatched.")
-            @RpcOptional
-            @RpcDefault("false")
-            Boolean enqueue) {
+                    description = "Set to False if you don't want your events to be added to the event queue, just dispatched.") @RpcOptional @RpcDefault("false") Boolean enqueue) {
         postEvent(name, data, enqueue.booleanValue());
     }
 
@@ -335,10 +321,8 @@ public class EventFacade extends RpcReceiver {
     @Rpc(description = "Post an event to the event queue.")
     @RpcName(name = "postEvent")
     public void rpcPostEvent(
-            @RpcParameter(name = "name")
-    String name,
-                        @RpcParameter(name = "data")
-            String data) {
+            @RpcParameter(name = "name") String name,
+            @RpcParameter(name = "data") String data) {
         postEvent(name, data);
     }
 
@@ -353,23 +337,18 @@ public class EventFacade extends RpcReceiver {
     @Rpc(description = "Blocks until an event with the supplied name occurs. Event is removed from the buffer if removeEvent is True.",
             returns = "Map of event properties.")
     public Event waitForEvent(
-                        @RpcParameter(name = "eventName")
+            @RpcParameter(name = "eventName")
             final String eventName,
-                        @RpcOptional
-            final Boolean removeEvent,
-            @RpcParameter(name = "timeout", description = "the maximum time to wait")
             @RpcOptional
-            Integer timeout)
+            final Boolean removeEvent,
+            @RpcParameter(name = "timeout", description = "the maximum time to wait") @RpcOptional Integer timeout)
             throws InterruptedException {
         return eventWaitFor(eventName, removeEvent, timeout);
     }
 
     @Rpc(description = "Opens up a socket where you can read for events posted")
     public int startEventDispatcher(
-            @RpcParameter(name = "port", description = "Port to use")
-            @RpcDefault("0")
-            @RpcOptional()
-            Integer port) {
+            @RpcParameter(name = "port", description = "Port to use") @RpcDefault("0") @RpcOptional() Integer port) {
         if (mEventServer == null) {
             if (port == null) {
                 port = 0;
@@ -379,6 +358,12 @@ public class EventFacade extends RpcReceiver {
             bEventServerRunning = true;
         }
         return mEventServer.getAddress().getPort();
+    }
+
+    @Rpc(description = "sl4a session is shutting down, send terminate event to client.")
+    public void closeSl4aSession() {
+        eventClearBuffer();
+        postEvent("EventDispatcherShutdown", null);
     }
 
     @Rpc(description = "Stops the event server, you can't read in the port anymore")
