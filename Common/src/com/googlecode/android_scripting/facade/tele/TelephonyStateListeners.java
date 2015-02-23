@@ -88,9 +88,9 @@ public class TelephonyStateListeners {
         public void onCallStateChanged(int state, String incomingNumber) {
             Bundle mCallStateEvent = new Bundle();
             String subEvent = null;
-            String postIncomingNumberStr = null;
-            int len = incomingNumber.length();
-            if (len > 0) {
+            String postIncomingNumberStr = "";
+            int len = 0;
+            if ((incomingNumber != null) && ((len = incomingNumber.length()) > 0)){
                 /**
                  * Currently this incomingNumber modification is specific for US numbers.
                  */
@@ -101,8 +101,9 @@ public class TelephonyStateListeners {
                 } else {
                     postIncomingNumberStr = incomingNumber;
                 }
-                mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
             }
+            mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
+
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
                     subEvent = "Idle";
