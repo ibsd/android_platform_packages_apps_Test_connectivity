@@ -410,6 +410,10 @@ public class PhoneFacade extends RpcReceiver {
                 return "hspap";
             case TelephonyManager.NETWORK_TYPE_GSM:
                 return "gsm";
+            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                return "td_scdma";
+            case TelephonyManager.NETWORK_TYPE_IWLAN:
+                return "iwlan";
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
                 return "unknown";
             default:
