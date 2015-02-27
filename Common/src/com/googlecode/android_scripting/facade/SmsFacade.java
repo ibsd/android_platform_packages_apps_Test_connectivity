@@ -366,7 +366,7 @@ public class SmsFacade extends RpcReceiver {
                             event.putString("priority", getPriority(message.getMessagePriority()));
                             if (message.isCmasMessage()) {
                                 // CMAS message
-                                eventName = "onCMASReceived";
+                                eventName = "onCmasReceived";
                                 event.putString("cmasMessageClass", getCMASMessageClass(
                                                  message.getCmasWarningInfo().getMessageClass()));
                                 event.putString("cmasCategory", getCMASCategory(
@@ -381,7 +381,7 @@ public class SmsFacade extends RpcReceiver {
                                                 message.getCmasWarningInfo().getCertainty()));
                             } else if (message.isEtwsMessage()) {
                                 // ETWS message
-                                eventName = "onETWSReceived";
+                                eventName = "onEtwsReceived";
                                 event.putString("etwsWarningType",getETWSWarningType(
                                                  message.getEtwsWarningInfo().getWarningType()));
                                 event.putBoolean("etwsIsEmergencyUserAlert",
