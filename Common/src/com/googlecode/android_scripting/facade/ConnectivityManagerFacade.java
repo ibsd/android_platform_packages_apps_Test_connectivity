@@ -20,9 +20,11 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.Settings.SettingNotFoundException;
+import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -43,25 +45,78 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                Log.d("Connectivity state changed.");
+
+            if (!action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                Log.e("ConnectivityReceiver received non-connectivity action!");
+                return;
+            }
+
+            Bundle b = intent.getExtras();
+
+            if (b == null) {
+                Log.e("ConnectivityReceiver failed to receive extras!");
+                return;
+            }
+
+            int netType =
+                    b.getInt(ConnectivityManager.EXTRA_NETWORK_TYPE,
+                            ConnectivityManager.TYPE_NONE);
+
+            if(netType == ConnectivityManager.TYPE_NONE) {
+                Log.i("ConnectivityReceiver received change to TYPE_NONE.");
+                return;
+            }
+
+            /*
+             * Technically there is a race condition here, but
+             * retrieving the NetworkInfo from the bundle is deprecated.
+             * See ConnectivityManager.EXTRA_NETWORK_INFO
+            */
+            for (NetworkInfo info : mManager.getAllNetworkInfo()) {
+                if (info.getType() == netType) {
+                    mEventFacade.postEvent("onConnectivityChanged", info);
+                }
             }
         }
     }
 
-    private final ConnectivityManager mCon;
-
+    private final ConnectivityManager mManager;
     private final Service mService;
+    private final Context mContext;
+    private final ConnectivityReceiver mConnectivityReceiver;
+    private final EventFacade mEventFacade;
+    private boolean mTrackingConnectivityStateChange;
 
     public ConnectivityManagerFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
-        mCon = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mContext = mService.getBaseContext();
+        mManager = (ConnectivityManager) mService.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mEventFacade = manager.getReceiver(EventFacade.class);
+        mConnectivityReceiver = new ConnectivityReceiver();
+        mTrackingConnectivityStateChange = false;
+    }
+
+    @Rpc(description = "Listen for connectivity changes")
+    public void startTrackingConnectivityStateChange() {
+        if( !mTrackingConnectivityStateChange) {
+            mTrackingConnectivityStateChange = true;
+            mContext.registerReceiver(mConnectivityReceiver,
+                    new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+    @Rpc(description = "Stop listening for connectivity changes")
+    public void stopTrackingConnectivityStateChange() {
+        if(mTrackingConnectivityStateChange) {
+            mTrackingConnectivityStateChange = false;
+            mContext.unregisterReceiver(mConnectivityReceiver);
+        }
     }
 
     @Rpc(description = "Get the extra information about the network state provided by lower network layers.")
     public String networkGetActiveConnectionExtraInfo() {
-        NetworkInfo current = mCon.getActiveNetworkInfo();
+        NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
             return null;
@@ -71,7 +126,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Return the subtype name of the current network, null if not connected")
     public String networkGetActiveConnectionSubtypeName() {
-        NetworkInfo current = mCon.getActiveNetworkInfo();
+        NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
             return null;
@@ -81,7 +136,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Return a human-readable name describe the type of the network, e.g. WIFI")
     public String networkGetActiveConnectionTypeName() {
-        NetworkInfo current = mCon.getActiveNetworkInfo();
+        NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
             return null;
@@ -91,12 +146,12 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Get connection status information about all network types supported by the device.")
     public NetworkInfo[] networkGetAllInfo() {
-        return mCon.getAllNetworkInfo();
+        return mManager.getAllNetworkInfo();
     }
 
     @Rpc(description = "Check whether the active network is connected to the Internet.")
     public Boolean networkIsConnected() {
-        NetworkInfo current = mCon.getActiveNetworkInfo();
+        NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
             return false;
@@ -121,10 +176,11 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         if (enabled == null) {
             enabled = !checkAirplaneMode();
         }
-        mCon.setAirplaneMode(enabled);
+        mManager.setAirplaneMode(enabled);
     }
 
     @Override
     public void shutdown() {
+        stopTrackingConnectivityStateChange();
     }
 }
