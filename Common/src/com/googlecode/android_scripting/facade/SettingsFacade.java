@@ -18,6 +18,7 @@ package com.googlecode.android_scripting.facade;
 
 import android.app.AlarmManager;
 import android.app.Service;
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -26,6 +27,7 @@ import android.os.SystemClock;
 import android.provider.Settings.SettingNotFoundException;
 import android.view.WindowManager;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.FutureActivityTaskExecutor;
 import com.googlecode.android_scripting.Log;
@@ -48,6 +50,7 @@ public class SettingsFacade extends RpcReceiver {
     private final AudioManager mAudio;
     private final PowerManager mPower;
     private final AlarmManager mAlarm;
+    private final LockPatternUtils mLockPatternUtils;
 
     /**
      * Creates a new SettingsFacade.
@@ -60,6 +63,7 @@ public class SettingsFacade extends RpcReceiver {
         mAudio = (AudioManager) mService.getSystemService(Context.AUDIO_SERVICE);
         mPower = (PowerManager) mService.getSystemService(Context.POWER_SERVICE);
         mAlarm = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
+        mLockPatternUtils = new LockPatternUtils(mService);
     }
 
     @Rpc(description = "Sets the screen timeout to this number of seconds.",
@@ -225,6 +229,24 @@ public class SettingsFacade extends RpcReceiver {
             returns = "Long value of device up time in milliseconds.")
     public long getDeviceUpTime() throws Exception {
         return SystemClock.elapsedRealtime();
+    }
+
+    @Rpc(description = "Set a string password to the device.")
+    public void setDevicePassword(@RpcParameter(name = "password") String password) {
+        mLockPatternUtils.setLockPatternEnabled(true);
+        mLockPatternUtils.setCredentialRequiredToDecrypt(true);
+        mLockPatternUtils.saveLockPassword(password,
+                DevicePolicyManager.PASSWORD_QUALITY_NUMERIC,
+                false);
+    }
+
+    @Rpc(description = "Disable screen lock password on the device.")
+    public void disableDevicePassword() {
+        mLockPatternUtils.clearEncryptionPassword();
+        mLockPatternUtils.setLockPatternEnabled(false);
+        mLockPatternUtils.setCredentialRequiredToDecrypt(false);
+        mLockPatternUtils.clearLock(false);
+        mLockPatternUtils.setLockScreenDisabled(true);
     }
 
     @Rpc(description = "Set the system time in epoch.")
