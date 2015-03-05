@@ -275,7 +275,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private WifiConfiguration genEnterpriseConfig(String configStr) throws JSONException,
-    GeneralSecurityException {
+            GeneralSecurityException {
         if (configStr == null) {
             return null;
         }
@@ -400,7 +400,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PrivateKey strToPrivateKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -409,7 +409,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PublicKey strToPublicKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -472,7 +472,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiConnect(
             @RpcParameter(name = "SSID") String SSID,
             @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password)
-                    throws ConnectException {
+            throws ConnectException {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
@@ -643,8 +643,8 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
             @RpcParameter(name = "config",
-            description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
-                    throws JSONException {
+                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+            throws JSONException {
         WpsInfo info = parseWpsInfo(config);
         WifiWpsCallback listener = new WifiWpsCallback();
         Log.d("Starting wps with: " + info);
