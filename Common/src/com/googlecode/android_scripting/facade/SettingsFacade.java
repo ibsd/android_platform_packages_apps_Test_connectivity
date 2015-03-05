@@ -21,7 +21,6 @@ import android.app.Service;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.media.AudioManager;
-import android.net.ConnectivityManager;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.provider.Settings.SettingNotFoundException;
@@ -233,19 +232,20 @@ public class SettingsFacade extends RpcReceiver {
 
     @Rpc(description = "Set a string password to the device.")
     public void setDevicePassword(@RpcParameter(name = "password") String password) {
-        mLockPatternUtils.setLockPatternEnabled(true);
+        // mLockPatternUtils.setLockPatternEnabled(true);
+        mLockPatternUtils.setLockScreenDisabled(false);
         mLockPatternUtils.setCredentialRequiredToDecrypt(true);
-        mLockPatternUtils.saveLockPassword(password,
-                DevicePolicyManager.PASSWORD_QUALITY_NUMERIC,
-                false);
+        mLockPatternUtils.saveLockPassword(password, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
     }
 
     @Rpc(description = "Disable screen lock password on the device.")
     public void disableDevicePassword() {
         mLockPatternUtils.clearEncryptionPassword();
-        mLockPatternUtils.setLockPatternEnabled(false);
+        // mLockPatternUtils.setLockPatternEnabled(false);
+        mLockPatternUtils.setLockScreenDisabled(true);
         mLockPatternUtils.setCredentialRequiredToDecrypt(false);
-        mLockPatternUtils.clearLock(false);
+        mLockPatternUtils.clearEncryptionPassword();
+        mLockPatternUtils.clearLock();
         mLockPatternUtils.setLockScreenDisabled(true);
     }
 
