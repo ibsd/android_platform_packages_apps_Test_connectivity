@@ -26,12 +26,14 @@ import android.telecom.Call;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
@@ -303,5 +305,31 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Silences the rigner if there's a ringing call.")
     public void telecomSilenceRinger() {
         mTelecomManager.silenceRinger();
+    }
+
+    @Rpc(description = "Swap two calls")
+    public void telecomSwapCalls() {
+        //TODO
+        // Swap the foreground and back ground calls
+    }
+
+    @Rpc(description = "Toggles call waiting feature on or off" +
+                       "for default voice subscription id.")
+    public void toggleCallWaiting(
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
+        toggleCallWaitingForSubscription(
+              SubscriptionManager.getDefaultVoiceSubId(), enabled);
+    }
+
+    @Rpc(description = "Toggles call waiting feature on or off" +
+                       "for specified subscription id.")
+    public void toggleCallWaitingForSubscription(
+                @RpcParameter(name = "subId")
+                @RpcOptional Integer subId,
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
+        //TODO
+        // Enable or Disable the call waiting feature
     }
 }

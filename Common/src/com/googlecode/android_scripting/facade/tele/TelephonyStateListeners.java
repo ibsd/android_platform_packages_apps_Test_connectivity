@@ -121,6 +121,8 @@ public class TelephonyStateListeners {
                     subEvent = "Ringing";
                     break;
             }
+         // Need to change.using mSubId temporarily
+            mCallStateEvent.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent);
         }
 
@@ -167,22 +169,24 @@ public class TelephonyStateListeners {
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
                 subEvent = "Idle";
             }
+         // Need to change.using mSubId temporarily
+            EventMsg.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
         }
     }
 
-    public static class DataConnectionChangeListener extends PhoneStateListener {
+    public static class DataConnectionRealTimeInfoChangeListener extends PhoneStateListener {
 
         private final EventFacade mEventFacade;
         public static final int sListeningStates =
                 PhoneStateListener.LISTEN_DATA_CONNECTION_REAL_TIME_INFO;
 
-        public DataConnectionChangeListener(EventFacade ef) {
+        public DataConnectionRealTimeInfoChangeListener(EventFacade ef) {
             super();
             mEventFacade = ef;
         }
 
-        public DataConnectionChangeListener(EventFacade ef, int subId) {
+        public DataConnectionRealTimeInfoChangeListener(EventFacade ef, int subId) {
             super(subId);
             mEventFacade = ef;
         }
@@ -204,7 +208,9 @@ public class TelephonyStateListeners {
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
                 subEvent = "Unknown";
             }
-            mEventFacade.postEvent("onModemPowerLevelChanged"+subEvent, event);
+         // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
+            mEventFacade.postEvent("onDataConnectionRealTimeInfoChanged"+subEvent, event);
         }
     }
 
@@ -248,6 +254,8 @@ public class TelephonyStateListeners {
                 subEvent = "UnknownStateCode";
                 event.putInt("UnknownStateCode", state);
             }
+         // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
         }
     }
@@ -300,6 +308,8 @@ public class TelephonyStateListeners {
             event.putBoolean("isManualNwSelection", serviceState.getIsManualSelection());
             event.putBoolean("Roaming", serviceState.getRoaming());
             event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
+            event.putInt("NetworkId", serviceState.getNetworkId());
+            event.putInt("SystemId", serviceState.getSystemId());
 
             if(subEvent.equals("InService")) {
                 switch(serviceState.getVoiceNetworkType()) {
@@ -314,6 +324,9 @@ public class TelephonyStateListeners {
                         break;
                 }
             }
+
+            // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
 
             mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
         }

@@ -32,6 +32,7 @@ import com.android.internal.telephony.gsm.SmsCbConstants;
 import com.android.internal.telephony.cdma.sms.SmsEnvelope;
 import android.telephony.SmsCbEtwsInfo;
 import android.telephony.SmsCbCmasInfo;
+import android.telephony.SubscriptionManager;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -306,6 +307,7 @@ public class SmsFacade extends RpcReceiver {
             if (MESSAGE_RECEIVED_ACTION.equals(action)) {
                 Log.d("New SMS Received");
                 Bundle extras = intent.getExtras();
+                int subId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
                 if (extras != null) {
                     Bundle event = new Bundle();
                     event.putString("Type", "NewSmsReceived");
@@ -321,6 +323,9 @@ public class SmsFacade extends RpcReceiver {
                         smsMsg.append(sms.getMessageBody());
                     }
                     event.putString("Text", smsMsg.toString());
+                    // TODO
+                    // Need to explore how to get subId information.
+                    event.putInt("subscriptionId", subId);
                     mEventFacade.postEvent("onSmsReceived", event);
                 }
             }
