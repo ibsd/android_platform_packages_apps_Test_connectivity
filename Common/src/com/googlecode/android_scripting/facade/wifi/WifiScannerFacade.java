@@ -180,6 +180,11 @@ public class WifiScannerFacade extends RpcReceiver {
         }
 
         @Override
+        public void onResults(ScanResult[] results) {
+            /* deprecated : Will not be called */
+        }
+        
+        @Override
         public void onResults(ScanData[] results) {
             Log.d("onResult WifiScanListener " + mIndex);
             wifiScannerDataList.put(mIndex, results);
