@@ -47,6 +47,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiScanner.ScanData;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
@@ -137,6 +138,9 @@ public class JsonBuilder {
         }
         if (data instanceof ScanResult) {
             return buildJsonScanResult((ScanResult) data);
+        }
+        if (data instanceof ScanData) {
+          return buildJsonScanData((ScanData) data);
         }
         if (data instanceof android.bluetooth.le.ScanResult) {
             return buildJsonBleScanResult((android.bluetooth.le.ScanResult) data);
@@ -473,6 +477,18 @@ public class JsonBuilder {
         // } else
         // result.put("InfomationElements", null);
         return result;
+    }
+
+    private static JSONObject buildJsonScanData(ScanData scanData) throws JSONException {
+      JSONObject result = new JSONObject();
+      result.put("Id", scanData.getId());
+      result.put("Flags", scanData.getFlags());
+      JSONArray scanResults = new JSONArray();
+      for(ScanResult sr : scanData.getResults()) {
+        scanResults.put(buildJsonScanResult(sr));
+      }
+      result.put("ScanResults",scanResults);
+      return result;
     }
 
     private static JSONObject buildWifiActivityEnergyInfo(WifiActivityEnergyInfo data)
