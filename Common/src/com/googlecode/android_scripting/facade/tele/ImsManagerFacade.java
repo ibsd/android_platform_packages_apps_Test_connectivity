@@ -58,8 +58,8 @@ public class ImsManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Set Enhanced 4G mode.")
-    public void imsSetEnhanced4gMode(@RpcParameter(name = "enable") Boolean enable)
-            throws ImsException{
+    public void imsSetEnhanced4gMode(
+            @RpcParameter(name = "enable") Boolean enable) {
         ImsManager.setEnhanced4gLteModeSetting(mContext, enable);
     }
 

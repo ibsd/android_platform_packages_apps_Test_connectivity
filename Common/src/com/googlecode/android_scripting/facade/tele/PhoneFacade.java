@@ -1056,9 +1056,29 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Enables or Disables Video Calling()")
+    public void enableVideoCalling(boolean enable) {
+        mTelephonyManager.enableVideoCalling(enable);
+    }
+
+    @Rpc(description = "Returns a boolean of isVideoCallingEnabled()")
+    public Boolean isVideoCallingEnabled() {
+        return mTelephonyManager.isVideoCallingEnabled();
+    }
+
     @Rpc(description = "Returns a boolean of isImsRegistered()")
     public Boolean isImsRegistered() {
         return mTelephonyManager.isImsRegistered();
+    }
+
+    @Rpc(description = "Returns a boolean of isVolteEnabled()")
+    public Boolean isVolteEnabled() {
+        return mTelephonyManager.isVolteEnabled();
+    }
+
+    @Rpc(description = "Returns a boolean of isWifiCallingEnabled()")
+    public Boolean isWifiCallingEnabled() {
+        return mTelephonyManager.isWifiCallingEnabled();
     }
 
     @Rpc(description = "Returns the service state for default subscription ID")
