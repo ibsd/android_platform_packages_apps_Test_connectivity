@@ -54,16 +54,16 @@ public class WifiRttManagerFacade extends RpcReceiver {
     private Bundle packRttResult(RttResult result) {
         Bundle rttResult = new Bundle();
         rttResult.putString("bssid", result.bssid);
-        rttResult.putLong("distance_cm", result.distance_cm);
-        rttResult.putLong("distance_sd_cm", result.distance_sd_cm);
-        rttResult.putLong("distance_spread_cm", result.distance_spread_cm);
-        rttResult.putLong("rtt_ns", result.rtt_ns);
-        rttResult.putLong("rtt_sd_ns", result.rtt_sd_ns);
-        rttResult.putLong("rtt_spread_ns", result.rtt_spread_ns);
+        rttResult.putLong("distance", result.distance);
+        rttResult.putLong("distanceStandardDeviation", result.distance);
+        rttResult.putLong("distanceSpread", result.distanceSpread);
+        rttResult.putLong("rtt", result.rtt);
+        rttResult.putLong("rttStandardDeviation", result.rttStandardDeviation);
+        rttResult.putLong("rttSpread", result.rttSpread);
         rttResult.putLong("ts", result.ts);
         rttResult.putInt("rssi", result.rssi);
         rttResult.putInt("status", result.status);
-        rttResult.putInt("tx_rate", result.tx_rate);
+        rttResult.putInt("txRate", result.tx_rate);
         return rttResult;
     }
 
@@ -109,17 +109,19 @@ public class WifiRttManagerFacade extends RpcReceiver {
       if (j.has("bssid")) {
           result.bssid = j.getString("bssid");
       }
-      if (j.has("frequency")) {
+
+      /*if (j.has("frequency")) {
           result.frequency = j.getInt("frequency");
       }
       if (j.has("channelWidth")) {
           result.channelWidth = j.getInt("channelWidth");
+      }*/
+
+      if (j.has("numSamplesPerBurst")) {
+          result.numSamplesPerBurst = j.getInt("numSamplesPerBurst");
       }
-      if (j.has("num_samples")) {
-          result.num_samples = j.getInt("num_samples");
-      }
-      if (j.has("num_retries")) {
-          result.num_retries = j.getInt("num_retries");
+      if (j.has("numRetriesPerMeasurementFrame")) {
+          result.numRetriesPerMeasurementFrame = j.getInt("numRetriesPerMeasurementFrame");
       }
       return result;
   }
