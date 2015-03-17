@@ -85,7 +85,7 @@ public class FacadeConfiguration {
         sFacadeClassList.add(CommonIntentsFacade.class);
         sFacadeClassList.add(ContactsFacade.class);
         sFacadeClassList.add(EventFacade.class);
-	sFacadeClassList.add(ImsManagerFacade.class);
+        sFacadeClassList.add(ImsManagerFacade.class);
         sFacadeClassList.add(LocationFacade.class);
         sFacadeClassList.add(PhoneFacade.class);
         sFacadeClassList.add(PreferencesFacade.class);

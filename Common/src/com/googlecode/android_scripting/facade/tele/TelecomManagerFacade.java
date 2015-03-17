@@ -26,12 +26,14 @@ import android.telecom.Call;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
@@ -238,6 +240,40 @@ public class TelecomManagerFacade extends RpcReceiver {
         InCallServiceImpl.mCalls.clear();
     }
 
+    @Rpc(description = "Get the state of a call according to call id.")
+    public String telecomCallGetState(
+            @RpcParameter(name = "callId")
+            String callId) {
+        Call call = InCallServiceImpl.mCalls.get(callId);
+        if (null == call){
+            Log.d("In telecomCallGetState, Invalid callId");
+            return "INVALID_ID";
+        }
+        int state = call.getState();
+        switch(state) {
+            case Call.STATE_NEW:
+                return "STATE_NEW";
+            case Call.STATE_DIALING:
+                return "STATE_DIALING";
+            case Call.STATE_RINGING:
+                return "STATE_RINGING";
+            case Call.STATE_HOLDING:
+                return "STATE_HOLDING";
+            case Call.STATE_ACTIVE:
+                return "STATE_ACTIVE";
+            case Call.STATE_DISCONNECTED:
+                return "STATE_DISCONNECTED";
+            case Call.STATE_PRE_DIAL_WAIT:
+                return "STATE_PRE_DIAL_WAIT";
+            case Call.STATE_CONNECTING:
+                return "STATE_CONNECTING";
+            case Call.STATE_DISCONNECTING:
+                return "STATE_DISCONNECTING";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
     @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
     public void telecomPhoneSetAudioRoute(
             @RpcParameter(name = "route")
@@ -269,5 +305,31 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Silences the rigner if there's a ringing call.")
     public void telecomSilenceRinger() {
         mTelecomManager.silenceRinger();
+    }
+
+    @Rpc(description = "Swap two calls")
+    public void telecomSwapCalls() {
+        //TODO
+        // Swap the foreground and back ground calls
+    }
+
+    @Rpc(description = "Toggles call waiting feature on or off" +
+                       "for default voice subscription id.")
+    public void toggleCallWaiting(
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
+        toggleCallWaitingForSubscription(
+              SubscriptionManager.getDefaultVoiceSubId(), enabled);
+    }
+
+    @Rpc(description = "Toggles call waiting feature on or off" +
+                       "for specified subscription id.")
+    public void toggleCallWaitingForSubscription(
+                @RpcParameter(name = "subId")
+                @RpcOptional Integer subId,
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
+        //TODO
+        // Enable or Disable the call waiting feature
     }
 }
