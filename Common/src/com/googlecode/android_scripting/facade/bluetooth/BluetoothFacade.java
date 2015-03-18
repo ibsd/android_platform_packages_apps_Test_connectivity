@@ -17,6 +17,7 @@
 package com.googlecode.android_scripting.facade.bluetooth;
 
 import android.app.Service;
+import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -308,6 +309,20 @@ public class BluetoothFacade extends RpcReceiver {
             Boolean value
             ) {
         return mBluetoothAdapter.configHciSnoopLog(value);
+    }
+
+    @Rpc(description = "Get ")
+    public String bluetoothGetControllerActivityEnergyInfo(
+        @RpcParameter(name = "value")
+        Integer value
+            ) {
+        BluetoothActivityEnergyInfo energyInfo = mBluetoothAdapter
+            .getControllerActivityEnergyInfo(value);
+        //TODO (tturney): Fix when method dosn't return null... cosmic issue.
+        while (energyInfo == null) {
+          energyInfo = mBluetoothAdapter.getControllerActivityEnergyInfo(value);
+        }
+        return energyInfo.toString();
     }
 
     @Override
