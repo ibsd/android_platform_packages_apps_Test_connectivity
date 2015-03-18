@@ -16,6 +16,7 @@
 
 package com.googlecode.android_scripting.facade;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -63,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -162,6 +164,37 @@ public class AndroidFacade extends RpcReceiver {
 
     try {
       return task.getResult();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      task.finish();
+    }
+  }
+
+  public int startActivityForResultCodeWithTimeout(final Intent intent,
+    final int request, final int timeout) {
+    FutureActivityTask<Integer> task = new FutureActivityTask<Integer>() {
+      @Override
+      public void onCreate() {
+        super.onCreate();
+        try {
+          startActivityForResult(intent, request);
+        } catch (Exception e) {
+          intent.putExtra("EXCEPTION", e.getMessage());
+        }
+      }
+
+      @Override
+      public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (request == requestCode){
+            setResult(resultCode);
+        }
+      }
+    };
+    mTaskQueue.execute(task);
+
+    try {
+      return task.getResult(timeout, TimeUnit.SECONDS);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
