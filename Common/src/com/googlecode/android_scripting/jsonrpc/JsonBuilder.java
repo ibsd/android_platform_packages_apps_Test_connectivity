@@ -455,8 +455,8 @@ public class JsonBuilder {
 
     private static JSONObject buildJsonScanResult(ScanResult scanResult) throws JSONException {
         JSONObject result = new JSONObject();
-        result.put("bssid", scanResult.BSSID);
-        result.put("ssid", scanResult.SSID);
+        result.put("BSSID", scanResult.BSSID);
+        result.put("SSID", scanResult.SSID);
         result.put("frequency", scanResult.frequency);
         result.put("level", scanResult.level);
         result.put("capabilities", scanResult.capabilities);
@@ -510,9 +510,9 @@ public class JsonBuilder {
         result.put("link_speed", data.getLinkSpeed());
         result.put("network_id", data.getNetworkId());
         result.put("rssi", data.getRssi());
-        result.put("bssid", data.getBSSID());
+        result.put("BSSID", data.getBSSID());
         result.put("mac_address", data.getMacAddress());
-        result.put("ssid", data.getSSID());
+        result.put("SSID", data.getSSID());
         String supplicantState = "";
         switch (data.getSupplicantState()) {
             case ASSOCIATED:
@@ -635,11 +635,11 @@ public class JsonBuilder {
         config.put("networkId", data.networkId);
         // Trim the double quotes if exist
         if (data.SSID.charAt(0) == '"' && data.SSID.charAt(data.SSID.length() - 1) == '"') {
-            config.put("ssid", data.SSID.substring(1, data.SSID.length() - 1));
+            config.put("SSID", data.SSID.substring(1, data.SSID.length() - 1));
         } else {
-            config.put("ssid", data.SSID);
+            config.put("SSID", data.SSID);
         }
-        config.put("bssid", data.BSSID);
+        config.put("BSSID", data.BSSID);
         config.put("priority", data.priority);
         config.put("hiddenSSID", data.hiddenSSID);
         if (data.status == WifiConfiguration.Status.CURRENT) {
