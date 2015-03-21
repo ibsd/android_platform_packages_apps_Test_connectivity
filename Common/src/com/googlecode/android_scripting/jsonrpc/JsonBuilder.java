@@ -55,7 +55,19 @@ import android.os.ParcelUuid;
 import android.telecom.AudioState;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
+import android.telephony.CellIdentityCdma;
+import android.telephony.CellIdentityGsm;
+import android.telephony.CellIdentityLte;
+import android.telephony.CellIdentityWcdma;
+import android.telephony.CellInfoCdma;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellInfoLte;
+import android.telephony.CellInfoWcdma;
 import android.telephony.CellLocation;
+import android.telephony.CellSignalStrengthCdma;
+import android.telephony.CellSignalStrengthGsm;
+import android.telephony.CellSignalStrengthLte;
+import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionInfo;
@@ -66,6 +78,7 @@ import android.util.SparseArray;
 import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
+import com.googlecode.android_scripting.facade.tele.TelephonyUtils;
 
 public class JsonBuilder {
 
@@ -180,7 +193,6 @@ public class JsonBuilder {
         if (data instanceof Point) {
             return buildPoint((Point) data);
         }
-
         if (data instanceof SmsMessage) {
             return buildSmsMessage((SmsMessage) data);
         }
@@ -219,6 +231,18 @@ public class JsonBuilder {
         }
         if (data instanceof Object[]) {
             return buildJSONArray((Object[]) data);
+        }
+        if (data instanceof CellInfoLte) {
+            return buildCellInfoLte((CellInfoLte) data);
+        }
+        if (data instanceof CellInfoWcdma) {
+            return buildCellInfoWcdma((CellInfoWcdma) data);
+        }
+        if (data instanceof CellInfoGsm) {
+            return buildCellInfoGsm((CellInfoGsm) data);
+        }
+        if (data instanceof CellInfoCdma) {
+            return buildCellInfoCdma((CellInfoCdma) data);
         }
 
         return data.toString();
@@ -590,10 +614,92 @@ public class JsonBuilder {
 
     private static JSONObject buildNeighboringCellInfo(NeighboringCellInfo data)
             throws JSONException {
-        // TODO(damonkohler): Additional information available at API level 5.
         JSONObject result = new JSONObject();
         result.put("cid", data.getCid());
         result.put("rssi", data.getRssi());
+        result.put("lac", data.getLac());
+        result.put("psc", data.getPsc());
+        String networkType =
+                TelephonyUtils.getNetworkTypeString(data.getNetworkType());
+        result.put("network_type", build(networkType));
+        return result;
+    }
+
+    private static JSONObject buildCellInfoLte(CellInfoLte data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("rat", "lte");
+        result.put("registered", data.isRegistered());
+        CellIdentityLte cellidentity =
+                        ((CellInfoLte) data).getCellIdentity();
+        CellSignalStrengthLte signalstrength =
+                        ((CellInfoLte) data).getCellSignalStrength();
+        result.put("mcc", cellidentity.getMcc());
+        result.put("mnc", cellidentity.getMnc());
+        result.put("cid", cellidentity.getCi());
+        result.put("pcid", cellidentity.getPci());
+        result.put("tac", cellidentity.getTac());
+        result.put("rsrp", signalstrength.getDbm());
+        result.put("asulevel", signalstrength.getAsuLevel());
+        result.put("timing_advance", signalstrength.getTimingAdvance());
+        return result;
+    }
+
+    private static JSONObject buildCellInfoGsm(CellInfoGsm data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("rat", "gsm");
+        result.put("registered", data.isRegistered());
+        CellIdentityGsm cellidentity =
+                      ((CellInfoGsm) data).getCellIdentity();
+        CellSignalStrengthGsm signalstrength =
+                      ((CellInfoGsm) data).getCellSignalStrength();
+        result.put("mcc", cellidentity.getMcc());
+        result.put("mnc", cellidentity.getMnc());
+        result.put("cid", cellidentity.getCid());
+        result.put("lac", cellidentity.getLac());
+        result.put("signal_strength", signalstrength.getDbm());
+        result.put("asulevel", signalstrength.getAsuLevel());
+        return result;
+    }
+
+    private static JSONObject buildCellInfoWcdma(CellInfoWcdma data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("rat", "wcdma");
+        result.put("registered", data.isRegistered());
+        CellIdentityWcdma cellidentity =
+                          ((CellInfoWcdma) data).getCellIdentity();
+        CellSignalStrengthWcdma signalstrength =
+                          ((CellInfoWcdma) data).getCellSignalStrength();
+        result.put("mcc", cellidentity.getMcc());
+        result.put("mnc", cellidentity.getMnc());
+        result.put("cid", cellidentity.getCid());
+        result.put("lac", cellidentity.getLac());
+        result.put("signal_strength", signalstrength.getDbm());
+        result.put("asulevel", signalstrength.getAsuLevel());
+        return result;
+    }
+
+    private static JSONObject buildCellInfoCdma(CellInfoCdma data)
+            throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("rat", "cdma");
+        result.put("registered", data.isRegistered());
+        CellIdentityCdma cellidentity =
+                       ((CellInfoCdma) data).getCellIdentity();
+        CellSignalStrengthCdma signalstrength =
+                       ((CellInfoCdma) data).getCellSignalStrength();
+        result.put("network_id", cellidentity.getNetworkId());
+        result.put("system_id", cellidentity.getSystemId());
+        result.put("basestation_id", cellidentity.getBasestationId());
+        result.put("longitude", cellidentity.getLongitude());
+        result.put("latitude", cellidentity.getLatitude());
+        result.put("cdma_dbm", signalstrength.getCdmaDbm());
+        result.put("cdma_ecio", signalstrength.getCdmaEcio());
+        result.put("evdo_dbm", signalstrength.getEvdoDbm());
+        result.put("evdo_ecio", signalstrength.getEvdoEcio());
+        result.put("evdo_snr", signalstrength.getEvdoSnr());
         return result;
     }
 
