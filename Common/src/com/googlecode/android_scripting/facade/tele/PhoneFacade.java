@@ -27,8 +27,10 @@ import android.provider.ContactsContract;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.provider.Telephony;
+import android.telephony.SubscriptionInfo;
 
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.RILConstants;
@@ -43,7 +45,7 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .CallStateChangeListener;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
-                                                   .DataConnectionChangeListener;
+                                                   .DataConnectionRealTimeInfoChangeListener;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .DataConnectionStateChangeListener;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
@@ -61,6 +63,7 @@ import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.HashMap;
 
 /**
  * Exposes TelephonyManager functionality.
@@ -75,13 +78,11 @@ public class PhoneFacade extends RpcReceiver {
     private final EventFacade mEventFacade;
     private final TelephonyManager mTelephonyManager;
 
-    private CallStateChangeListener mCallStateChangeListener;
-    private DataConnectionChangeListener mDataConnectionChangeListener;
-    private DataConnectionStateChangeListener mDataConnectionStateChangeListener;
-    private ServiceStateChangeListener mServiceStateChangeListener;
-
     private ITelephony mITelephony;
-    private PhoneStateListener mPhoneStateListener;
+    private final SubscriptionManager mSubscriptionManager;
+    private List<SubscriptionInfo> mSubInfos;
+    private HashMap<Integer, StateChangeListener> StateChangeListeners =
+                             new HashMap<Integer, StateChangeListener>();
 
     private static final String[] sProjection = new String[] {
             Telephony.Carriers._ID, // 0
@@ -115,152 +116,373 @@ public class PhoneFacade extends RpcReceiver {
                 (TelephonyManager) mService.getSystemService(Context.TELEPHONY_SERVICE);
         mAndroidFacade = manager.getReceiver(AndroidFacade.class);
         mEventFacade = manager.getReceiver(EventFacade.class);
+        mSubscriptionManager = SubscriptionManager.from(mService);
+        mSubInfos = mSubscriptionManager.getAllSubscriptionInfoList();
         MainThread.run(manager.getService(), new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                mCallStateChangeListener = new CallStateChangeListener(mEventFacade);
-                mDataConnectionChangeListener = new DataConnectionChangeListener(mEventFacade);
-                mDataConnectionStateChangeListener = new DataConnectionStateChangeListener(mEventFacade, mTelephonyManager);
-                mServiceStateChangeListener = new ServiceStateChangeListener(mEventFacade);
+                // Creating listeners for all subscription IDs
+                for (int i = 0; i < mSubInfos.size(); i++) {
+                    int subId = mSubInfos.get(i).getSubscriptionId();
+                    StateChangeListener mStateListeners =
+                                                     new StateChangeListener();
+                    mStateListeners.mServiceStateChangeListener =
+                        new ServiceStateChangeListener(mEventFacade, subId);
+                    mStateListeners.mDataConnectionStateChangeListener =
+                        new DataConnectionStateChangeListener(mEventFacade,
+                                                      mTelephonyManager, subId);
+                    mStateListeners.mCallStateChangeListener =
+                        new CallStateChangeListener(mEventFacade, subId);
+                    mStateListeners.mDataConnectionRTInfoChangeListener =
+                        new DataConnectionRealTimeInfoChangeListener(mEventFacade,
+                                                                     subId);
+
+                    StateChangeListeners.put(subId, mStateListeners);
+                }
                 return null;
             }
         });
     }
 
-    @Rpc(description = "Set preferred network setting.")
-    public boolean phoneSetPreferredNetworkType(String mode){
+    @Rpc(description = "Set preferred network setting " +
+                       "for default subscription ID")
+    public boolean phoneSetPreferredNetworkType(String mode) {
+        return phoneSetPreferredNetworkTypeForSubscription(mode,
+                                SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Set preferred network setting " +
+                       "for specified subscription ID")
+    public boolean phoneSetPreferredNetworkTypeForSubscription(String mode,
+                               @RpcParameter(name = "subId") Integer subId) {
         int networkType;
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            if (mode.equalsIgnoreCase("LTE")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("Global")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("3G")) {
-                networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
-            } else if (mode.equalsIgnoreCase("2G")) {
-                networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
-            } else {
-                return false;
+            switch (mode.toUpperCase()) {
+                case "4G":
+                case "LTE":
+                    networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
+                    break;
+                case "3G":
+                case "WCDMA":
+                    networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
+                    break;
+                case "2G":
+                case "GSM":
+                    networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
+                    break;
+                case "GLOBAL":
+                    networkType =
+                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+                    break;
+                default:
+                    return false;
             }
         } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
-            if (mode.equalsIgnoreCase("LTE")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
-            } else if (mode.equalsIgnoreCase("Global")) {
-                networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-            } else if (mode.equalsIgnoreCase("3G")) {
-                networkType = RILConstants.NETWORK_MODE_CDMA;
-            } else if (mode.equalsIgnoreCase("1X")) {
-                networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
-            } else {
-                return false;
+            switch (mode.toUpperCase()) {
+                case "4G":
+                case "LTE":
+                    networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
+                    break;
+                case "3G":
+                case "EVDO":
+                    networkType = RILConstants.NETWORK_MODE_CDMA;
+                    break;
+                case "2G":
+                case "1X":
+                    networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
+                    break;
+                case "GLOBAL":
+                    networkType =
+                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+                    break;
+                default:
+                    return false;
             }
-        } else{
+        } else {
             return false;
         }
-        Log.v("SL4A: Setting the preferred network setting to:" + networkType);
+        Log.v("SL4A: Setting the preferred network setting of subId: "
+                + subId +"to:" + networkType);
         mTelephonyManager.setPreferredNetworkType(networkType);
+        // TODO No framework API for setPreferredNetworkType(int subId)
+        // Need to find some other way to do this
         return true;
     }
 
-    @Rpc(description = "Get preferred network setting. Return value is integer.")
-    public int phoneGetPreferredNetworkTypeInteger(){
+    @Rpc(description = "Get preferred network setting for " +
+                       "default subscription ID .Return value is integer.")
+    public int phoneGetPreferredNetworkTypeInteger() {
+        return phoneGetPreferredNetworkTypeIntegerForSubscription(
+                                         SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Get preferred network setting for " +
+                       "specified subscription ID .Return value is integer.")
+    public int phoneGetPreferredNetworkTypeIntegerForSubscription(
+               @RpcParameter(name = "subId") Integer subId) {
+        // TODO No framework API for getPreferredNetworkType(int subId)
+        // Need to find some other way to do this
         return mTelephonyManager.getPreferredNetworkType();
     }
 
-    @Rpc(description = "Get preferred network setting. Return value is String.")
-    public String phoneGetPreferredNetworkTypeString(){
+    @Rpc(description = "Get preferred network setting for " +
+                       "default subscription ID.Return value is String.")
+    public String phoneGetPreferredNetworkType() {
+        return phoneGetPreferredNetworkTypeForSubscription(
+                                       SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Get preferred network setting for " +
+                       "specified subscription ID.Return value is String.")
+    public String phoneGetPreferredNetworkTypeForSubscription(
+            @RpcParameter(name = "subId") Integer subId) {
+        // TODO No framework API for getPreferredNetworkType(int subId)
+        // Need to find some other way to do this
         int mode = mTelephonyManager.getPreferredNetworkType();
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            if (mode == RILConstants.NETWORK_MODE_LTE_GSM_WCDMA){
-                return "LTE";
-            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
-                return "Global";
-            } else if (mode == RILConstants.NETWORK_MODE_WCDMA_PREF) {
-                return "3G";
-            } else if (mode == RILConstants.NETWORK_MODE_GSM_ONLY) {
-                return "2G";
-            } else {
-                Log.d("Unknown mode in phone type GSM: " + mode);
+            switch (mode) {
+                case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
+                    return "LTE";
+                case RILConstants.NETWORK_MODE_WCDMA_PREF:
+                    return "WCDMA";
+                case RILConstants.NETWORK_MODE_GSM_ONLY:
+                    return "GSM";
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                    return "GLOBAL";
+                default:
+                    Log.d("Unknown mode in phone type GSM: " + mode);
+                    return "UNKNOWN";
             }
-        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA){
-            if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO){
-                return "LTE";
-            } else if (mode == RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA){
-                return "Global";
-            } else if (mode == RILConstants.NETWORK_MODE_CDMA) {
-                return "3G";
-            } else if (mode == RILConstants.NETWORK_MODE_CDMA_NO_EVDO) {
-                return "1X";
-            } else {
-                Log.d("Unknown mode in phone type CDMA: " + mode);
+        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
+            switch (mode) {
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
+                    return "LTE";
+                case RILConstants.NETWORK_MODE_CDMA:
+                    return "EVDO";
+                case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
+                    return "1X";
+                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                    return "GLOBAL";
+                default:
+                    Log.d("Unknown mode in phone type CDMA: " + mode);
+                    return "UNKNOWN";
             }
         } else {
             Log.d("Unknown phone type: " + phoneType);
-        }
-        return null;
-    }
-
-    @Rpc(description = "Starts tracking call state change.")
-    public void phoneStartTrackingCallState() {
-        mTelephonyManager.listen(mCallStateChangeListener,
-                                   CallStateChangeListener.sListeningStates);
-    }
-
-    @Rpc(description = "Turn on/off precise listening on fore/background or ringing calls.")
-    public void phoneAdjustPreciseCallStateListenLevel(String type, Boolean listen) {
-        if (type.equals("Foreground")) {
-          mCallStateChangeListener.listenForeground = listen;
-        } else if (type.equals("Ringing")) {
-            mCallStateChangeListener.listenRinging = listen;
-        } else if (type.equals("Background")) {
-            mCallStateChangeListener.listenBackground = listen;
+            return null;
         }
     }
 
-    @Rpc(description = "Stops tracking call state change.")
-    public void phoneStopTrackingCallStateChange() {
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+    @Rpc(description = "Starts tracking call state change" +
+                       "for default subscription ID.")
+    public Boolean phoneStartTrackingCallState() {
+        return phoneStartTrackingCallStateForSubscription(
+                              SubscriptionManager.getDefaultVoiceSubId());
     }
 
-    @Rpc(description = "Starts tracking power level change.")
-    public void phoneStartTrackingPowerLevelChange() {
-        mTelephonyManager.listen(mDataConnectionChangeListener,
-                                 DataConnectionChangeListener.sListeningStates);
+    @Rpc(description = "Starts tracking call state change" +
+                       "for specified subscription ID.")
+    public Boolean phoneStartTrackingCallStateForSubscription(
+                @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mCallStateChangeListener,
+                CallStateChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
     }
 
-    @Rpc(description = "Stops tracking power level change.")
-    public void phoneStopTrackingPowerLevelChange() {
-        mTelephonyManager.listen(mDataConnectionChangeListener, PhoneStateListener.LISTEN_NONE);
+    @Rpc(description = "Turn on/off precise listening on fore/background or" +
+                       " ringing calls for default voice subscription ID.")
+    public Boolean phoneAdjustPreciseCallStateListenLevel(String type,
+                                                          Boolean listen) {
+        return phoneAdjustPreciseCallStateListenLevelForSubscription(type, listen,
+                                 SubscriptionManager.getDefaultVoiceSubId());
     }
 
-    @Rpc(description = "Starts tracking data connection state change.")
-    public void phoneStartTrackingDataConnectionStateChange() {
-        mTelephonyManager.listen(mDataConnectionStateChangeListener,
-                                 DataConnectionStateChangeListener.sListeningStates);
+    @Rpc(description = "Turn on/off precise listening on fore/background or" +
+                       " ringing calls for specified subscription ID.")
+    public Boolean phoneAdjustPreciseCallStateListenLevelForSubscription(String type,
+                   Boolean listen,
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            if (type.equals("Foreground")) {
+                StateChangeListeners.get(subId).mCallStateChangeListener.listenForeground = listen;
+            } else if (type.equals("Ringing")) {
+                StateChangeListeners.get(subId).mCallStateChangeListener.listenRinging = listen;
+            } else if (type.equals("Background")) {
+                StateChangeListeners.get(subId).mCallStateChangeListener.listenBackground = listen;
+            }
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
     }
 
-    @Rpc(description = "Stops tracking data connection state change.")
-    public void phoneStopTrackingDataConnectionStateChange() {
-        mTelephonyManager.listen(mDataConnectionStateChangeListener, PhoneStateListener.LISTEN_NONE);
+    @Rpc(description = "Stops tracking call state change " +
+            "for default voice subscription ID.")
+    public Boolean phoneStopTrackingCallStateChange() {
+        return phoneStopTrackingCallStateChangeForSubscription(
+                SubscriptionManager.getDefaultVoiceSubId());
     }
 
-    @Rpc(description = "Starts tracking service state change.")
-    public void phoneStartTrackingServiceStateChange() {
-        mTelephonyManager.listen(mServiceStateChangeListener,
-                                 ServiceStateChangeListener.sListeningStates);
+    @Rpc(description = "Stops tracking call state change " +
+                       "for specified subscription ID.")
+    public Boolean phoneStopTrackingCallStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mCallStateChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
     }
 
-    @Rpc(description = "Stops tracking service state change.")
-    public void phoneStopTrackingServiceStateChange() {
-        mTelephonyManager.listen(mServiceStateChangeListener, PhoneStateListener.LISTEN_NONE);
+    @Rpc(description = "Starts tracking data connection real time info change" +
+                       "for default subscription ID.")
+    public Boolean phoneStartTrackingDataConnectionRTInfoChange() {
+        return phoneStartTrackingDataConnectionRTInfoChangeForSubscription(
+                                 SubscriptionManager.getDefaultDataSubId());
+    }
+
+    @Rpc(description = "Starts tracking data connection real time info change" +
+                       "for specified subscription ID.")
+    public Boolean phoneStartTrackingDataConnectionRTInfoChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mDataConnectionRTInfoChangeListener,
+                DataConnectionRealTimeInfoChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Stops tracking data connection real time info change" +
+                       "for default subscription ID.")
+    public Boolean phoneStopTrackingDataConnectionRTInfoChange() {
+        return phoneStopTrackingDataConnectionRTInfoChangeForSubscription(
+                                 SubscriptionManager.getDefaultDataSubId());
+    }
+
+    @Rpc(description = "Stops tracking data connection real time info change" +
+                       "for specified subscription ID.")
+    public Boolean phoneStopTrackingDataConnectionRTInfoChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mDataConnectionRTInfoChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Starts tracking data connection state change" +
+                       "for default subscription ID..")
+    public Boolean phoneStartTrackingDataConnectionStateChange() {
+        return phoneStartTrackingDataConnectionStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultDataSubId());
+    }
+
+    @Rpc(description = "Starts tracking data connection state change" +
+                       "for specified subscription ID.")
+    public Boolean phoneStartTrackingDataConnectionStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mDataConnectionStateChangeListener,
+                DataConnectionStateChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Stops tracking data connection state change " +
+                       "for default subscription ID..")
+    public Boolean phoneStopTrackingDataConnectionStateChange() {
+        return phoneStartTrackingDataConnectionStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultDataSubId());
+    }
+
+    @Rpc(description = "Stops tracking data connection state change " +
+                       "for specified subscription ID..")
+    public Boolean phoneStopTrackingDataConnectionStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mDataConnectionStateChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Starts tracking service state change " +
+                       "for default subscription ID.")
+    public Boolean phoneStartTrackingServiceStateChange() {
+        return phoneStartTrackingServiceStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Starts tracking service state change " +
+                       "for specified subscription ID.")
+    public Boolean phoneStartTrackingServiceStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+         try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mServiceStateChangeListener,
+                ServiceStateChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Stops tracking service state change " +
+                       "for default subscription ID.")
+    public Boolean phoneStopTrackingServiceStateChange() {
+        return phoneStartTrackingServiceStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Stops tracking service state change " +
+                       "for specified subscription ID.")
+    public Boolean phoneStopTrackingServiceStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mServiceStateChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
     }
 
     @Rpc(description = "Calls a contact/phone number by URI.")
     public void phoneCall(@RpcParameter(name = "uri")
-    final String uriString)
-            throws Exception {
+                final String uriString)
+                throws Exception {
         Uri uri = Uri.parse(uriString);
         if (uri.getScheme().equals("content")) {
             String phoneNumberColumn = ContactsContract.PhoneLookup.NUMBER;
@@ -312,8 +534,8 @@ public class PhoneFacade extends RpcReceiver {
             final String number)
             throws Exception {
         String uriString = "tel:" + URLEncoder.encode(number, "ASCII");
-        mAndroidFacade.startActivity(Intent.ACTION_CALL_PRIVILEGED, uriString, null,
-                                     null, null, null, null);
+        mAndroidFacade.startActivity(Intent.ACTION_CALL_PRIVILEGED, uriString,
+                                     null, null, null, null, null);
     }
 
     @Rpc(description = "Dials a contact/phone number by URI.")
@@ -342,14 +564,32 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getCellLocation();
     }
 
-    @Rpc(description = "Returns the numeric name (MCC+MNC) of current registered operator.")
+    @Rpc(description = "Returns the numeric name (MCC+MNC) of registered operator." +
+                       "for default subscription ID")
     public String getNetworkOperator() {
-        return mTelephonyManager.getNetworkOperator();
+        return getNetworkOperatorForSubscription(
+                        SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the alphabetic name of current registered operator.")
+    @Rpc(description = "Returns the numeric name (MCC+MNC) of registered operator" +
+                       "for specified subscription ID.")
+    public String getNetworkOperatorForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getNetworkOperatorForSubscription(subId);
+    }
+
+    @Rpc(description = "Returns the alphabetic name of current registered operator" +
+                       "for specified subscription ID.")
     public String getNetworkOperatorName() {
-        return mTelephonyManager.getNetworkOperatorName();
+        return getNetworkOperatorNameForSubscription(
+                        SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Returns the alphabetic name of registered operator " +
+                       "for specified subscription ID.")
+    public String getNetworkOperatorNameForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getNetworkOperatorName(subId);
     }
 
     private String getNetworkTypeString(int networkType) {
@@ -385,6 +625,12 @@ public class PhoneFacade extends RpcReceiver {
                 return "hspa";
             case TelephonyManager.NETWORK_TYPE_HSPAP:
                 return "hspap";
+            case TelephonyManager.NETWORK_TYPE_GSM:
+                return "gsm";
+            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                return "td_scdma";
+            case TelephonyManager.NETWORK_TYPE_IWLAN:
+                return "iwlan";
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
                 return "unknown";
             default:
@@ -392,20 +638,22 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
-    @Rpc(description = "Returns the current RAT in use on the device.")
+    @Rpc(description = "Returns the current RAT in use on the device.+" +
+                       "for default subscription ID")
     public String getNetworkType() {
 
         Log.d("sl4a:getNetworkType() is deprecated!" +
                 "Please use getVoiceNetworkType()" +
                 " or getDataNetworkTpe()");
 
-        return getNetworkTypeString(mTelephonyManager.getNetworkType());
+        return getNetworkTypeForSubscription(
+                       SubscriptionManager.getDefaultSubId());
     }
 
     @Rpc(description = "Returns the current RAT in use on the device" +
             " for a given Subscription.")
-    public String getNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Integer subId) {
+    public String getNetworkTypeForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
 
         Log.d("sl4a:getNetworkTypeForSubscriber() is deprecated!" +
                 "Please use getVoiceNetworkType()" +
@@ -417,26 +665,28 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the current voice RAT for" +
             " the default voice subscription.")
     public String getVoiceNetworkType() {
-        return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType());
+        return getVoiceNetworkTypeForSubscription(
+                         SubscriptionManager.getDefaultVoiceSubId());
     }
 
     @Rpc(description = "Returns the current voice RAT for" +
-            " the chosen voice subscription.")
-    public String getVoiceNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Integer subId) {
+            " the specified voice subscription.")
+    public String getVoiceNetworkTypeForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
         return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
     }
 
     @Rpc(description = "Returns the current data RAT for" +
             " the defaut data subscription")
     public String getDataNetworkType() {
-        return getNetworkTypeString(mTelephonyManager.getDataNetworkType());
+        return getDataNetworkTypeForSubscription(
+                         SubscriptionManager.getDefaultDataSubId());
     }
 
     @Rpc(description = "Returns the current data RAT for" +
-            " the defaut data subscription")
-    public String getDataNetworkTypeForSubscriber(
-            @RpcParameter(name = "subId") Integer subId) {
+            " the specified data subscription")
+    public String getDataNetworkTypeForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
         return getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
     }
 
@@ -456,43 +706,68 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
-    @Rpc(description = "Returns the MCC")
+    @Rpc(description = "Returns the MCC for default subscription ID")
     public String getSimCountryIso() {
-        return mTelephonyManager.getSimCountryIso();
+         return getSimCountryIsoForSubscription(
+                      SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the MCC+MNC")
+    @Rpc(description = "Returns the MCC for specified subscription ID")
+    public String getSimCountryIsoForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getSimCountryIso(subId);
+    }
+
+    @Rpc(description = "Returns the MCC+MNC for default subscription ID")
     public String getSimOperator() {
-        return mTelephonyManager.getSimOperator();
+        return getSimOperatorForSubscription(
+                  SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the MCC+MNC by subId")
-    public String getSimOperatorBySubId(
-            @RpcParameter(name = "subId")
-            Integer subId) {
+    @Rpc(description = "Returns the MCC+MNC for specified subscription ID")
+    public String getSimOperatorForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.getSimOperator(subId);
     }
 
-    @Rpc(description = "Returns the Service Provider Name (SPN).")
+    @Rpc(description = "Returns the Service Provider Name (SPN)" +
+                       "for default subscription ID")
     public String getSimOperatorName() {
-        return mTelephonyManager.getSimOperatorName();
+        return getSimOperatorNameForSubscription(
+                  SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the serial number of the SIM, or Null if unavailable")
+    @Rpc(description = "Returns the Service Provider Name (SPN)" +
+                       " for specified subscription ID.")
+    public String getSimOperatorNameForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getSimOperatorNameForSubscription(subId);
+    }
+
+    @Rpc(description = "Returns the serial number of the SIM for " +
+                       "default subscription ID, or Null if unavailable")
     public String getSimSerialNumber() {
-        return mTelephonyManager.getSimSerialNumber();
+        return getSimSerialNumberForSubscription(
+                  SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the serial number of the SIM by SubId, or Null if unavailable")
-    public String getSimSerialNumberBySubId(
-            @RpcParameter(name = "subId")
-            Integer subId) {
+    @Rpc(description = "Returns the serial number of the SIM for " +
+                       "specified subscription ID, or Null if unavailable")
+    public String getSimSerialNumberForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.getSimSerialNumber(subId);
     }
 
-    @Rpc(description = "Returns the state of the device SIM card.")
+    @Rpc(description = "Returns the state of the SIM card for default slot ID.")
     public String getSimState() {
-        switch (mTelephonyManager.getSimState()) {
+        return getSimStateForSlotId(
+                  mTelephonyManager.getDefaultSim());
+    }
+
+    @Rpc(description = "Returns the state of the SIM card for specified slot ID.")
+    public String getSimStateForSlotId(
+                  @RpcParameter(name = "slotId") Integer slotId) {
+        switch (mTelephonyManager.getSimState(slotId)) {
             case TelephonyManager.SIM_STATE_UNKNOWN:
                 return "uknown";
             case TelephonyManager.SIM_STATE_ABSENT:
@@ -510,53 +785,95 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
-    @Rpc(description = "Returns the unique subscriber ID (such as IMSI), or null if unavailable")
+    @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
+                       "for default subscription ID, or null if unavailable")
     public String getSubscriberId() {
-        return mTelephonyManager.getSubscriberId();
+        return getSubscriberIdForSubscription(
+                   SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Retrieves the alphabetic id associated with the voice mail number.")
+    @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
+                       "for specified subscription ID, or null if unavailable")
+    public String getSubscriberIdForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getSubscriberId(subId);
+    }
+
+    @Rpc(description = "Retrieves the alphabetic id associated with the" +
+                       " voice mail number for default subscription ID.")
     public String getVoiceMailAlphaTag() {
-        return mTelephonyManager.getVoiceMailAlphaTag();
+        return getVoiceMailAlphaTagForSubscription(
+                   SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns the voice mail number; null if unavailable.")
+
+    @Rpc(description = "Retrieves the alphabetic id associated with the " +
+                       "voice mail number for specified subscription ID.")
+    public String getVoiceMailAlphaTagForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getVoiceMailAlphaTag(subId);
+    }
+
+    @Rpc(description = "Returns the voice mail number " +
+                       "for default subscription ID; null if unavailable.")
     public String getVoiceMailNumber() {
-        return mTelephonyManager.getVoiceMailNumber();
+        return getVoiceMailNumberForSubscription(
+                   SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns true if the device is in a roaming state")
+    @Rpc(description = "Returns the voice mail number " +
+                        "for specified subscription ID; null if unavailable.")
+    public String getVoiceMailNumberForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getVoiceMailNumber(subId);
+    }
+
+    @Rpc(description = "Returns true if the device is in  roaming state" +
+                       "for default subscription ID")
     public Boolean checkNetworkRoaming() {
-        return mTelephonyManager.isNetworkRoaming();
+        return checkNetworkRoamingForSubscription(
+                             SubscriptionManager.getDefaultSubId());
     }
 
-    @Rpc(description = "Returns true if the device is in a roaming state")
-    public Boolean checkNetworkRoamingBySubId(
-            @RpcParameter(name = "subId")
-            Integer subId){
+    @Rpc(description = "Returns true if the device is in roaming state " +
+                       "for specified subscription ID")
+    public Boolean checkNetworkRoamingForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.isNetworkRoaming(subId);
     }
 
-    @Rpc(description = "Returns the unique device ID such as MEID or IMEI, null if unavailable")
+    @Rpc(description = "Returns the unique device ID such as MEID or IMEI " +
+                       "for deault sim slot ID, null if unavailable")
     public String getDeviceId() {
-        return mTelephonyManager.getDeviceId();
+        return getDeviceIdForSlotId(mTelephonyManager.getDefaultSim());
     }
 
-    @Rpc(description = "Returns the unique device ID such as MEID or IMEI by slotId, null if unavailable")
-    public String getDeviceIdBySlotId(
-            @RpcParameter(name = "slotId")
-            Integer slotId){
+    @Rpc(description = "Returns the unique device ID such as MEID or IMEI for" +
+                       " specified slot ID, null if unavailable")
+    public String getDeviceIdForSlotId(
+                  @RpcParameter(name = "slotId")
+                  Integer slotId){
         return mTelephonyManager.getDeviceId(slotId);
     }
 
-    @Rpc(description = "Returns the modem sw version, such as IMEI-SV; null if unavailable")
+    @Rpc(description = "Returns the modem sw version, such as IMEI-SV;" +
+                       " null if unavailable")
     public String getDeviceSoftwareVersion() {
         return mTelephonyManager.getDeviceSoftwareVersion();
     }
 
-    @Rpc(description = "Returns phone # string \"line 1\", such as MSISDN; null if unavailable")
+    @Rpc(description = "Returns phone # string \"line 1\", such as MSISDN " +
+                       "for default subscription ID; null if unavailable")
     public String getLine1Number() {
-        return mTelephonyManager.getLine1Number();
+        return getLine1NumberForSubscription(
+                        SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Returns phone # string \"line 1\", such as MSISDN " +
+                       "for specified subscription ID; null if unavailable")
+    public String getLine1NumberForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getLine1NumberForSubscriber(subId);
     }
 
     @Rpc(description = "Returns the neighboring cell information of the device.")
@@ -564,27 +881,47 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getNeighboringCellInfo();
     }
 
-    @Rpc(description = "Returns True if data connection is enabled.")
-    public Boolean checkDataConnection() {
-        return mTelephonyManager.getDataEnabled();
+    @Rpc(description = "Returns True if cellular data is enabled for" +
+                       "default data subscription ID.")
+    public Boolean isDataEnabled() {
+        return isDataEnabledForSubscription(
+                   SubscriptionManager.getDefaultDataSubId());
     }
 
-    @Rpc(description = "Toggles data connection on or off.")
+    @Rpc(description = "Returns True if data connection is enabled.")
+    public Boolean isDataEnabledForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getDataEnabled(subId);
+    }
+
+    @Rpc(description = "Toggles data connection on /off for" +
+                       " default data subscription ID.")
     public void toggleDataConnection(
-            @RpcParameter(name = "enabled")
-            @RpcOptional
-            Boolean enabled) {
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
+        toggleDataConnectionForSubscription(
+                         SubscriptionManager.getDefaultDataSubId(), enabled);
+    }
+
+    @Rpc(description = "Toggles data connection on/off for" +
+                       " specified subscription ID")
+    public void toggleDataConnectionForSubscription(
+                @RpcParameter(name = "subId") Integer subId,
+                @RpcParameter(name = "enabled")
+                @RpcOptional Boolean enabled) {
         if (enabled == null) {
-            enabled = !checkDataConnection();
+            enabled = !isDataEnabledForSubscription(subId);
         }
-        mTelephonyManager.setDataEnabled(enabled);
+        mTelephonyManager.setDataEnabled(subId, enabled);
     }
 
     @Rpc(description = "Sets an APN and make that as preferred APN.")
     public void setAPN(@RpcParameter(name = "name") final String name,
                        @RpcParameter(name = "apn") final String apn,
                        @RpcParameter(name = "type") @RpcOptional @RpcDefault("")
-                       final String type) {
+                       final String type,
+                       @RpcParameter(name = "subId") @RpcOptional Integer subId) {
+        //TODO Need to find out how to set APN for specific subId
         Uri uri;
         Cursor cursor;
 
@@ -653,7 +990,10 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Returns the number of APNs defined")
-    public int getNumberOfAPNs() {
+    public int getNumberOfAPNs(
+               @RpcParameter(name = "subId")
+               @RpcOptional Integer subId) {
+        //TODO Need to find out how to get Number of APNs for specific subId
         int result = 0;
         String where = "numeric=\"" + android.os.SystemProperties.get(
                         TelephonyProperties.PROPERTY_ICC_OPERATOR_NUMERIC, "") + "\"";
@@ -671,7 +1011,10 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Returns the currently selected APN name")
-    public String getSelectedAPN() {
+    public String getSelectedAPN(
+                  @RpcParameter(name = "subId")
+                  @RpcOptional Integer subId) {
+        //TODO Need to find out how to get selected APN for specific subId
         String key = null;
         int ID_INDEX = 0;
         final String PREFERRED_APN_URI = "content://telephony/carriers/preferapn";
@@ -713,11 +1056,65 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Returns a boolean of isImsRegistered()")
+    public Boolean isImsRegistered() {
+        return mTelephonyManager.isImsRegistered();
+    }
+
+    @Rpc(description = "Returns the service state for default subscription ID")
+    public String getServiceState() {
+        // TODO
+        // No framework API available
+        return getServiceStateForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Returns the service state for specified subscription ID")
+    public String getServiceStateForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        // TODO
+        // No framework API available
+        return null;
+    }
+
+    @Rpc(description = "Returns the call state for default subscription ID")
+    public String getCallState() {
+        return getCallStateForSubscription(
+                               SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Returns the call state for specified subscription ID")
+    public String getCallStateForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        switch (mTelephonyManager.getCallState(subId)) {
+            case TelephonyManager.CALL_STATE_IDLE:
+                return "idle";
+            case TelephonyManager.CALL_STATE_RINGING:
+                return "ringing";
+            case TelephonyManager.CALL_STATE_OFFHOOK:
+                return "offhook";
+            default:
+                return null;
+        }
+    }
+
+    private static class StateChangeListener {
+        private ServiceStateChangeListener mServiceStateChangeListener;
+        private CallStateChangeListener mCallStateChangeListener;
+        private DataConnectionStateChangeListener
+                           mDataConnectionStateChangeListener;
+        private DataConnectionRealTimeInfoChangeListener
+                           mDataConnectionRTInfoChangeListener;
+    }
+
     @Override
     public void shutdown() {
-        phoneStopTrackingCallStateChange();
-        phoneStopTrackingPowerLevelChange();
-        phoneStopTrackingServiceStateChange();
-        phoneStopTrackingDataConnectionStateChange();
+        for (int i = 0; i < mSubInfos.size(); i++) {
+           int subId = mSubInfos.get(i).getSubscriptionId();
+           phoneStopTrackingCallStateChangeForSubscription(subId);
+           phoneStopTrackingDataConnectionRTInfoChangeForSubscription(subId);
+           phoneStopTrackingServiceStateChangeForSubscription(subId);
+           phoneStopTrackingDataConnectionStateChangeForSubscription(subId);
+        }
     }
 }

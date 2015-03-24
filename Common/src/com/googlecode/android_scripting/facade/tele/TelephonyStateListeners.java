@@ -1,12 +1,14 @@
 package com.googlecode.android_scripting.facade.tele;
 
 import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.Log;
 import android.os.Bundle;
 import android.telephony.DataConnectionRealTimeInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.PreciseCallState;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
+import android.telephony.VoLteServiceState;
 
 /**
  * Store all subclasses of PhoneStateListener here.
@@ -88,9 +90,14 @@ public class TelephonyStateListeners {
         public void onCallStateChanged(int state, String incomingNumber) {
             Bundle mCallStateEvent = new Bundle();
             String subEvent = null;
-            String postIncomingNumberStr = "";
+            String postIncomingNumberStr = null;
             int len = 0;
-            if ((incomingNumber != null) && ((len = incomingNumber.length()) > 0)){
+            if (incomingNumber == null) {
+                len = 0;
+            } else {
+                len = incomingNumber.length();
+            }
+            if (len > 0) {
                 /**
                  * Currently this incomingNumber modification is specific for US numbers.
                  */
@@ -101,9 +108,8 @@ public class TelephonyStateListeners {
                 } else {
                     postIncomingNumberStr = incomingNumber;
                 }
+                mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
             }
-            mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
-
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
                     subEvent = "Idle";
@@ -115,6 +121,8 @@ public class TelephonyStateListeners {
                     subEvent = "Ringing";
                     break;
             }
+         // Need to change.using mSubId temporarily
+            mCallStateEvent.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent);
         }
 
@@ -161,22 +169,24 @@ public class TelephonyStateListeners {
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
                 subEvent = "Idle";
             }
+         // Need to change.using mSubId temporarily
+            EventMsg.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
         }
     }
 
-    public static class DataConnectionChangeListener extends PhoneStateListener {
+    public static class DataConnectionRealTimeInfoChangeListener extends PhoneStateListener {
 
         private final EventFacade mEventFacade;
         public static final int sListeningStates =
                 PhoneStateListener.LISTEN_DATA_CONNECTION_REAL_TIME_INFO;
 
-        public DataConnectionChangeListener(EventFacade ef) {
+        public DataConnectionRealTimeInfoChangeListener(EventFacade ef) {
             super();
             mEventFacade = ef;
         }
 
-        public DataConnectionChangeListener(EventFacade ef, int subId) {
+        public DataConnectionRealTimeInfoChangeListener(EventFacade ef, int subId) {
             super(subId);
             mEventFacade = ef;
         }
@@ -198,7 +208,9 @@ public class TelephonyStateListeners {
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
                 subEvent = "Unknown";
             }
-            mEventFacade.postEvent("onModemPowerLevelChanged"+subEvent, event);
+         // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
+            mEventFacade.postEvent("onDataConnectionRealTimeInfoChanged"+subEvent, event);
         }
     }
 
@@ -242,6 +254,8 @@ public class TelephonyStateListeners {
                 subEvent = "UnknownStateCode";
                 event.putInt("UnknownStateCode", state);
             }
+         // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
             mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
         }
     }
@@ -294,6 +308,8 @@ public class TelephonyStateListeners {
             event.putBoolean("isManualNwSelection", serviceState.getIsManualSelection());
             event.putBoolean("Roaming", serviceState.getRoaming());
             event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
+            event.putInt("NetworkId", serviceState.getNetworkId());
+            event.putInt("SystemId", serviceState.getSystemId());
 
             if(subEvent.equals("InService")) {
                 switch(serviceState.getVoiceNetworkType()) {
@@ -309,7 +325,54 @@ public class TelephonyStateListeners {
                 }
             }
 
+            // Need to change.using mSubId temporarily
+            event.putInt("subscriptionId", mSubId);
+
             mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
+        }
+    }
+
+    public static class VolteServiceStateChangeListener
+            extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+
+        public VolteServiceStateChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public VolteServiceStateChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        private static String getSrvccStateString(int srvccState) {
+            switch (srvccState) {
+                case VoLteServiceState.HANDOVER_STARTED:
+                    return "HANDOVER_STARTED";
+                case VoLteServiceState.HANDOVER_COMPLETED:
+                    return "HANDOVER_COMPLETED";
+                case VoLteServiceState.HANDOVER_FAILED:
+                    return "HANDOVER_FAILED";
+                case VoLteServiceState.HANDOVER_CANCELED:
+                    return "HANDOVER_CANCELED";
+                default:
+                    Log.e(String.format("getSrvccStateString():"
+                            + "unknown state %d", srvccState));
+                    return "UNKNOWN";
+            }
+        }
+
+        @Override
+        public void onVoLteServiceStateChanged(VoLteServiceState volteInfo) {
+            Bundle event = new Bundle();
+
+            event.putString("srvccState",
+                    getSrvccStateString(volteInfo.getSrvccState()));
+
+            mEventFacade.postEvent(
+                    "onVolteServiceStateChanged", event);
         }
     }
 

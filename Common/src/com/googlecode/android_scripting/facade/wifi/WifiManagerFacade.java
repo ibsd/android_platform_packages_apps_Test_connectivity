@@ -3,6 +3,7 @@ package com.googlecode.android_scripting.facade.wifi;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -12,6 +13,7 @@ import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
@@ -19,6 +21,9 @@ import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager.WifiLock;
 import android.net.wifi.WpsInfo;
 import android.os.Bundle;
+import android.provider.Settings.Global;
+import android.provider.Settings.SettingNotFoundException;
+import android.util.Base64;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.EventFacade;
@@ -29,8 +34,23 @@ import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -183,9 +203,9 @@ public class WifiManagerFacade extends RpcReceiver {
                         Bundle msg = new Bundle();
                         String ssid = wInfo.getSSID();
                         if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"') {
-                            msg.putString("ssid", ssid.substring(1, ssid.length() - 1));
+                            msg.putString("SSID", ssid.substring(1, ssid.length() - 1));
                         } else {
-                            msg.putString("ssid", ssid);
+                            msg.putString("SSID", ssid);
                         }
                         String bssid = wInfo.getBSSID();
                         msg.putString("bssid", bssid);
@@ -254,18 +274,80 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
-    private WifiConfiguration wifiConfigurationFromScanResult(ScanResult result) {
-        if (result == null)
+    private WifiConfiguration genEnterpriseConfig(String configStr) throws JSONException,
+    GeneralSecurityException {
+        if (configStr == null) {
             return null;
+        }
+        JSONObject j = new JSONObject(configStr);
         WifiConfiguration config = new WifiConfiguration();
-        config.SSID = "\"" + result.SSID + "\"";
-        applyingkeyMgmt(config, result);
-        config.BSSID = result.BSSID;
-        config.scanResultCache = new HashMap<String, ScanResult>();
-        if (config.scanResultCache == null)
-            return null;
-        config.scanResultCache.put(result.BSSID, result);
+        config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
+        config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
+        if (j.has("SSID")) {
+            config.SSID = j.getString("SSID");
+        }
+        WifiEnterpriseConfig eConfig = new WifiEnterpriseConfig();
+        if (j.has(WifiEnterpriseConfig.EAP_KEY)) {
+            int eap = j.getInt(WifiEnterpriseConfig.EAP_KEY);
+            eConfig.setEapMethod(eap);
+        }
+        if (j.has(WifiEnterpriseConfig.PHASE2_KEY)) {
+            int p2Method = j.getInt(WifiEnterpriseConfig.PHASE2_KEY);
+            eConfig.setPhase2Method(p2Method);
+        }
+        if (j.has(WifiEnterpriseConfig.CA_CERT_KEY)) {
+            String certStr = j.getString(WifiEnterpriseConfig.CA_CERT_KEY);
+            Log.v("CA Cert String is " + certStr);
+            eConfig.setCaCertificate(strToX509Cert(certStr));
+        }
+        if (j.has(WifiEnterpriseConfig.CLIENT_CERT_KEY)
+                && j.has(WifiEnterpriseConfig.PRIVATE_KEY_ID_KEY)) {
+            String certStr = j.getString(WifiEnterpriseConfig.CLIENT_CERT_KEY);
+            String keyStr = j.getString(WifiEnterpriseConfig.PRIVATE_KEY_ID_KEY);
+            Log.v("Client Cert String is " + certStr);
+            Log.v("Client Key String is " + keyStr);
+            X509Certificate cert = strToX509Cert(certStr);
+            PrivateKey privKey = strToPrivateKey(keyStr);
+            Log.v("Cert is " + cert);
+            Log.v("Private Key is " + privKey);
+            eConfig.setClientKeyEntry(privKey, cert);
+        }
+        if (j.has(WifiEnterpriseConfig.IDENTITY_KEY)) {
+            String identity = j.getString(WifiEnterpriseConfig.IDENTITY_KEY);
+            Log.v("Setting identity to " + identity);
+            eConfig.setIdentity(identity);
+        }
+        if (j.has(WifiEnterpriseConfig.PASSWORD_KEY)) {
+            String pwd = j.getString(WifiEnterpriseConfig.PASSWORD_KEY);
+            Log.v("Setting password to " + pwd);
+            eConfig.setPassword(pwd);
+        }
+        if (j.has(WifiEnterpriseConfig.ALTSUBJECT_MATCH_KEY)) {
+            String altSub = j.getString(WifiEnterpriseConfig.ALTSUBJECT_MATCH_KEY);
+            Log.v("Setting Alt Subject to " + altSub);
+            eConfig.setAltSubjectMatch(altSub);
+        }
+        config.enterpriseConfig = eConfig;
         return config;
+    }
+
+    private WifiConfiguration genWifiConfig(String SSID, String pwd) {
+        WifiConfiguration wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = "\"" + SSID + "\"";
+        if (pwd == null) {
+            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        } else {
+            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            wifiConfig.preSharedKey = "\"" + pwd + "\"";
+        }
+        return wifiConfig;
+    }
+
+    private boolean matchScanResult(ScanResult result, String id) {
+        if (result.BSSID.equals(id) || result.SSID.equals(id)) {
+            return true;
+        }
+        return false;
     }
 
     private WifiConfiguration parseWifiApConfig(String configStr) throws JSONException {
@@ -304,14 +386,54 @@ public class WifiManagerFacade extends RpcReceiver {
             info.pin = j.getString("pin");
         }
         return info;
-
     }
 
-    private boolean matchScanResult(ScanResult result, String id) {
-        if (result.BSSID.equals(id) || result.SSID.equals(id)) {
-            return true;
-        }
-        return false;
+    private byte[] base64StrToBytes(String input) {
+        return Base64.decode(input, Base64.DEFAULT);
+    }
+
+    private X509Certificate strToX509Cert(String certStr) throws CertificateException {
+        byte[] certBytes = base64StrToBytes(certStr);
+        InputStream certStream = new ByteArrayInputStream(certBytes);
+        CertificateFactory cf = CertificateFactory.getInstance("X509");
+        return (X509Certificate) cf.generateCertificate(certStream);
+    }
+
+    private PrivateKey strToPrivateKey(String key) throws NoSuchAlgorithmException,
+    InvalidKeySpecException {
+        byte[] keyBytes = base64StrToBytes(key);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory fact = KeyFactory.getInstance("RSA");
+        PrivateKey priv = fact.generatePrivate(keySpec);
+        return priv;
+    }
+
+    private PublicKey strToPublicKey(String key) throws NoSuchAlgorithmException,
+    InvalidKeySpecException {
+        byte[] keyBytes = base64StrToBytes(key);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory fact = KeyFactory.getInstance("RSA");
+        PublicKey pub = fact.generatePublic(keySpec);
+        return pub;
+    }
+
+    private WifiConfiguration wifiConfigurationFromScanResult(ScanResult result) {
+        if (result == null)
+            return null;
+        WifiConfiguration config = new WifiConfiguration();
+        config.SSID = "\"" + result.SSID + "\"";
+        applyingkeyMgmt(config, result);
+        config.BSSID = result.BSSID;
+        config.scanResultCache = new HashMap<String, ScanResult>();
+        if (config.scanResultCache == null)
+            return null;
+        config.scanResultCache.put(result.BSSID, result);
+        return config;
+    }
+
+    @Rpc(description = "Test for base64 string transfer.")
+    public void wifiTest(String base64Str) throws JSONException, UnsupportedEncodingException {
+        Log.d(new String(Base64.decode(base64Str, Base64.DEFAULT), "UTF-8"));
     }
 
     @Rpc(description = "Add a network.")
@@ -337,18 +459,6 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
     }
 
-    private WifiConfiguration genWifiConfig(String SSID, String pwd) {
-        WifiConfiguration wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "\"" + SSID + "\"";
-        if (pwd.length() == 0) {
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        } else {
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-            wifiConfig.preSharedKey = "\"" + pwd + "\"";
-        }
-        return wifiConfig;
-    }
-
     /**
      * Connects to a WPA protected wifi network
      *
@@ -366,7 +476,12 @@ public class WifiManagerFacade extends RpcReceiver {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
-        for (WifiConfiguration conf : mWifi.getConfiguredNetworks()) {
+        List<WifiConfiguration> configuredNetworks = mWifi.getConfiguredNetworks();
+        if (configuredNetworks == null) {
+            Log.d("No configured network available.");
+            return false;
+        }
+        for (WifiConfiguration conf : configuredNetworks) {
             if (conf.SSID != null && conf.SSID.equals("\"" + SSID + "\"")) {
                 mWifi.disconnect();
                 mWifi.enableNetwork(conf.networkId, true);
@@ -388,6 +503,15 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiEnableNetwork(@RpcParameter(name = "netId") Integer netId,
             @RpcParameter(name = "disableOthers") Boolean disableOthers) {
         return mWifi.enableNetwork(netId, disableOthers);
+    }
+
+    @Rpc(description = "Connect to a wifi network that uses Enterprise authentication methods.")
+    public void wifiEnterpriseConnect(@RpcParameter(name = "configStr") String configStr)
+            throws JSONException, GeneralSecurityException {
+        // Create Certificate
+        WifiActionListener listener = new WifiActionListener(mEventFacade, "EnterpriseConnect");
+        WifiConfiguration config = this.genEnterpriseConfig(configStr);
+        mWifi.connect(config, listener);
     }
 
     /**
@@ -536,9 +660,11 @@ public class WifiManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Stop listening for wifi state change related broadcasts.")
     public void wifiStopTrackingStateChange() {
-        mService.unregisterReceiver(mTetherStateReceiver);
-        mService.unregisterReceiver(mStateChangeReceiver);
-        mTrackingWifiStateChange = false;
+        if (mTrackingWifiStateChange == true) {
+            mService.unregisterReceiver(mTetherStateReceiver);
+            mService.unregisterReceiver(mStateChangeReceiver);
+            mTrackingWifiStateChange = false;
+        }
     }
 
     @Rpc(description = "Toggle Wifi on and off.", returns = "True if Wifi is enabled.")
@@ -550,11 +676,31 @@ public class WifiManagerFacade extends RpcReceiver {
         return enabled;
     }
 
+    @Rpc(description = "Toggle Wifi scan always available on and off.",
+            returns = "True if Wifi scan is always available.")
+    public Boolean wifiToggleScanAlwaysAvailable(
+            @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
+                    throws SettingNotFoundException {
+        ContentResolver cr = mService.getContentResolver();
+        int isSet = 0;
+        if (enabled == null) {
+            isSet = Global.getInt(cr, Global.WIFI_SCAN_ALWAYS_AVAILABLE);
+            isSet ^= 1;
+        } else if (enabled == true) {
+            isSet = 1;
+        }
+        Global.putInt(cr, Global.WIFI_SCAN_ALWAYS_AVAILABLE, isSet);
+        if (isSet == 1) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void shutdown() {
         wifiLockRelease();
-        if(mTrackingWifiStateChange == true) {
-          mService.unregisterReceiver(mStateChangeReceiver);
+        if (mTrackingWifiStateChange == true) {
+            wifiStopTrackingStateChange();
         }
     }
 }
