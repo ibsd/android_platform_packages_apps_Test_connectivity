@@ -16,6 +16,7 @@
 
 package com.googlecode.android_scripting.facade.tele;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -77,7 +78,6 @@ public class PhoneFacade extends RpcReceiver {
     private final AndroidFacade mAndroidFacade;
     private final EventFacade mEventFacade;
     private final TelephonyManager mTelephonyManager;
-
     private ITelephony mITelephony;
     private final SubscriptionManager mSubscriptionManager;
     private List<SubscriptionInfo> mSubInfos;
@@ -149,6 +149,62 @@ public class PhoneFacade extends RpcReceiver {
     public boolean phoneSetPreferredNetworkType(String mode) {
         return phoneSetPreferredNetworkTypeForSubscription(mode,
                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Tethering Entitlement Check")
+    public boolean phoneIsTetheringModeAllowed(String mode, Integer timeout) {
+        String[] mProvisionApp = mService.getResources().getStringArray(
+                com.android.internal.R.array.config_mobile_hotspot_provision_app);
+        /* following check defined in
+            packages/apps/Settings/src/com/android/settings/TetherSettings.java
+            isProvisioningNeeded
+        */
+        if ((mProvisionApp == null) || (mProvisionApp.length != 2)){
+            Log.d("phoneIsTetheringModeAllowed: no check is present.");
+            return true;
+        }
+        Log.d("phoneIsTetheringModeAllowed mProvisionApp 0 " + mProvisionApp[0]);
+        Log.d("phoneIsTetheringModeAllowed mProvisionApp 1 " + mProvisionApp[1]);
+
+        // FIXME: Need to use TetherSettings.xxx to replace the following private definitions.
+        /* defined in packages/apps/Settings/src/com/android/settings/TetherSettings.java
+        public static final int INVALID             = -1;
+        public static final int WIFI_TETHERING      = 0;
+        public static final int USB_TETHERING       = 1;
+        public static final int BLUETOOTH_TETHERING = 2;
+        private static final int PROVISION_REQUEST = 0;
+        */
+        final int INVALID             = -1;
+        final int WIFI_TETHERING      = 0;
+        final int USB_TETHERING       = 1;
+        final int BLUETOOTH_TETHERING = 2;
+        final int PROVISION_REQUEST = 0;
+
+        int mTetherChoice = INVALID;
+        if (mode.equals("wifi")){
+            mTetherChoice = WIFI_TETHERING;
+        } else if (mode.equals("usb")) {
+            mTetherChoice = USB_TETHERING;
+        } else if (mode.equals("bluetooth")) {
+            mTetherChoice = BLUETOOTH_TETHERING;
+        }
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.setClassName(mProvisionApp[0], mProvisionApp[1]);
+        intent.putExtra("TETHER_TYPE", mTetherChoice);
+        int result;
+        try{
+            result = mAndroidFacade.startActivityForResultCodeWithTimeout(
+                intent, PROVISION_REQUEST, timeout);
+        } catch (Exception e) {
+            Log.d("phoneTetherCheck exception" + e.toString());
+            return false;
+        }
+
+        if (result == Activity.RESULT_OK) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Rpc(description = "Set preferred network setting " +
@@ -1056,9 +1112,29 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Enables or Disables Video Calling()")
+    public void enableVideoCalling(boolean enable) {
+        mTelephonyManager.enableVideoCalling(enable);
+    }
+
+    @Rpc(description = "Returns a boolean of isVideoCallingEnabled()")
+    public Boolean isVideoCallingEnabled() {
+        return mTelephonyManager.isVideoCallingEnabled();
+    }
+
     @Rpc(description = "Returns a boolean of isImsRegistered()")
     public Boolean isImsRegistered() {
         return mTelephonyManager.isImsRegistered();
+    }
+
+    @Rpc(description = "Returns a boolean of isVolteEnabled()")
+    public Boolean isVolteEnabled() {
+        return mTelephonyManager.isVolteEnabled();
+    }
+
+    @Rpc(description = "Returns a boolean of isWifiCallingEnabled()")
+    public Boolean isWifiCallingEnabled() {
+        return mTelephonyManager.isWifiCallingEnabled();
     }
 
     @Rpc(description = "Returns the service state for default subscription ID")

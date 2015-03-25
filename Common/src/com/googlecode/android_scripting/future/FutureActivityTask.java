@@ -24,10 +24,11 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Encapsulates an {@link Activity} and a {@link FutureObject}.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public abstract class FutureActivityTask<T> {
@@ -78,6 +79,10 @@ public abstract class FutureActivityTask<T> {
 
   public T getResult() throws InterruptedException {
     return mResult.get();
+  }
+
+  public T getResult(long timeout, TimeUnit unit) throws InterruptedException {
+    return mResult.get(timeout, unit);
   }
 
   public void finish() {

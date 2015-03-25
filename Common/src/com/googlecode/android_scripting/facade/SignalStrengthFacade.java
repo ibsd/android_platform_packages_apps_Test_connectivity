@@ -18,7 +18,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Exposes SignalStrength functionality.
- * 
+ *
  * @author Joerg Zieren (joerg.zieren@gmail.com)
  */
 @RpcMinSdk(7)
@@ -28,9 +28,11 @@ public class SignalStrengthFacade extends RpcReceiver {
   private final EventFacade mEventFacade;
   private final PhoneStateListener mPhoneStateListener;
   private Bundle mSignalStrengths;
+  private final int INVALID_VALUE = Integer.MIN_VALUE;
 
   public SignalStrengthFacade(FacadeManager manager) {
     super(manager);
+    mSignalStrengths = new Bundle();
     mService = manager.getService();
     mEventFacade = manager.getReceiver(EventFacade.class);
     mTelephonyManager =
@@ -41,13 +43,24 @@ public class SignalStrengthFacade extends RpcReceiver {
         return new PhoneStateListener() {
           @Override
           public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            mSignalStrengths = new Bundle();
-            mSignalStrengths.putInt("gsm_signal_strength", signalStrength.getGsmSignalStrength());
-            mSignalStrengths.putInt("gsm_bit_error_rate", signalStrength.getGsmBitErrorRate());
-            mSignalStrengths.putInt("cdma_dbm", signalStrength.getCdmaDbm());
-            mSignalStrengths.putInt("cdma_ecio", signalStrength.getCdmaEcio());
-            mSignalStrengths.putInt("evdo_dbm", signalStrength.getEvdoDbm());
-            mSignalStrengths.putInt("evdo_ecio", signalStrength.getEvdoEcio());
+            mSignalStrengths.putInt("GsmSignalStrength", signalStrength.getGsmSignalStrength());
+            mSignalStrengths.putInt("GsmBitErrorRate", signalStrength.getGsmBitErrorRate());
+            mSignalStrengths.putInt("CdmaEcio", signalStrength.getCdmaEcio());
+            mSignalStrengths.putInt("EvdoDbm", signalStrength.getEvdoDbm());
+            mSignalStrengths.putInt("EvdoEcio", signalStrength.getEvdoEcio());
+            mSignalStrengths.putInt("LteSignalStrength", signalStrength.getLteSignalStrength());
+            mSignalStrengths.putInt("LteDbm", signalStrength.getLteDbm());
+            mSignalStrengths.putInt("LteLevel", signalStrength.getLteLevel());
+            mSignalStrengths.putInt("LteAsuLevel", signalStrength.getLteAsuLevel());
+            mSignalStrengths.putInt("Level", signalStrength.getLevel());
+            mSignalStrengths.putInt("AsuLevel", signalStrength.getAsuLevel());
+            mSignalStrengths.putInt("Dbm", signalStrength.getDbm());
+            mSignalStrengths.putInt("GsmDbm", signalStrength.getGsmDbm());
+            mSignalStrengths.putInt("GsmLevel", signalStrength.getGsmLevel());
+            mSignalStrengths.putInt("GsmAsuLevel", signalStrength.getGsmAsuLevel());
+            mSignalStrengths.putInt("CdmaLevel", signalStrength.getCdmaLevel());
+            mSignalStrengths.putInt("CdmaAsuLevel", signalStrength.getCdmaAsuLevel());
+            mSignalStrengths.putInt("CdmaDbm", signalStrength.getCdmaDbm());
             mEventFacade.postEvent("signal_strengths", mSignalStrengths.clone());
           }
         };
@@ -62,8 +75,26 @@ public class SignalStrengthFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Returns the current signal strengths.", returns = "A map of \"gsm_signal_strength\"")
-  public Bundle readSignalStrengths() {
+  public Bundle phoneGetSignalStrengthInfo() {
     return mSignalStrengths;
+  }
+
+  @Rpc(description = "Returns current signal strength in dBm.")
+  public Integer phoneGetSignalStrengthDbm() {
+    Integer result = mSignalStrengths.getInt("Dbm", INVALID_VALUE);
+    return (result.equals(INVALID_VALUE)?null:result);
+  }
+
+  @Rpc(description = "Returns current signal strength in AsuLevel.")
+  public Integer phoneGetSignalStrengthAsu() {
+    Integer result = mSignalStrengths.getInt("AsuLevel", INVALID_VALUE);
+    return (result.equals(INVALID_VALUE)?null:result);
+  }
+
+  @Rpc(description = "Returns current signal strength in Level.")
+  public Integer phoneGetSignalStrengthLevel() {
+    Integer result = mSignalStrengths.getInt("Level", INVALID_VALUE);
+    return (result.equals(INVALID_VALUE)?null:result);
   }
 
   @Rpc(description = "Stops tracking signal strength.")

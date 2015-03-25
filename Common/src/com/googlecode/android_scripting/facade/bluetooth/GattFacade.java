@@ -906,6 +906,7 @@ public class GattFacade extends RpcReceiver {
     }
 
     /**
+     * Returns the list of discovered Bluetooth Gatt Services.
      * @throws Exception
      */
     @Rpc(description = "Get Bluetooth Gatt Services")
@@ -915,6 +916,26 @@ public class GattFacade extends RpcReceiver {
             ) throws Exception {
         if (mBluetoothGattDiscoveredServicesList.get(index) != null) {
             return mBluetoothGattDiscoveredServicesList.get(index).size();
+        } else {
+            throw new Exception("Invalid index input:" + index);
+        }
+    }
+
+    /**
+     * Returns the discovered Bluetooth Gatt Service Uuid.
+     * @throws Exception
+     */
+    @Rpc(description = "Get Bluetooth Gatt Service Uuid")
+    public String gattGetDiscoveredServiceUuid (
+            @RpcParameter(name = "index")
+            Integer index,
+            @RpcParameter(name = "serviceIndex")
+            Integer serviceIndex
+            ) throws Exception {
+        List<BluetoothGattService> mBluetoothServiceList =
+            mBluetoothGattDiscoveredServicesList.get(index);
+        if (mBluetoothServiceList != null) {
+            return mBluetoothServiceList.get(serviceIndex).getUuid().toString();
         } else {
             throw new Exception("Invalid index input:" + index);
         }

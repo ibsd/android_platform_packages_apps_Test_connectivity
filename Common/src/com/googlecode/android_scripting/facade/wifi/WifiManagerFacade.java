@@ -173,12 +173,13 @@ public class WifiManagerFacade extends RpcReceiver {
 
         @Override
         public void onSuccess() {
+            Log.d("WifiActionListener  onSuccess called for " + mEventType + TAG + "OnSuccess");
             mEventFacade.postEvent(mEventType + TAG + "OnSuccess", null);
         }
 
         @Override
         public void onFailure(int reason) {
-            Log.d("WifiActionListener  " + mEventType);
+            Log.d("WifiActionListener  onFailure called for" + mEventType);
             Bundle msg = new Bundle();
             msg.putInt("reason", reason);
             mEventFacade.postEvent(mEventType + TAG + "OnFailure", msg);
@@ -334,6 +335,7 @@ public class WifiManagerFacade extends RpcReceiver {
     private WifiConfiguration genWifiConfig(String SSID, String pwd) {
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "\"" + SSID + "\"";
+        Log.v("genWifiConfig pwd " + pwd);
         if (pwd == null) {
             wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         } else {
@@ -471,8 +473,8 @@ public class WifiManagerFacade extends RpcReceiver {
             returns = "True if the operation succeeded.")
     public Boolean wifiConnect(
             @RpcParameter(name = "SSID") String SSID,
-            @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password)
-            throws ConnectException {
+            @RpcParameter(name = "Password") @RpcOptional String Password)
+                    throws ConnectException {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
@@ -591,7 +593,7 @@ public class WifiManagerFacade extends RpcReceiver {
      */
     @Rpc(description = "Connects a wifi network as priority by pasing ssid")
     public void wifiPriorityConnect(@RpcParameter(name = "SSID") String SSID,
-            @RpcParameter(name = "Password") @RpcOptional @RpcDefault(value = "") String Password) {
+            @RpcParameter(name = "Password") @RpcOptional String Password) {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         WifiActionListener listener = new WifiActionListener(mEventFacade, "PriorityConnect");
         mWifi.connect(wifiConfig, listener);
