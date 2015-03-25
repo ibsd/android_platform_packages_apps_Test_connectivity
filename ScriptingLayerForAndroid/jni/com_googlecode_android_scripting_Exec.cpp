@@ -26,7 +26,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdio.h>
-
+#include <string.h>
+ 
 #include "android/log.h"
 
 #define LOG_TAG "Exec"
