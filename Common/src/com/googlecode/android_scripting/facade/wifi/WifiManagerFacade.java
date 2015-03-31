@@ -50,7 +50,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -474,7 +473,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiConnect(
             @RpcParameter(name = "SSID") String SSID,
             @RpcParameter(name = "Password") @RpcOptional String Password)
-                    throws ConnectException {
+            throws ConnectException {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
@@ -682,7 +681,7 @@ public class WifiManagerFacade extends RpcReceiver {
             returns = "True if Wifi scan is always available.")
     public Boolean wifiToggleScanAlwaysAvailable(
             @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
-                    throws SettingNotFoundException {
+            throws SettingNotFoundException {
         ContentResolver cr = mService.getContentResolver();
         int isSet = 0;
         if (enabled == null) {

@@ -326,14 +326,20 @@ public class WifiScannerFacade extends RpcReceiver {
         return result;
     }
 
-    private BssidInfo parseBssidInfo(String info) throws JSONException {
-        JSONObject bi = new JSONObject(info);
-        BssidInfo bssidInfo = new BssidInfo();
-        bssidInfo.bssid = bi.getString("bssid");
-        bssidInfo.high = bi.getInt("high");
-        bssidInfo.low = bi.getInt("low");
-        bssidInfo.frequencyHint = bi.getInt("frequencyHint");
-        return bssidInfo;
+    private BssidInfo[] parseBssidInfo(JSONArray jBssids) throws JSONException {
+        BssidInfo[] bssids = new BssidInfo[jBssids.length()];
+        for (int i = 0; i < bssids.length; i++) {
+              JSONObject bi = (JSONObject)jBssids.get(i);
+              BssidInfo bssidInfo = new BssidInfo();
+              bssidInfo.bssid = bi.getString("BSSID");
+              bssidInfo.high = bi.getInt("high");
+              bssidInfo.low = bi.getInt("low");
+              if (bi.has("frequencyHint")) {
+                bssidInfo.frequencyHint = bi.getInt("frequencyHint");
+              }
+              bssids[i] = bssidInfo;
+          }
+        return bssids;
     }
 
     /**
@@ -464,15 +470,11 @@ public class WifiScannerFacade extends RpcReceiver {
      */
     @Rpc(description = "Starts tracking changes of the specified bssids.")
     public Integer wifiScannerStartTrackingBssids(
-            @RpcParameter(name = "bssidInfos") String[] bssidInfos,
-            @RpcParameter(name = "apLostThreshold") Integer apLostThreshold
-            ) throws JSONException {
-        BssidInfo[] infos = new BssidInfo[bssidInfos.length];
-        for (int i = 0; i < bssidInfos.length; i++) {
-            infos[i] = parseBssidInfo(bssidInfos[i]);
-        }
+            @RpcParameter(name = "bssidInfos") JSONArray  bssidInfos,
+            @RpcParameter(name = "apLostThreshold") Integer  apLostThreshold)throws JSONException {
+        BssidInfo[] bssids = parseBssidInfo(bssidInfos);
         WifiBssidListener listener = genWifiBssidListener();
-        mScan.startTrackingBssids(infos, apLostThreshold, listener);
+        mScan.startTrackingBssids(bssids, apLostThreshold, listener);
         return listener.mIndex;
     }
 
@@ -535,39 +537,6 @@ public class WifiScannerFacade extends RpcReceiver {
                 periodInMs, mBssidInfos);
         mScan.startTrackingWifiChange(mListener);
         return mListener.mIndex;
-    }
-
-    /**
-     * Starts tracking changes of the wifi networks specified in a list of bssid
-     *
-     * @param bssidInfos a list specifying which wifi networks to track
-     * @param apLostThreshold signal strength below which an AP is considered lost
-     * @return the id of the bssid listener associated with this track
-     * @throws Exception
-     */
-    @Rpc(description = "Starts tracking changes in the APs specified by the list")
-    public Integer startTrackingBssid(String[] bssidInfos, Integer apLostThreshold)
-            throws Exception {
-        // Instantiates BssidInfo objs
-        BssidInfo[] mBssidInfos = new BssidInfo[bssidInfos.length];
-        for (int i = 0; i < bssidInfos.length; i++) {
-            Log.d("android_scripting " + bssidInfos[i]);
-            String[] tokens = bssidInfos[i].split(" ");
-            if (tokens.length != 3) {
-                throw new Exception("Invalid bssid info: " + bssidInfos[i]);
-
-            }
-            int a = Integer.parseInt(tokens[1]);
-            int b = Integer.parseInt(tokens[2]);
-            BssidInfo mBI = new BssidInfo();
-            mBI.bssid = tokens[0];
-            mBI.low = a < b ? a : b;
-            mBI.high = a < b ? b : a;
-            mBssidInfos[i] = mBI;
-        }
-        WifiBssidListener mWHL = genWifiBssidListener();
-        mScan.startTrackingBssids(mBssidInfos, apLostThreshold, mWHL);
-        return mWHL.mIndex;
     }
 
     /**
