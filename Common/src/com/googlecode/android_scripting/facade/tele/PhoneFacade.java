@@ -260,9 +260,7 @@ public class PhoneFacade extends RpcReceiver {
         }
         Log.v("SL4A: Setting the preferred network setting of subId: "
                 + subId +"to:" + networkType);
-        mTelephonyManager.setPreferredNetworkType(networkType);
-        // TODO No framework API for setPreferredNetworkType(int subId)
-        // Need to find some other way to do this
+        mTelephonyManager.setPreferredNetworkType(subId, networkType);
         return true;
     }
 
@@ -277,9 +275,7 @@ public class PhoneFacade extends RpcReceiver {
                        "specified subscription ID .Return value is integer.")
     public int phoneGetPreferredNetworkTypeIntegerForSubscription(
                @RpcParameter(name = "subId") Integer subId) {
-        // TODO No framework API for getPreferredNetworkType(int subId)
-        // Need to find some other way to do this
-        return mTelephonyManager.getPreferredNetworkType();
+        return mTelephonyManager.getPreferredNetworkType(subId);
     }
 
     @Rpc(description = "Get preferred network setting for " +
@@ -293,9 +289,7 @@ public class PhoneFacade extends RpcReceiver {
                        "specified subscription ID.Return value is String.")
     public String phoneGetPreferredNetworkTypeForSubscription(
             @RpcParameter(name = "subId") Integer subId) {
-        // TODO No framework API for getPreferredNetworkType(int subId)
-        // Need to find some other way to do this
-        int mode = mTelephonyManager.getPreferredNetworkType();
+        int mode = mTelephonyManager.getPreferredNetworkType(subId);
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
             switch (mode) {
@@ -1088,10 +1082,16 @@ public class PhoneFacade extends RpcReceiver {
 
     @Rpc(description = "Sets the preferred Network type")
     public void setPreferredNetwork(Integer networktype) {
+        Integer subId = SubscriptionManager.getDefaultSubId();
+        setPreferredNetworkForSubscription(subId, networktype);
+    }
+
+    @Rpc(description = "Sets the preferred network type for the given subId")
+    public void setPreferredNetworkForSubscription(Integer subId, Integer networktype) {
         android.provider.Settings.Global.putInt(mService.getContentResolver(),
-                android.provider.Settings.Global.PREFERRED_NETWORK_MODE,
+                android.provider.Settings.Global.PREFERRED_NETWORK_MODE + subId,
                 networktype );
-        mTelephonyManager.setPreferredNetworkType(networktype);
+        mTelephonyManager.setPreferredNetworkType(subId, networktype);
     }
 
     @Rpc(description = "Returns the current data connection state")
