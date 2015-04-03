@@ -176,6 +176,7 @@ public class EventFacade extends RpcReceiver {
       @RpcParameter(name = "timeout", description = "the maximum time to wait (in ms)") @RpcOptional Integer timeout)
       throws InterruptedException {
     Event result = null;
+    final FutureResult<Event> futureEvent;
     synchronized (mEventQueue) { // First check to make sure it isn't already there
       for (Event event : mEventQueue) {
         if (event.getName().equals(eventName)) {
@@ -185,27 +186,31 @@ public class EventFacade extends RpcReceiver {
           return result;
         }
       }
-    }
-    final FutureResult<Event> futureEvent = new FutureResult<Event>();
-    addNamedEventObserver(eventName, new EventObserver() {
-      @Override
-      public void onEventReceived(Event event) {
-        if (event.getName().equals(eventName)) {
-          synchronized (futureEvent) {
-            if (!futureEvent.isDone()) {
-              futureEvent.set(event);
-              removeEventObserver(this);
+      futureEvent = new FutureResult<Event>();
+      addNamedEventObserver(eventName, new EventObserver() {
+        @Override
+        public void onEventReceived(Event event) {
+          if (event.getName().equals(eventName)) {
+            synchronized (futureEvent) {
+              if (!futureEvent.isDone()) {
+                futureEvent.set(event);
+                //TODO(navtej) Remove log.
+                Log.v(String.format("Removeing observer (%s) got event  (%s)",this, event));
+                removeEventObserver(this);
+              }
+              if(removeEvent)
+                mEventQueue.remove(event);
             }
-            if(removeEvent)
-              mEventQueue.remove(event);
           }
         }
+      });
+    }
+    if (futureEvent != null) {
+      if (timeout != null) {
+        result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
+      } else {
+        result = futureEvent.get();
       }
-    });
-    if (timeout != null) {
-      result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
-    } else {
-      result = futureEvent.get();
     }
     return result;
   }
@@ -216,24 +221,26 @@ public class EventFacade extends RpcReceiver {
       throws InterruptedException {
     Event result = null;
     final FutureResult<Event> futureEvent = new FutureResult<Event>();
+    EventObserver observer;
     synchronized (mEventQueue) { // Anything in queue?
       if (mEventQueue.size() > 0) {
-        return mEventQueue.poll(); // return it.
+         return mEventQueue.poll(); // return it.
       }
-    }
-    EventObserver observer = new EventObserver() {
-      @Override
-      public void onEventReceived(Event event) { // set up observer for any events.
-        synchronized (futureEvent) {
-          if (!futureEvent.isDone()) {
-            futureEvent.set(event);
+      observer = new EventObserver() {
+        @Override
+        public void onEventReceived(Event event) { // set up observer for any events.
+          synchronized (futureEvent) {
+            if (!futureEvent.isDone()) {
+              futureEvent.set(event);
+              //TODO(navtej) Remove log.
+              Log.v(String.format("onEventReceived for event (%s)", event));
+            }
+            mEventQueue.remove(event);
           }
-          removeEventObserver(this);
-          mEventQueue.remove(event);
         }
-      }
-    };
-    addGlobalEventObserver(observer);
+      };
+      addGlobalEventObserver(observer);
+    }
     if (timeout != null) {
         result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
         if(result == null){
@@ -242,7 +249,11 @@ public class EventFacade extends RpcReceiver {
     } else {
         result = futureEvent.get();
     }
-    removeEventObserver(observer); // Make quite sure this goes away.
+    //TODO(navtej) Remove log.
+    Log.v(String.format("Removeing observer (%s) got event  (%s)", observer, result ));
+    if (observer != null) {
+      removeEventObserver(observer); // Make quite sure this goes away.
+    }
     return result;
   }
 
@@ -291,6 +302,8 @@ public class EventFacade extends RpcReceiver {
       }
     }
     synchronized (mGlobalEventObservers) {
+      //TODO(navtej) Remove log.
+      Log.v(String.format("mGlobalEventObservers size (%s)", mGlobalEventObservers.size()));
       for (EventObserver observer : mGlobalEventObservers) {
         observer.onEventReceived(event);
       }
@@ -344,6 +357,7 @@ public class EventFacade extends RpcReceiver {
       }
       bEventServerRunning = false;
       mEventServer.shutdown();
+      Log.v(String.format("stopEventDispatcher   (%s)", mEventServer ));
       removeEventObserver(mEventServer);
       mEventServer = null;
     }
