@@ -4,7 +4,6 @@ package com.googlecode.android_scripting.facade.wifi;
 import android.app.Service;
 import android.content.Context;
 import android.net.wifi.RttManager;
-import android.net.wifi.RttManager.Capabilities;
 import android.net.wifi.RttManager.RttCapabilities;
 import android.net.wifi.RttManager.RttListener;
 import android.net.wifi.RttManager.RttParams;
@@ -144,6 +143,9 @@ public class WifiRttManagerFacade extends RpcReceiver {
         }
         if (j.has("numberBurst")) {
             result.numberBurst = j.getInt("numberBurst");
+        }
+        if (j.has("burstTimeout")) {
+            result.burstTimeout = j.getInt("burstTimeout");
         }
         if (j.has("interval")) {
             result.interval = j.getInt("interval");
