@@ -48,6 +48,7 @@ import com.googlecode.android_scripting.facade.tele.ImsManagerFacade;
 import com.googlecode.android_scripting.facade.tele.PhoneFacade;
 import com.googlecode.android_scripting.facade.tele.TelecomManagerFacade;
 import com.googlecode.android_scripting.facade.tele.SubscriptionManagerFacade;
+import com.googlecode.android_scripting.facade.tele.TelecomCallFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.facade.wifi.HttpFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiManagerFacade;
@@ -142,6 +143,8 @@ public class FacadeConfiguration {
             sFacadeClassList.add(WifiRttManagerFacade.class);
             sFacadeClassList.add(WifiScannerFacade.class);
             sFacadeClassList.add(SubscriptionManagerFacade.class);
+            sFacadeClassList.add(TelecomCallFacade.class);
+
         }
 
         for (Class<? extends RpcReceiver> recieverClass : sFacadeClassList) {
