@@ -425,10 +425,6 @@ public class WifiManagerFacade extends RpcReceiver {
         config.SSID = "\"" + result.SSID + "\"";
         applyingkeyMgmt(config, result);
         config.BSSID = result.BSSID;
-        config.scanResultCache = new HashMap<String, ScanResult>();
-        if (config.scanResultCache == null)
-            return null;
-        config.scanResultCache.put(result.BSSID, result);
         return config;
     }
 
