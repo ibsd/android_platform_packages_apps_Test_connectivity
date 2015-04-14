@@ -250,7 +250,7 @@ public class EventFacade extends RpcReceiver {
         result = futureEvent.get();
     }
     //TODO(navtej) Remove log.
-    Log.v(String.format("Removeing observer (%s) got event  (%s)", observer, result ));
+    Log.v(String.format("Removing observer (%s) got event  (%s)", observer, result ));
     if (observer != null) {
       removeEventObserver(observer); // Make quite sure this goes away.
     }

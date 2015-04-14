@@ -50,7 +50,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONException;
@@ -552,6 +551,16 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.isWifiApEnabled();
     }
 
+    @Rpc(description = "Check if Device-to-AP RTT is supported.")
+    public Boolean wifiIsDeviceToApRttSupported() {
+        return mWifi.isDeviceToApRttSupported();
+    }
+
+    @Rpc(description = "Check if Device-to-device RTT is supported.")
+    public Boolean wifiIsDeviceToDeviceRttSupported() {
+        return mWifi.isDeviceToDeviceRttSupported();
+    }
+
     @Rpc(description = "Check if this adapter supports advanced power/performance counters.")
     public Boolean wifiIsEnhancedPowerReportingSupported() {
         return mWifi.isEnhancedPowerReportingSupported();
@@ -560,6 +569,11 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Check if wifi scanner is supported on this device.")
     public Boolean wifiIsScannerSupported() {
         return mWifi.isWifiScannerSupported();
+    }
+
+    @Rpc(description = "Check if tdls is supported on this device.")
+    public Boolean wifiIsTdlsSupported() {
+        return mWifi.isTdlsSupported();
     }
 
     @Rpc(description = "Acquires a full Wifi lock.")
@@ -628,6 +642,14 @@ public class WifiManagerFacade extends RpcReceiver {
         } else {
             return mWifi.setWifiApEnabled(null, enable);
         }
+    }
+
+    @Rpc(description = "Enable/disable tdls with a mac address.")
+    public void wifiSetTdlsEnabledWithMacAddress(
+            @RpcParameter(name = "remoteMacAddress") String remoteMacAddress,
+            @RpcParameter(name = "enable") Boolean enable
+            ) {
+        mWifi.setTdlsEnabledWithMacAddress(remoteMacAddress, enable);
     }
 
     @Rpc(description = "Starts a scan for Wifi access points.",

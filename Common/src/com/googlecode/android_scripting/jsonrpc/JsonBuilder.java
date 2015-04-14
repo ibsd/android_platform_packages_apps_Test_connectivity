@@ -58,8 +58,8 @@ import android.telecom.PhoneAccountHandle;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
-import android.telephony.gsm.GsmCellLocation;
 import android.telephony.SubscriptionInfo;
+import android.telephony.gsm.GsmCellLocation;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 
@@ -477,23 +477,35 @@ public class JsonBuilder {
         result.put("level", scanResult.level);
         result.put("capabilities", scanResult.capabilities);
         result.put("timestamp", scanResult.timestamp);
-        // The following fields are hidden for now, uncomment when they're
-        // unhidden
-        // result.put("seen", scanResult.seen);
-        // result.put("distanceCm", scanResult.distanceCm);
-        // result.put("distanceSdCm", scanResult.distanceSdCm);
-        // if (scanResult.informationElements != null){
-        // JSONArray infoEles = new JSONArray();
-        // for(ScanResult.InformationElement ie :
-        // scanResult.informationElements) {
-        // JSONObject infoEle = new JSONObject();
-        // infoEle.put("id", ie.id);
-        // infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes));
-        // infoEles.put(infoEle);
-        // }
-        // result.put("InfomationElements", infoEles);
-        // } else
-        // result.put("InfomationElements", null);
+        result.put("autoJoinStatus", scanResult.autoJoinStatus);
+        result.put("blackListTimestamp", scanResult.blackListTimestamp);
+        result.put("centerFreq0", scanResult.centerFreq0);
+        result.put("centerFreq1", scanResult.centerFreq1);
+        result.put("channelWidth", scanResult.channelWidth);
+        result.put("distanceCm", scanResult.distanceCm);
+        result.put("distanceSdCm", scanResult.distanceSdCm);
+        result.put("is80211McRTTResponder", scanResult.is80211McRTTResponder);
+        result.put("isAutoJoinCandidate", scanResult.isAutoJoinCandidate);
+        result.put("numConnection", scanResult.numConnection);
+        result.put("passpointNetwork", scanResult.passpointNetwork);
+        result.put("numIpConfigFailures", scanResult.numIpConfigFailures);
+        result.put("numUsage", scanResult.numUsage);
+        result.put("seen", scanResult.seen);
+        result.put("untrusted", scanResult.untrusted);
+        result.put("operatorFriendlyName", scanResult.operatorFriendlyName);
+        result.put("venueName", scanResult.venueName);
+        if (scanResult.informationElements != null) {
+            JSONArray infoEles = new JSONArray();
+            for (ScanResult.InformationElement ie : scanResult.informationElements) {
+                JSONObject infoEle = new JSONObject();
+                infoEle.put("id", ie.id);
+                infoEle.put("bytes", Base64Codec.encodeBase64(ie.bytes).toString());
+                infoEles.put(infoEle);
+            }
+            result.put("InfomationElements", infoEles);
+        } else {
+            result.put("InfomationElements", null);
+        }
         return result;
     }
 
