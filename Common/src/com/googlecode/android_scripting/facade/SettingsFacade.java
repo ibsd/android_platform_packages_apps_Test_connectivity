@@ -235,7 +235,7 @@ public class SettingsFacade extends RpcReceiver {
         // mLockPatternUtils.setLockPatternEnabled(true);
         mLockPatternUtils.setLockScreenDisabled(false);
         mLockPatternUtils.setCredentialRequiredToDecrypt(true);
-        mLockPatternUtils.saveLockPassword(password, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
+        mLockPatternUtils.saveLockPassword(password, null, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
     }
 
     @Rpc(description = "Disable screen lock password on the device.")
