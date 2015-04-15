@@ -229,8 +229,8 @@ public class JsonBuilder {
     private static JSONObject buildJsonAudioState(AudioState data)
             throws JSONException {
         JSONObject state = new JSONObject();
-        state.put("isMuted", data.isMuted);
-        state.put("AudioRoute", AudioState.audioRouteToString(data.route));
+        state.put("isMuted", data.isMuted());
+        state.put("AudioRoute", AudioState.audioRouteToString(data.getRoute()));
         return state;
     }
 
