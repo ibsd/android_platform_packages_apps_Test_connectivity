@@ -287,8 +287,6 @@ public class TelecomManagerFacade extends RpcReceiver {
             r = AudioState.ROUTE_SPEAKER;
         } else if (route == "WIRED_HEADSET") {
             r = AudioState.ROUTE_WIRED_HEADSET;
-        } else if (route == "ALL") {
-            r = AudioState.ROUTE_ALL;
         } else if (route == "WIRED_OR_EARPIECE") {
             r = AudioState.ROUTE_WIRED_OR_EARPIECE;
         }
