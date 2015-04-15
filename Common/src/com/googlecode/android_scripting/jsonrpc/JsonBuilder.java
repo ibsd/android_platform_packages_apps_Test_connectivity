@@ -525,7 +525,7 @@ public class JsonBuilder {
     private static JSONObject buildWifiActivityEnergyInfo(
             WifiActivityEnergyInfo data) throws JSONException {
         JSONObject result = new JSONObject();
-        result.put("ControllerEnergyUserd", data.getControllerEnergyUsed());
+        result.put("ControllerEnergyUsed", data.getControllerEnergyUsed());
         result.put("ControllerIdleTimeMillis",
                 data.getControllerIdleTimeMillis());
         result.put("ControllerRxTimeMillis", data.getControllerRxTimeMillis());
