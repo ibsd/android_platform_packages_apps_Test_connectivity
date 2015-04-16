@@ -18,7 +18,6 @@ package com.googlecode.android_scripting.facade;
 
 import android.content.Context;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -86,16 +85,6 @@ public class WakeLockFacade extends RpcReceiver {
         mmPowerManager = (PowerManager) manager.getService()
                 .getSystemService(Context.POWER_SERVICE);
         mManager = new WakeLockManager(mmPowerManager);
-    }
-
-    @Rpc(description = "Issue a request to put the device to sleep right away.")
-    public void goToSleepNow() {
-        mmPowerManager.goToSleep(SystemClock.uptimeMillis());
-    }
-
-    @Rpc(description = "Issue a request to wake the device up right away.")
-    public void wakeUpNow() {
-        mmPowerManager.wakeUp(SystemClock.uptimeMillis());
     }
 
     @Rpc(description = "Acquires a full wake lock (CPU on, screen bright, keyboard bright).")

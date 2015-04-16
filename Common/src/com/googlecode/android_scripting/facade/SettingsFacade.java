@@ -29,14 +29,11 @@ import android.view.WindowManager;
 import com.android.internal.widget.LockPatternUtils;
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.FutureActivityTaskExecutor;
-import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.future.FutureActivityTask;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-
-import java.lang.reflect.Method;
 
 /**
  * Exposes phone settings functionality.
@@ -197,31 +194,24 @@ public class SettingsFacade extends RpcReceiver {
         return oldValue;
     }
 
-    @Rpc(description = "Checks if the screen is on or off (requires API level 7).",
-            returns = "True if the screen is currently on.")
-    public Boolean checkScreenOn() throws Exception {
-        Class<?> powerManagerClass = mPower.getClass();
-        Boolean result = null;
-        try {
-            Method isScreenOn = powerManagerClass.getMethod("isScreenOn");
-            result = (Boolean) isScreenOn.invoke(mPower);
-        } catch (Exception e) {
-            Log.e(e);
-            throw new UnsupportedOperationException("This feature is only available after Eclair.");
-        }
-        return result;
+    @Rpc(description = "Returns true if the device is in an interactive state.")
+    public Boolean isDeviceInteractive() throws Exception {
+        return mPower.isInteractive();
     }
 
-    @Rpc(description = "Wakeup screen(requires API level 19).")
-    public void wakeupScreen() throws Exception {
-        Class<?> powerManagerClass = mPower.getClass();
-        try {
-            Method wakeUp = powerManagerClass.getMethod("wakeUp", long.class);
-            wakeUp.invoke(mPower, SystemClock.uptimeMillis());
-        } catch (Exception e) {
-            Log.e(e);
-            throw new UnsupportedOperationException("This feature is only available after Kitkat.");
-        }
+    @Rpc(description = "Issues a request to put the device to sleep after a delay.")
+    public void goToSleep(Integer delay) {
+        mPower.goToSleep(SystemClock.uptimeMillis() + delay);
+    }
+
+    @Rpc(description = "Issues a request to put the device to sleep right away.")
+    public void goToSleepNow() {
+        mPower.goToSleep(SystemClock.uptimeMillis());
+    }
+
+    @Rpc(description = "Issues a request to wake the device up right away.")
+    public void wakeUpNow() {
+        mPower.wakeUp(SystemClock.uptimeMillis());
     }
 
     @Rpc(description = "Get Up time of device.",
