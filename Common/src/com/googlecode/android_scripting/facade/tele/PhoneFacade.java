@@ -104,7 +104,7 @@ public class PhoneFacade extends RpcReceiver {
             Telephony.Carriers.TYPE, // 15
             Telephony.Carriers.PROTOCOL, // 16
             Telephony.Carriers.CARRIER_ENABLED, // 17
-            Telephony.Carriers.BEARER, // 18
+            Telephony.Carriers.BEARER_BITMASK, // 18
             Telephony.Carriers.ROAMING_PROTOCOL, // 19
             Telephony.Carriers.MVNO_TYPE, // 20
             Telephony.Carriers.MVNO_MATCH_DATA // 21
