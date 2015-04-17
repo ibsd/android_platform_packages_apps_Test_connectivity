@@ -23,6 +23,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.provider.Settings.SettingNotFoundException;
 import android.view.WindowManager;
 
@@ -222,21 +223,22 @@ public class SettingsFacade extends RpcReceiver {
 
     @Rpc(description = "Set a string password to the device.")
     public void setDevicePassword(@RpcParameter(name = "password") String password) {
-        // mLockPatternUtils.setLockPatternEnabled(true);
-        mLockPatternUtils.setLockScreenDisabled(false);
+        // mLockPatternUtils.setLockPatternEnabled(true, UserHandle.myUserId());
+        mLockPatternUtils.setLockScreenDisabled(false, UserHandle.myUserId());
         mLockPatternUtils.setCredentialRequiredToDecrypt(true);
-        mLockPatternUtils.saveLockPassword(password, null, DevicePolicyManager.PASSWORD_QUALITY_NUMERIC);
+        mLockPatternUtils.saveLockPassword(password, null,
+                DevicePolicyManager.PASSWORD_QUALITY_NUMERIC, UserHandle.myUserId());
     }
 
     @Rpc(description = "Disable screen lock password on the device.")
     public void disableDevicePassword() {
         mLockPatternUtils.clearEncryptionPassword();
-        // mLockPatternUtils.setLockPatternEnabled(false);
-        mLockPatternUtils.setLockScreenDisabled(true);
+        // mLockPatternUtils.setLockPatternEnabled(false, UserHandle.myUserId());
+        mLockPatternUtils.setLockScreenDisabled(true, UserHandle.myUserId());
         mLockPatternUtils.setCredentialRequiredToDecrypt(false);
         mLockPatternUtils.clearEncryptionPassword();
-        mLockPatternUtils.clearLock();
-        mLockPatternUtils.setLockScreenDisabled(true);
+        mLockPatternUtils.clearLock(UserHandle.myUserId());
+        mLockPatternUtils.setLockScreenDisabled(true, UserHandle.myUserId());
     }
 
     @Rpc(description = "Set the system time in epoch.")
