@@ -251,7 +251,6 @@ public class EventFacade extends RpcReceiver {
                             // TODO(navtej) Remove log.
                             Log.v(String.format("onEventReceived for event (%s)", event));
                         }
-                        mEventQueue.remove(event);
                     }
                 }
             };
@@ -259,11 +258,11 @@ public class EventFacade extends RpcReceiver {
         }
         if (timeout != null) {
             result = futureEvent.get(timeout, TimeUnit.MILLISECONDS);
-            if (result == null) {
-                result = new Event("eventTimeout", null);
-            }
         } else {
             result = futureEvent.get();
+        }
+        if (result != null) {
+            mEventQueue.remove(result);
         }
         // TODO(navtej) Remove log.
         Log.v(String.format("Removeing observer (%s) got event  (%s)", observer, result));
