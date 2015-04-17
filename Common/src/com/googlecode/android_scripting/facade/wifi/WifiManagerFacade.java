@@ -326,6 +326,11 @@ public class WifiManagerFacade extends RpcReceiver {
             Log.v("Setting Alt Subject to " + altSub);
             eConfig.setAltSubjectMatch(altSub);
         }
+        if (j.has(WifiEnterpriseConfig.DOM_SUFFIX_MATCH_KEY)) {
+            String domSuffix = j.getString(WifiEnterpriseConfig.DOM_SUFFIX_MATCH_KEY);
+            Log.v("Setting Domain Suffix Match to " + domSuffix);
+            eConfig.setDomSuffixMatch(domSuffix);
+        }
         config.enterpriseConfig = eConfig;
         return config;
     }
