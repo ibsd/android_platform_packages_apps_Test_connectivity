@@ -329,7 +329,7 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has(WifiEnterpriseConfig.DOM_SUFFIX_MATCH_KEY)) {
             String domSuffix = j.getString(WifiEnterpriseConfig.DOM_SUFFIX_MATCH_KEY);
             Log.v("Setting Domain Suffix Match to " + domSuffix);
-            eConfig.setDomSuffixMatch(domSuffix);
+            eConfig.setDomainSuffixMatch(domSuffix);
         }
         config.enterpriseConfig = eConfig;
         return config;
