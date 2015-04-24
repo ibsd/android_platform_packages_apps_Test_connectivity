@@ -152,6 +152,11 @@ public class PhoneFacade extends RpcReceiver {
                                 SubscriptionManager.getDefaultSubId());
     }
 
+    @Rpc(description = "Get if phone have voice capability")
+    public boolean phoneIsVoiceCapable() {
+        return mTelephonyManager.isVoiceCapable();
+    }
+
     @Rpc(description = "Tethering Entitlement Check")
     public boolean phoneIsTetheringModeAllowed(String mode, Integer timeout) {
         String[] mProvisionApp = mService.getResources().getStringArray(
