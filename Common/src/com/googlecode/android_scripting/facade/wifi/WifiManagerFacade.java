@@ -1,39 +1,6 @@
 
 package com.googlecode.android_scripting.facade.wifi;
 
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.NetworkInfo.DetailedState;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiActivityEnergyInfo;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiEnterpriseConfig;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiConfiguration.AuthAlgorithm;
-import android.net.wifi.WifiConfiguration.KeyMgmt;
-import android.net.wifi.WifiManager.WifiLock;
-import android.net.wifi.WpsInfo;
-import android.os.Bundle;
-import android.provider.Settings.Global;
-import android.provider.Settings.SettingNotFoundException;
-import android.util.Base64;
-
-import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.facade.EventFacade;
-import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
-import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcDefault;
-import com.googlecode.android_scripting.rpc.RpcOptional;
-import com.googlecode.android_scripting.rpc.RpcParameter;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -50,10 +17,45 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.NetworkInfo.DetailedState;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiActivityEnergyInfo;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiConfiguration.AuthAlgorithm;
+import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiEnterpriseConfig;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
+import android.net.wifi.WpsInfo;
+import android.os.Bundle;
+import android.provider.Settings.Global;
+import android.provider.Settings.SettingNotFoundException;
+import android.util.Base64;
+
+import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
+import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
+import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcDefault;
+import com.googlecode.android_scripting.rpc.RpcOptional;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * WifiManager functions.
@@ -274,7 +276,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private WifiConfiguration genEnterpriseConfig(String configStr) throws JSONException,
-    GeneralSecurityException {
+            GeneralSecurityException {
         if (configStr == null) {
             return null;
         }
@@ -284,6 +286,20 @@ public class WifiManagerFacade extends RpcReceiver {
         config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
         if (j.has("SSID")) {
             config.SSID = j.getString("SSID");
+        }
+        if (j.has("FQDN")) {
+            config.FQDN = j.getString("FQDN");
+        }
+        if (j.has("providerFriendlyName")) {
+            config.providerFriendlyName = j.getString("providerFriendlyName");
+        }
+        if (j.has("roamingConsortiumIds")) {
+            JSONArray ids = j.getJSONArray("roamingConsortiumIds");
+            HashSet<Long> rIds = new HashSet<Long>();
+            for (int i = 0; i < ids.length(); i++) {
+                rIds.add(ids.getLong(i));
+            }
+            config.roamingConsortiumIds = rIds;
         }
         WifiEnterpriseConfig eConfig = new WifiEnterpriseConfig();
         if (j.has(WifiEnterpriseConfig.EAP_KEY)) {
@@ -330,6 +346,11 @@ public class WifiManagerFacade extends RpcReceiver {
             String domSuffix = j.getString(WifiEnterpriseConfig.DOM_SUFFIX_MATCH_KEY);
             Log.v("Setting Domain Suffix Match to " + domSuffix);
             eConfig.setDomainSuffixMatch(domSuffix);
+        }
+        if (j.has(WifiEnterpriseConfig.REALM_KEY)) {
+            String realm = j.getString(WifiEnterpriseConfig.REALM_KEY);
+            Log.v("Setting Domain Suffix Match to " + realm);
+            eConfig.setRealm(realm);
         }
         config.enterpriseConfig = eConfig;
         return config;
@@ -405,7 +426,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PrivateKey strToPrivateKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -414,7 +435,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PublicKey strToPublicKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -473,7 +494,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiConnect(
             @RpcParameter(name = "SSID") String SSID,
             @RpcParameter(name = "Password") @RpcOptional String Password)
-                    throws ConnectException {
+            throws ConnectException {
         WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
         mWifi.addNetwork(wifiConfig);
         Boolean status = false;
@@ -667,8 +688,8 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
             @RpcParameter(name = "config",
-            description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
-                    throws JSONException {
+                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+            throws JSONException {
         WpsInfo info = parseWpsInfo(config);
         WifiWpsCallback listener = new WifiWpsCallback();
         Log.d("Starting wps with: " + info);
@@ -704,7 +725,7 @@ public class WifiManagerFacade extends RpcReceiver {
             returns = "True if Wifi scan is always available.")
     public Boolean wifiToggleScanAlwaysAvailable(
             @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
-                    throws SettingNotFoundException {
+            throws SettingNotFoundException {
         ContentResolver cr = mService.getContentResolver();
         int isSet = 0;
         if (enabled == null) {

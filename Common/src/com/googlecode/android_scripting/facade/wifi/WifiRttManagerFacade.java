@@ -1,6 +1,13 @@
 
 package com.googlecode.android_scripting.facade.wifi;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Service;
 import android.content.Context;
 import android.net.wifi.RttManager;
@@ -16,13 +23,6 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Map;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * WifiRttManager functions.
@@ -86,6 +86,11 @@ public class WifiRttManagerFacade extends RpcReceiver {
 
         @Override
         public void onSuccess(RttResult[] results) {
+            if (results == null) {
+                mEventFacade
+                        .postEvent(RangingListener.TAG + mId + "onSuccess", null);
+                return;
+            }
             Bundle msg = new Bundle();
             Parcelable[] resultBundles = new Parcelable[results.length];
             for (int i = 0; i < results.length; i++) {
