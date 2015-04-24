@@ -27,6 +27,7 @@ import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
+import android.telephony.CellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -929,6 +930,12 @@ public class PhoneFacade extends RpcReceiver {
     @Rpc(description = "Returns the neighboring cell information of the device.")
     public List<NeighboringCellInfo> getNeighboringCellInfo() {
         return mTelephonyManager.getNeighboringCellInfo();
+    }
+
+    @Rpc(description = "Returns all observed cell information from all radios"+
+                       "on the device including the primary and neighboring cells")
+    public List<CellInfo> getAllCellInfo() {
+        return mTelephonyManager.getAllCellInfo();
     }
 
     @Rpc(description = "Returns True if cellular data is enabled for" +
