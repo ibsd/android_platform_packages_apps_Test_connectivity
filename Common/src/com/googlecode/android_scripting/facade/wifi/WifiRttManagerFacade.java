@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -122,8 +123,7 @@ public class WifiRttManagerFacade extends RpcReceiver {
         return mRtt.getRttCapabilities();
     }
 
-    private RttParams parseRttParam(String rttParam) throws JSONException {
-        JSONObject j = new JSONObject(rttParam);
+    private RttParams parseRttParam(JSONObject j) throws JSONException {
         RttParams result = new RttParams();
         if (j.has("deviceType")) {
             result.deviceType = j.getInt("deviceType");
@@ -182,11 +182,11 @@ public class WifiRttManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Start ranging.", returns = "Id of the listener associated with the started ranging.")
     public Integer wifiRttStartRanging(
-            @RpcParameter(name = "params") String[] params)
+            @RpcParameter(name = "params") JSONArray params)
             throws JSONException {
-        RttParams[] rParams = new RttParams[params.length];
-        for (int i = 0; i < params.length; i++) {
-            rParams[i] = parseRttParam(params[i]);
+        RttParams[] rParams = new RttParams[params.length()];
+        for (int i = 0; i < params.length(); i++) {
+            rParams[i] = parseRttParam(params.getJSONObject(i));
         }
         RangingListener listener = new RangingListener(mEventFacade);
         mRangingListeners.put(listener.mId, listener);
