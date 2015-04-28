@@ -325,9 +325,14 @@ public class BluetoothFacade extends RpcReceiver {
         return energyInfo.toString();
     }
 
-    @Rpc(description = "Enables BLE after BT has been toggled off.")
+    @Rpc(description = "Enables BLE functionalities.")
     public boolean bluetoothEnableBLE() {
         return mBluetoothAdapter.enableBLE();
+    }
+
+    @Rpc(description = "Disables BLE functionalities.")
+    public boolean bluetoothDisableBLE() {
+        return mBluetoothAdapter.disableBLE();
     }
 
     @Override
