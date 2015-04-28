@@ -276,21 +276,29 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
     public void telecomPhoneSetAudioRoute(
-            @RpcParameter(name = "route")
+                        @RpcParameter(name = "route")
             String route) {
         int r = 0;
-        if (route == "BLUETOOTH") {
+        if (route.equals("BLUETOOTH")) {
             r = AudioState.ROUTE_BLUETOOTH;
-        } else if (route == "EARPIECE") {
+        } else if (route.equals("EARPIECE")) {
             r = AudioState.ROUTE_EARPIECE;
-        } else if (route == "SPEAKER") {
+        } else if (route.equals("SPEAKER")) {
             r = AudioState.ROUTE_SPEAKER;
-        } else if (route == "WIRED_HEADSET") {
+        } else if (route.equals("WIRED_HEADSET")) {
             r = AudioState.ROUTE_WIRED_HEADSET;
-        } else if (route == "WIRED_OR_EARPIECE") {
+        } else if (route.equals("WIRED_OR_EARPIECE")) {
             r = AudioState.ROUTE_WIRED_OR_EARPIECE;
         }
-        InCallServiceImpl.mPhone.setAudioRoute(r);
+        else {
+            Log.d("Failed to find a translation for audio route.");
+            return;
+        }
+
+        Log.d(String.format("Setting Audio route to %d", r));
+        if (InCallServiceImpl.mPhone != null) {
+            InCallServiceImpl.mPhone.setAudioRoute(r);
+        }
     }
 
     @Rpc(description = "Turns the proximity sensor off. If screenOnImmediately is true, the screen will be turned on immediately")
