@@ -40,26 +40,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
  * Exposes TelecomManager functionality.
  */
 public class TelecomManagerFacade extends RpcReceiver {
-    /**
-     * Returns an identifier of the call. When a phone number is available, the number will be
-     * returned. Otherwise, the standard object toString result of the Call object. e.g. A
-     * conference call does not have a single number associated with it, thus the toString Id will
-     * be returned.
-     *
-     * @param call
-     * @return
-     */
-    public static String getCallId(Call call) {
-        try {
-            String handle = call.getDetails().getHandle().toString();
-            int idx = handle.indexOf(":");
-            String number = handle.substring(idx + 1).trim();
-            return number;
-        } catch (NullPointerException e) {
-            Log.d("Failed to get a number from the call object, using toString.");
-            return call.toString();
-        }
-    }
 
     private final Service mService;
 
@@ -80,44 +60,6 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
     public void telecomAcceptRingingCall() {
         mTelecomManager.acceptRingingCall();
-    }
-
-    @Rpc(description = "Disconnect call by callId.")
-    public void telecomCallDisconnect(
-            @RpcParameter(name = "callId")
-            String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        call.disconnect();
-    }
-
-    @Rpc(description = "Hold call by callId")
-    public void telecomCallHold(@RpcParameter(name = "callId")
-    String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        call.hold();
-    }
-
-    @Rpc(description = "Merge call to conference by callId")
-    public void telecomCallMergeToConf(
-            @RpcParameter(name = "callId")
-            String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        call.mergeConference();
-    }
-
-    @Rpc(description = "Split call from conference by callId.")
-    public void telecomCallSplitFromConf(
-            @RpcParameter(name = "callId")
-            String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        call.splitFromConference();
-    }
-
-    @Rpc(description = "Unhold call by callId")
-    public void telecomCallUnhold(@RpcParameter(name = "callId")
-    String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        call.unhold();
     }
 
     @Rpc(description = "Removes the missed-call notification if one is present.")
@@ -178,7 +120,7 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Set the user-chosen default PhoneAccount for making outgoing phone calls.")
     public void telecomSetUserSelectedOutgoingPhoneAccount(
-            @RpcParameter(name = "phoneAccountHandleId")
+                        @RpcParameter(name = "phoneAccountHandleId")
             String phoneAccountHandleId) throws Exception {
 
         List<PhoneAccountHandle> accountHandles = mTelecomManager
@@ -214,100 +156,6 @@ public class TelecomManagerFacade extends RpcReceiver {
         return mTelecomManager.isRinging();
     }
 
-    @Rpc(description = "Joins two calls into a conference call. Calls are identified by their IDs listed by telecomPhoneGetCallIds")
-    public void telecomJoinCallsInConf(
-            @RpcParameter(name = "callIdOne")
-            String callIdOne,
-            @RpcParameter(name = "callIdTwo")
-            String callIdTwo) {
-        Call callOne = InCallServiceImpl.mCalls.get(callIdOne);
-        Call callTwo = InCallServiceImpl.mCalls.get(callIdTwo);
-        callOne.conference(callTwo);
-    }
-
-    @Rpc(description = "Obtains the current call audio state of the phone.")
-    public AudioState telecomPhoneGetAudioState() {
-        return InCallServiceImpl.mPhone.getAudioState();
-    }
-
-    @Rpc(description = "Lists the IDs (phone numbers or hex hashes) of the current calls.")
-    public Set<String> telecomGetCallIds() {
-        return InCallServiceImpl.mCalls.keySet();
-    }
-
-    @Rpc(description = "Reset the Call List.")
-    public void telecomClearCallList() {
-        InCallServiceImpl.mCalls.clear();
-    }
-
-    @Rpc(description = "Get the state of a call according to call id.")
-    public String telecomCallGetState(
-            @RpcParameter(name = "callId")
-            String callId) {
-        Call call = InCallServiceImpl.mCalls.get(callId);
-        if (null == call){
-            Log.d("In telecomCallGetState, Invalid callId");
-            return "INVALID_ID";
-        }
-        int state = call.getState();
-        switch(state) {
-            case Call.STATE_NEW:
-                return "STATE_NEW";
-            case Call.STATE_DIALING:
-                return "STATE_DIALING";
-            case Call.STATE_RINGING:
-                return "STATE_RINGING";
-            case Call.STATE_HOLDING:
-                return "STATE_HOLDING";
-            case Call.STATE_ACTIVE:
-                return "STATE_ACTIVE";
-            case Call.STATE_DISCONNECTED:
-                return "STATE_DISCONNECTED";
-            case Call.STATE_PRE_DIAL_WAIT:
-                return "STATE_PRE_DIAL_WAIT";
-            case Call.STATE_CONNECTING:
-                return "STATE_CONNECTING";
-            case Call.STATE_DISCONNECTING:
-                return "STATE_DISCONNECTING";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    @Rpc(description = "Sets the audio route (SPEAKER, BLUETOOTH, etc...).")
-    public void telecomPhoneSetAudioRoute(
-                        @RpcParameter(name = "route")
-            String route) {
-        int r = 0;
-        if (route.equals("BLUETOOTH")) {
-            r = AudioState.ROUTE_BLUETOOTH;
-        } else if (route.equals("EARPIECE")) {
-            r = AudioState.ROUTE_EARPIECE;
-        } else if (route.equals("SPEAKER")) {
-            r = AudioState.ROUTE_SPEAKER;
-        } else if (route.equals("WIRED_HEADSET")) {
-            r = AudioState.ROUTE_WIRED_HEADSET;
-        } else if (route.equals("WIRED_OR_EARPIECE")) {
-            r = AudioState.ROUTE_WIRED_OR_EARPIECE;
-        }
-        else {
-            Log.d("Failed to find a translation for audio route.");
-            return;
-        }
-
-        Log.d(String.format("Setting Audio route to %d", r));
-        if (InCallServiceImpl.mPhone != null) {
-            InCallServiceImpl.mPhone.setAudioRoute(r);
-        }
-    }
-
-    @Rpc(description = "Turns the proximity sensor off. If screenOnImmediately is true, the screen will be turned on immediately")
-    public void telecomPhoneSetProximitySensorOff(
-            @RpcParameter(name = "screenOnImmediately")
-            Boolean screenOnImmediately) {
-        InCallServiceImpl.mPhone.setProximitySensorOff(screenOnImmediately);
-    }
-
     @Rpc(description = "Silences the rigner if there's a ringing call.")
     public void telecomSilenceRinger() {
         mTelecomManager.silenceRinger();
@@ -315,27 +163,33 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Swap two calls")
     public void telecomSwapCalls() {
-        //TODO
-        // Swap the foreground and back ground calls
+        // TODO: Swap the foreground and back ground calls
     }
 
-    @Rpc(description = "Toggles call waiting feature on or off" +
-                       "for default voice subscription id.")
+    @Rpc(description = "Toggles call waiting feature on or off for default voice subscription id.")
     public void toggleCallWaiting(
-                @RpcParameter(name = "enabled")
-                @RpcOptional Boolean enabled) {
+            @RpcParameter(name = "enabled")
+            @RpcOptional
+            Boolean enabled) {
         toggleCallWaitingForSubscription(
-              SubscriptionManager.getDefaultVoiceSubId(), enabled);
+                SubscriptionManager.getDefaultVoiceSubId(), enabled);
     }
 
-    @Rpc(description = "Toggles call waiting feature on or off" +
-                       "for specified subscription id.")
+    @Rpc(description = "Toggles call waiting feature on or off for specified subscription id.")
     public void toggleCallWaitingForSubscription(
-                @RpcParameter(name = "subId")
-                @RpcOptional Integer subId,
-                @RpcParameter(name = "enabled")
-                @RpcOptional Boolean enabled) {
-        //TODO
-        // Enable or Disable the call waiting feature
+            @RpcParameter(name = "subId")
+            @RpcOptional
+            Integer subId,
+            @RpcParameter(name = "enabled")
+            @RpcOptional
+            Boolean enabled) {
+        // TODO: Enable or Disable the call waiting feature
+    }
+
+    @Rpc(description = "Sends an MMI string to Telecom for processing")
+    public void telecomHandleMmi(
+                        @RpcParameter(name = "dialString")
+            String dialString) {
+        mTelecomManager.handleMmi(dialString);
     }
 }

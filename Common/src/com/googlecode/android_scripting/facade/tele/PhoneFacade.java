@@ -33,6 +33,8 @@ import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.provider.Telephony;
 import android.telephony.SubscriptionInfo;
+import android.telecom.VideoProfile;
+import android.telecom.TelecomManager;
 
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.RILConstants;
@@ -541,67 +543,127 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
-    @Rpc(description = "Calls a contact/phone number by URI.")
-    public void phoneCall(@RpcParameter(name = "uri")
-                final String uriString)
-                throws Exception {
+    @Deprecated
+    @Rpc(description = "Calls a phone by resolving a generic URI.")
+    public void phoneCall(
+                        @RpcParameter(name = "uriString")
+            final String uriString,
+            @RpcParameter(name = "videoCall")
+            @RpcOptional
+            @RpcDefault("false")
+            Boolean videoCall) throws Exception {
+
+        Log.w("Function phoneCall is deprecated; please use a URI-specific call");
+
         Uri uri = Uri.parse(uriString);
         if (uri.getScheme().equals("content")) {
-            String phoneNumberColumn = ContactsContract.PhoneLookup.NUMBER;
-            String selectWhere = null;
-            if ((FacadeManager.class.cast(mManager)).getSdkLevel() >= 5) {
-                Class<?> contactsContract_Data_class =
-                        Class.forName("android.provider.ContactsContract$Data");
-                Field RAW_CONTACT_ID_field =
-                        contactsContract_Data_class.getField("RAW_CONTACT_ID");
-                selectWhere = RAW_CONTACT_ID_field.get(null).toString() + "="
-                        + uri.getLastPathSegment();
-                Field CONTENT_URI_field =
-                        contactsContract_Data_class.getField("CONTENT_URI");
-                uri = Uri.parse(CONTENT_URI_field.get(null).toString());
-                Class<?> ContactsContract_CommonDataKinds_Phone_class =
-                        Class.forName("android.provider.ContactsContract$CommonDataKinds$Phone");
-                Field NUMBER_field =
-                        ContactsContract_CommonDataKinds_Phone_class.getField("NUMBER");
-                phoneNumberColumn = NUMBER_field.get(null).toString();
-            }
-            ContentResolver resolver = mService.getContentResolver();
-            Cursor c = resolver.query(uri, new String[] {
-                    phoneNumberColumn
-            },
-                    selectWhere, null, null);
-            String number = "";
-            if (c.moveToFirst()) {
-                number = c.getString(c.getColumnIndexOrThrow(phoneNumberColumn));
-            }
-            c.close();
-            phoneCallNumber(number);
-        } else {
-            mAndroidFacade.startActivity(Intent.ACTION_CALL, uriString, null,
-                    null, null, null, null);
+            phoneCallContentUri(uriString, videoCall);
         }
+        /*
+
+         * FIXME: Here we assume if it's not content, it's a number we should do some checking.
+         */
+        else {
+            phoneCallNumber(uriString, videoCall);
+        }
+    }
+
+    @Rpc(description = "Calls a phone by resolving a Content-type URI.")
+    public void phoneCallContentUri(
+                        @RpcParameter(name = "uriString")
+            final String uriString,
+            @RpcParameter(name = "videoCall")
+            @RpcOptional
+            @RpcDefault("false")
+            Boolean videoCall)
+            throws Exception {
+        Uri uri = Uri.parse(uriString);
+        if (!uri.getScheme().equals("content")) {
+            Log.e("Invalid URI!!");
+            return;
+        }
+
+        String phoneNumberColumn = ContactsContract.PhoneLookup.NUMBER;
+        String selectWhere = null;
+        if ((FacadeManager.class.cast(mManager)).getSdkLevel() >= 5) {
+            Class<?> contactsContract_Data_class =
+                    Class.forName("android.provider.ContactsContract$Data");
+            Field RAW_CONTACT_ID_field =
+                    contactsContract_Data_class.getField("RAW_CONTACT_ID");
+            selectWhere = RAW_CONTACT_ID_field.get(null).toString() + "="
+                    + uri.getLastPathSegment();
+            Field CONTENT_URI_field =
+                    contactsContract_Data_class.getField("CONTENT_URI");
+            uri = Uri.parse(CONTENT_URI_field.get(null).toString());
+            Class<?> ContactsContract_CommonDataKinds_Phone_class =
+                    Class.forName("android.provider.ContactsContract$CommonDataKinds$Phone");
+            Field NUMBER_field =
+                    ContactsContract_CommonDataKinds_Phone_class.getField("NUMBER");
+            phoneNumberColumn = NUMBER_field.get(null).toString();
+        }
+        ContentResolver resolver = mService.getContentResolver();
+        Cursor c = resolver.query(uri, new String[] {
+                phoneNumberColumn
+        },
+                selectWhere, null, null);
+        String number = "";
+        if (c.moveToFirst()) {
+            number = c.getString(c.getColumnIndexOrThrow(phoneNumberColumn));
+        }
+        c.close();
+        phoneCallNumber(number, videoCall);
     }
 
     @Rpc(description = "Calls a phone number.")
     public void phoneCallNumber(
-            @RpcParameter(name = "phone number")
-            final String number)
+                        @RpcParameter(name = "number")
+            final String number,
+            @RpcParameter(name = "videoCall")
+            @RpcOptional
+            @RpcDefault("false")
+            Boolean videoCall)
             throws Exception {
-        phoneCall("tel:" + URLEncoder.encode(number, "ASCII"));
+        phoneCallTelUri("tel:" + URLEncoder.encode(number, "ASCII"), videoCall);
+    }
+
+    @Rpc(description = "Calls a phone by Tel-URI.")
+    public void phoneCallTelUri(
+            @RpcParameter(name = "uriString")
+    final String uriString,
+            @RpcParameter(name = "videoCall")
+            @RpcOptional
+            @RpcDefault("false")
+            Boolean videoCall) throws Exception {
+        if (!uriString.startsWith("tel:")) {
+            Log.w("Invalid tel URI" + uriString);
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setDataAndType(Uri.parse(uriString).normalizeScheme(), null);
+
+        if (videoCall) {
+            Log.d("Placing a bi-directional video call");
+            intent.putExtra(TelecomManager.EXTRA_START_CALL_WITH_VIDEO_STATE,
+                    VideoProfile.VideoState.BIDIRECTIONAL);
+        }
+
+        mAndroidFacade.startActivityIntent(intent, false);
     }
 
     @Rpc(description = "Calls an Emergency number.")
     public void phoneCallEmergencyNumber(
-            @RpcParameter(name = "phone number")
+                        @RpcParameter(name = "number")
             final String number)
             throws Exception {
         String uriString = "tel:" + URLEncoder.encode(number, "ASCII");
         mAndroidFacade.startActivity(Intent.ACTION_CALL_PRIVILEGED, uriString,
-                                     null, null, null, null, null);
+                null, null, null, null, null);
     }
 
     @Rpc(description = "Dials a contact/phone number by URI.")
-    public void phoneDial(@RpcParameter(name = "uri")
+    public void phoneDial(
+            @RpcParameter(name = "uri")
     final String uri)
             throws Exception {
         mAndroidFacade.startActivity(Intent.ACTION_DIAL, uri, null, null, null,
