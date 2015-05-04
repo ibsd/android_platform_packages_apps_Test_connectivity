@@ -1,39 +1,6 @@
 
 package com.googlecode.android_scripting.facade.wifi;
 
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.NetworkInfo.DetailedState;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiActivityEnergyInfo;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiEnterpriseConfig;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiConfiguration.AuthAlgorithm;
-import android.net.wifi.WifiConfiguration.KeyMgmt;
-import android.net.wifi.WifiManager.WifiLock;
-import android.net.wifi.WpsInfo;
-import android.os.Bundle;
-import android.provider.Settings.Global;
-import android.provider.Settings.SettingNotFoundException;
-import android.util.Base64;
-
-import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.facade.EventFacade;
-import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
-import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcDefault;
-import com.googlecode.android_scripting.rpc.RpcOptional;
-import com.googlecode.android_scripting.rpc.RpcParameter;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -50,10 +17,45 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.NetworkInfo.DetailedState;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiActivityEnergyInfo;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiConfiguration.AuthAlgorithm;
+import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiEnterpriseConfig;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
+import android.net.wifi.WpsInfo;
+import android.os.Bundle;
+import android.provider.Settings.Global;
+import android.provider.Settings.SettingNotFoundException;
+import android.util.Base64;
+
+import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
+import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
+import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcDefault;
+import com.googlecode.android_scripting.rpc.RpcOptional;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * WifiManager functions.
@@ -273,17 +275,75 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
-    private WifiConfiguration genEnterpriseConfig(String configStr) throws JSONException,
-    GeneralSecurityException {
-        if (configStr == null) {
+    private WifiConfiguration genWifiConfig(JSONObject j) throws JSONException {
+        if (j == null) {
             return null;
         }
-        JSONObject j = new JSONObject(configStr);
+        WifiConfiguration config = new WifiConfiguration();
+        if (j.has("SSID")) {
+            config.SSID = "\"" + j.getString("SSID") + "\"";
+        } else if (j.has("ssid")) {
+            config.SSID = "\"" + j.getString("ssid") + "\"";
+        }
+        if (j.has("password")) {
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            config.preSharedKey = "\"" + j.getString("password") + "\"";
+        } else {
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        }
+        if (j.has("BSSID")) {
+            config.BSSID = j.getString("BSSID");
+        }
+        if (j.has("hiddenSSID")) {
+            config.hiddenSSID = j.getBoolean("hiddenSSID");
+        }
+        if (j.has("priority")) {
+            config.priority = j.getInt("priority");
+        }
+        if (j.has("preSharedKey")) {
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            config.preSharedKey = j.getString("preSharedKey");
+        }
+        if (j.has("wepKeys")) {
+            // Looks like we only support static WEP.
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            JSONArray keys = j.getJSONArray("wepKeys");
+            String[] wepKeys = new String[keys.length()];
+            for (int i = 0; i < keys.length(); i++) {
+                wepKeys[i] = keys.getString(i);
+            }
+            config.wepKeys = wepKeys;
+        }
+        if (j.has("wepTxKeyIndex")) {
+            config.wepTxKeyIndex = j.getInt("wepTxKeyIndex");
+        }
+        return config;
+    }
+
+    private WifiConfiguration genWifiEnterpriseConfig(JSONObject j) throws JSONException,
+    GeneralSecurityException {
+        if (j == null) {
+            return null;
+        }
         WifiConfiguration config = new WifiConfiguration();
         config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
         config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
         if (j.has("SSID")) {
             config.SSID = j.getString("SSID");
+        }
+        if (j.has("FQDN")) {
+            config.FQDN = j.getString("FQDN");
+        }
+        if (j.has("providerFriendlyName")) {
+            config.providerFriendlyName = j.getString("providerFriendlyName");
+        }
+        if (j.has("roamingConsortiumIds")) {
+            JSONArray ids = j.getJSONArray("roamingConsortiumIds");
+            HashSet<Long> rIds = new HashSet<Long>();
+            for (int i = 0; i < ids.length(); i++) {
+                rIds.add(ids.getLong(i));
+            }
+            config.roamingConsortiumIds = rIds;
         }
         WifiEnterpriseConfig eConfig = new WifiEnterpriseConfig();
         if (j.has(WifiEnterpriseConfig.EAP_KEY)) {
@@ -331,21 +391,13 @@ public class WifiManagerFacade extends RpcReceiver {
             Log.v("Setting Domain Suffix Match to " + domSuffix);
             eConfig.setDomainSuffixMatch(domSuffix);
         }
+        if (j.has(WifiEnterpriseConfig.REALM_KEY)) {
+            String realm = j.getString(WifiEnterpriseConfig.REALM_KEY);
+            Log.v("Setting Domain Suffix Match to " + realm);
+            eConfig.setRealm(realm);
+        }
         config.enterpriseConfig = eConfig;
         return config;
-    }
-
-    private WifiConfiguration genWifiConfig(String SSID, String pwd) {
-        WifiConfiguration wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "\"" + SSID + "\"";
-        Log.v("genWifiConfig pwd " + pwd);
-        if (pwd == null) {
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        } else {
-            wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-            wifiConfig.preSharedKey = "\"" + pwd + "\"";
-        }
-        return wifiConfig;
     }
 
     private boolean matchScanResult(ScanResult result, String id) {
@@ -438,15 +490,9 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Add a network.")
-    public Integer wifiAddNetwork(@RpcParameter(name = "wifiId") String wifiId) {
-        ScanResult target = null;
-        for (ScanResult r : mWifi.getScanResults()) {
-            if (matchScanResult(r, wifiId)) {
-                target = r;
-                break;
-            }
-        }
-        return mWifi.addNetwork(wifiConfigurationFromScanResult(target));
+    public Integer wifiAddNetwork(@RpcParameter(name = "wifiConfig") JSONObject wifiConfig)
+            throws JSONException {
+        return mWifi.addNetwork(genWifiConfig(wifiConfig));
     }
 
     @Rpc(description = "Cancel Wi-fi Protected Setup.")
@@ -467,30 +513,21 @@ public class WifiManagerFacade extends RpcReceiver {
      * @param wifiPassword password for the wifi network
      * @return true on success
      * @throws ConnectException
+     * @throws JSONException
      */
     @Rpc(description = "Connects a wifi network by ssid",
             returns = "True if the operation succeeded.")
-    public Boolean wifiConnect(
-            @RpcParameter(name = "SSID") String SSID,
-            @RpcParameter(name = "Password") @RpcOptional String Password)
-                    throws ConnectException {
-        WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
-        mWifi.addNetwork(wifiConfig);
-        Boolean status = false;
-        List<WifiConfiguration> configuredNetworks = mWifi.getConfiguredNetworks();
-        if (configuredNetworks == null) {
-            Log.d("No configured network available.");
+    public Boolean wifiConnect(@RpcParameter(name = "config") JSONObject config)
+            throws ConnectException, JSONException {
+        WifiConfiguration wifiConfig = genWifiConfig(config);
+        int nId = mWifi.addNetwork(wifiConfig);
+        if (nId < 0) {
+            Log.e("Got negative network Id.");
             return false;
         }
-        for (WifiConfiguration conf : configuredNetworks) {
-            if (conf.SSID != null && conf.SSID.equals("\"" + SSID + "\"")) {
-                mWifi.disconnect();
-                mWifi.enableNetwork(conf.networkId, true);
-                status = mWifi.reconnect();
-                break;
-            }
-        }
-        return status;
+        mWifi.disconnect();
+        mWifi.enableNetwork(nId, true);
+        return mWifi.reconnect();
     }
 
     @Rpc(description = "Disconnects from the currently active access point.",
@@ -507,12 +544,12 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Connect to a wifi network that uses Enterprise authentication methods.")
-    public void wifiEnterpriseConnect(@RpcParameter(name = "configStr") String configStr)
+    public void wifiEnterpriseConnect(@RpcParameter(name = "config") JSONObject config)
             throws JSONException, GeneralSecurityException {
         // Create Certificate
         WifiActionListener listener = new WifiActionListener(mEventFacade, "EnterpriseConnect");
-        WifiConfiguration config = this.genEnterpriseConfig(configStr);
-        mWifi.connect(config, listener);
+        WifiConfiguration wifiConfig = genWifiEnterpriseConfig(config);
+        mWifi.connect(wifiConfig, listener);
     }
 
     /**
@@ -604,11 +641,12 @@ public class WifiManagerFacade extends RpcReceiver {
      *
      * @param wifiSSID SSID of the wifi network
      * @param wifiPassword password for the wifi network
+     * @throws JSONException
      */
     @Rpc(description = "Connects a wifi network as priority by pasing ssid")
-    public void wifiPriorityConnect(@RpcParameter(name = "SSID") String SSID,
-            @RpcParameter(name = "Password") @RpcOptional String Password) {
-        WifiConfiguration wifiConfig = genWifiConfig(SSID, Password);
+    public void wifiPriorityConnect(@RpcParameter(name = "config") JSONObject config)
+            throws JSONException {
+        WifiConfiguration wifiConfig = genWifiConfig(config);
         WifiActionListener listener = new WifiActionListener(mEventFacade, "PriorityConnect");
         mWifi.connect(wifiConfig, listener);
     }

@@ -163,8 +163,13 @@ public class ImsManagerFacade extends RpcReceiver {
     }
 
     /**************************
-     * End WFC Calling APIs
+     * Begin VT APIs
      **************************/
+
+    @Rpc(description = "Return True if Video Calling is enabled by the platform.")
+    public boolean imsIsVtEnabledByPlatform() {
+        return ImsManager.isVtEnabledByPlatform(mContext);
+    }
 
     @Override
     public void shutdown() {
