@@ -789,6 +789,32 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mScanFilterBuilder.setDeviceName(name);
     }
 
+    @Rpc(description = "Set the scan setting's match mode")
+    public void bleSetScanSettingsMatchMode(
+            @RpcParameter(name = "mode") Integer mode) {
+        mScanSettingsBuilder.setMatchMode(mode);
+    }
+
+    @Rpc(description = "Get the scan setting's match mode")
+    public int bleGetScanSettingsMatchMode(
+            @RpcParameter(name = "scanSettingsIndex") Integer scanSettingsIndex
+            ) {
+        return mScanSettingsList.get(scanSettingsIndex).getMatchMode();
+    }
+
+    @Rpc(description = "Set the scan setting's number of matches")
+    public void bleSetScanSettingsNumOfMatches(
+            @RpcParameter(name = "matches") Integer matches) {
+        mScanSettingsBuilder.setNumOfMatches(matches);
+    }
+
+    @Rpc(description = "Get the scan setting's number of matches")
+    public int bleGetScanSettingsNumberOfMatches(
+            @RpcParameter(name = "scanSettingsIndex")
+            Integer scanSettingsIndex) {
+        return  mScanSettingsList.get(scanSettingsIndex).getNumOfMatches();
+    }
+
     private class myScanCallback extends ScanCallback {
         public Integer index;
         String mEventType;
@@ -844,7 +870,6 @@ public class BluetoothLeScanFacade extends RpcReceiver {
             mEventFacade.postEvent(mEventType + index + "onBatchScanResult", mResults.clone());
             mResults.clear();
         }
-
     }
 
     private class myLeScanCallback implements LeScanCallback {

@@ -55,6 +55,7 @@ public class BluetoothFacade extends RpcReceiver {
     private final IntentFilter discoveryFilter;
     private final EventFacade mEventFacade;
     private final BluetoothStateReceiver mStateReceiver;
+    private final BleStateReceiver mBleStateReceiver;
     private Map<String, BluetoothConnection> connections =
             new HashMap<String, BluetoothConnection>();
     private BluetoothAdapter mBluetoothAdapter;
@@ -77,6 +78,7 @@ public class BluetoothFacade extends RpcReceiver {
         discoveryFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         mDiscoveryReceiver = new DiscoveryCacheReceiver();
         mStateReceiver = new BluetoothStateReceiver();
+        mBleStateReceiver = new BleStateReceiver();
     }
 
     class DiscoveryCacheReceiver extends BroadcastReceiver {
@@ -107,7 +109,7 @@ public class BluetoothFacade extends RpcReceiver {
             String action = intent.getAction();
             // TODO: Keep track of the separate states be a separate method.
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                final int state = mBluetoothAdapter.getState();
                 Bundle msg = new Bundle();
                 if (state == BluetoothAdapter.STATE_ON) {
                     msg.putString("State", "ON");
@@ -122,6 +124,25 @@ public class BluetoothFacade extends RpcReceiver {
             }
         }
     }
+
+    class BleStateReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_BLE_STATE_CHANGED)) {
+                int state = mBluetoothAdapter.getLeState();
+                if (state == BluetoothAdapter.STATE_BLE_ON) {
+                    mEventFacade.postEvent("BleStateChangedOn", new Bundle());
+                    mService.unregisterReceiver(mBleStateReceiver);
+                } else if (state == BluetoothAdapter.STATE_OFF) {
+                    mEventFacade.postEvent("BleStateChangedOff", new Bundle());
+                    mService.unregisterReceiver(mBleStateReceiver);
+                }
+            }
+        }
+    }
+
 
     public static boolean deviceMatch(BluetoothDevice device, String deviceID) {
         return deviceID.equals(device.getAliasName()) || deviceID.equals(device.getAddress());
@@ -325,13 +346,28 @@ public class BluetoothFacade extends RpcReceiver {
         return energyInfo.toString();
     }
 
+    @Rpc(description = "Return true if hardware has entries" +
+            "available for matching beacons.")
+    public boolean bluetoothIsHardwareTrackingFiltersAvailable() {
+        return mBluetoothAdapter.isHardwareTrackingFiltersAvailable();
+    }
+
+    @Rpc(description = "Gets the current state of LE.")
+    public int bluetoothGetLeState() {
+        return mBluetoothAdapter.getLeState();
+    }
+
     @Rpc(description = "Enables BLE functionalities.")
     public boolean bluetoothEnableBLE() {
+        mService.registerReceiver(mBleStateReceiver,
+            new IntentFilter(BluetoothAdapter.ACTION_BLE_STATE_CHANGED));
         return mBluetoothAdapter.enableBLE();
     }
 
     @Rpc(description = "Disables BLE functionalities.")
     public boolean bluetoothDisableBLE() {
+        mService.registerReceiver(mBleStateReceiver,
+            new IntentFilter(BluetoothAdapter.ACTION_BLE_STATE_CHANGED));
         return mBluetoothAdapter.disableBLE();
     }
 
