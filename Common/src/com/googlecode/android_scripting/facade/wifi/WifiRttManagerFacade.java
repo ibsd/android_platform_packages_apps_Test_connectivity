@@ -1,6 +1,14 @@
 
 package com.googlecode.android_scripting.facade.wifi;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Service;
 import android.content.Context;
 import android.net.wifi.RttManager;
@@ -16,13 +24,6 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Map;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * WifiRttManager functions.
@@ -86,6 +87,11 @@ public class WifiRttManagerFacade extends RpcReceiver {
 
         @Override
         public void onSuccess(RttResult[] results) {
+            if (results == null) {
+                mEventFacade
+                        .postEvent(RangingListener.TAG + mId + "onSuccess", null);
+                return;
+            }
             Bundle msg = new Bundle();
             Parcelable[] resultBundles = new Parcelable[results.length];
             for (int i = 0; i < results.length; i++) {
@@ -117,8 +123,7 @@ public class WifiRttManagerFacade extends RpcReceiver {
         return mRtt.getRttCapabilities();
     }
 
-    private RttParams parseRttParam(String rttParam) throws JSONException {
-        JSONObject j = new JSONObject(rttParam);
+    private RttParams parseRttParam(JSONObject j) throws JSONException {
         RttParams result = new RttParams();
         if (j.has("deviceType")) {
             result.deviceType = j.getInt("deviceType");
@@ -177,11 +182,11 @@ public class WifiRttManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Start ranging.", returns = "Id of the listener associated with the started ranging.")
     public Integer wifiRttStartRanging(
-            @RpcParameter(name = "params") String[] params)
+            @RpcParameter(name = "params") JSONArray params)
             throws JSONException {
-        RttParams[] rParams = new RttParams[params.length];
-        for (int i = 0; i < params.length; i++) {
-            rParams[i] = parseRttParam(params[i]);
+        RttParams[] rParams = new RttParams[params.length()];
+        for (int i = 0; i < params.length(); i++) {
+            rParams[i] = parseRttParam(params.getJSONObject(i));
         }
         RangingListener listener = new RangingListener(mEventFacade);
         mRangingListeners.put(listener.mId, listener);

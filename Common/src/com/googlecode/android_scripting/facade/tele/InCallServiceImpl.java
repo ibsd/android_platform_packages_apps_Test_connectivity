@@ -2,48 +2,1084 @@
 package com.googlecode.android_scripting.facade.tele;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
+import android.telecom.AudioState;
 import android.telecom.Call;
+import android.telecom.CameraCapabilities;
 import android.telecom.InCallService;
 import android.telecom.Phone;
+import android.telecom.VideoProfile;
+import android.telecom.Call.Details;
+import android.telecom.Connection;
 
 import com.googlecode.android_scripting.Log;
 
+import com.googlecode.android_scripting.facade.EventFacade;
+
 public class InCallServiceImpl extends InCallService {
 
-    public static Phone mPhone;
-    public static HashMap<String, Call> mCalls = new HashMap<String, Call>();
+    private static InCallServiceImpl mService = null;
 
-    private Phone.Listener mPhoneListener = new Phone.Listener() {
+    public static InCallServiceImpl getService() {
+        return mService;
+    }
 
-        @Override
-        public void onCallAdded(Phone phone, Call call) {
-            Log.d("onCallAdded: " + call.toString());
-            String id = TelecomManagerFacade.getCallId(call);
-            Log.d("Adding " + id);
-            mCalls.put(id, call);
+    private static Object mLock = new Object();
+
+    // Provides a return value for getCallState when no call is active
+    public static final int STATE_INVALID = -1;
+
+    // Provides a return value for getCallQuality when input is invalid
+    public static final int QUALITY_INVALID = -1;
+
+    // Provides a return value for getAudioRoute when input is invalid
+    public static final int INVALID_AUDIO_ROUTE = -1;
+
+    // Container class to return the call ID along with the event
+    public class CallEvent {
+
+        public String mCallId;
+        public Object mEvent;
+
+        CallEvent(String callId, Object event) {
+            mCallId = callId;
+            mEvent = event;
+        }
+    }
+
+    // Currently the same as a call event... here for future use
+    public class VideoCallEvent extends CallEvent {
+        VideoCallEvent(String callId, Object event) {
+            super(callId, event);
+        }
+    }
+
+    private class CallCallback extends Call.Callback {
+
+        // Invalid video state (valid >= 0)
+        public static final int STATE_INVALID = InCallServiceImpl.STATE_INVALID;
+
+        public static final int EVENT_INVALID = -1;
+        public static final int EVENT_NONE = 0;
+        public static final int EVENT_STATE_CHANGED = 1 << 0;
+        public static final int EVENT_PARENT_CHANGED = 1 << 1;
+        public static final int EVENT_CHILDREN_CHANGED = 1 << 2;
+        public static final int EVENT_DETAILS_CHANGED = 1 << 3;
+        public static final int EVENT_CANNED_TEXT_RESPONSES_LOADED = 1 << 4;
+        public static final int EVENT_POST_DIAL_WAIT = 1 << 5;
+        public static final int EVENT_VIDEO_CALL_CHANGED = 1 << 6;
+        public static final int EVENT_CALL_DESTROYED = 1 << 7;
+        public static final int EVENT_CONFERENCABLE_CALLS_CHANGED = 1 << 8;
+
+        public static final int EVENT_ALL = EVENT_STATE_CHANGED |
+                EVENT_PARENT_CHANGED |
+                EVENT_CHILDREN_CHANGED |
+                EVENT_DETAILS_CHANGED |
+                EVENT_CANNED_TEXT_RESPONSES_LOADED |
+                EVENT_POST_DIAL_WAIT |
+                EVENT_VIDEO_CALL_CHANGED |
+                EVENT_DETAILS_CHANGED |
+                EVENT_CALL_DESTROYED |
+                EVENT_CONFERENCABLE_CALLS_CHANGED;
+
+        private int mEvents;
+        private String mCallId;
+
+        public CallCallback(String callId, int events) {
+            super();
+            mEvents = events & EVENT_ALL;
+            mCallId = callId;
+        }
+
+        public void startListeningForEvents(int events) {
+            mEvents |= events & EVENT_ALL;
+        }
+
+        public void stopListeningForEvents(int events) {
+            mEvents &= ~(events & EVENT_ALL);
         }
 
         @Override
-        public void onCallRemoved(Phone phone, Call call) {
-            Log.d("onCallRemoved: " + call.toString());
-            String id = TelecomManagerFacade.getCallId(call);
-            Log.d("Removing " + id);
-            mCalls.remove(id);
+        public void onStateChanged(
+                Call call, int state) {
+            Log.d("CallCallback:onStateChanged()");
+            if ((mEvents & EVENT_STATE_CHANGED)
+                    == EVENT_STATE_CHANGED) {
+                servicePostEvent("TelecomCallStateChanged",
+                        new CallEvent(mCallId, state));
+            }
         }
-    };
+
+        @Override
+        public void onParentChanged(
+                Call call, Call parent) {
+            Log.d("CallCallback:onParentChanged()");
+            if ((mEvents & EVENT_PARENT_CHANGED)
+                    == EVENT_PARENT_CHANGED) {
+                servicePostEvent("TelecomCallParentChanged",
+                        new CallEvent(mCallId, parent));
+            }
+        }
+
+        @Override
+        public void onChildrenChanged(
+                Call call, List<Call> children) {
+            Log.d("CallCallback:onChildrenChanged()");
+
+            if ((mEvents & EVENT_CHILDREN_CHANGED)
+                    == EVENT_CHILDREN_CHANGED) {
+                servicePostEvent("TelecomCallParentChanged",
+                        new CallEvent(mCallId, children));
+            }
+        }
+
+        @Override
+        public void onDetailsChanged(
+                Call call, Details details) {
+            Log.d("CallCallback:onDetailsChanged()");
+
+            if ((mEvents & EVENT_DETAILS_CHANGED)
+                    == EVENT_DETAILS_CHANGED) {
+                servicePostEvent("TelecomCallEventDetailsChanged",
+                        new CallEvent(mCallId, details));
+            }
+        }
+
+        @Override
+        public void onCannedTextResponsesLoaded(
+                Call call, List<String> cannedTextResponses) {
+            Log.d("CallCallback:onCannedTextResponsesLoaded()");
+            if ((mEvents & EVENT_CANNED_TEXT_RESPONSES_LOADED)
+                    == EVENT_CANNED_TEXT_RESPONSES_LOADED) {
+                servicePostEvent("TelecomCallCannedTextResponsesLoaded",
+                        new CallEvent(mCallId, cannedTextResponses));
+            }
+        }
+
+        @Override
+        public void onPostDialWait(
+                Call call, String remainingPostDialSequence) {
+            Log.d("CallCallback:onPostDialWait()");
+            if ((mEvents & EVENT_POST_DIAL_WAIT)
+                    == EVENT_POST_DIAL_WAIT) {
+                servicePostEvent("TelecomCallPostDialWait",
+                        new CallEvent(mCallId, remainingPostDialSequence));
+            }
+        }
+
+        @Override
+        public void onVideoCallChanged(
+                Call call, InCallService.VideoCall videoCall) {
+
+            /*
+             * There is a race condition such that the lifetime of the VideoCall is not aligned with
+             * the lifetime of the underlying call object. We are using the onVideoCallChanged
+             * method as a way of determining the lifetime of the VideoCall object rather than
+             * onCallAdded/onCallRemoved.
+             */
+            Log.d("CallCallback:onVideoCallChanged()");
+
+            if (call != null) {
+                String callId = getCallId(call);
+                CallContainer cc = mCallContainerMap.get(callId);
+                if (cc == null) {
+                    Log.d(String.format("Call container returned null for callId %s", callId));
+                }
+                else {
+                    synchronized (mLock) {
+                        if (videoCall == null) {
+                            Log.d("Yo dawg, I heard you like null video calls.");
+
+                            videoCall = call.getVideoCall();
+
+                            if (videoCall == null) {
+                                Log.d("Damn son, you committed to this null.");
+                            }
+                        }
+                        if (cc.getVideoCall() != videoCall) {
+                            if (videoCall == null) {
+                                // VideoCall object deleted
+                                cc.updateVideoCall(null, null);
+                                Log.d("Removing video call from call.");
+                            }
+                            else if (cc.getVideoCall() != null) {
+                                // Somehow we have a mismatched VideoCall ID!
+                                Log.d("Mismatched video calls for same call ID.");
+                            }
+                            else {
+                                Log.d("Huzzah, we have a video call!");
+
+                                VideoCallCallback videoCallCallback =
+                                        new VideoCallCallback(callId, VideoCallCallback.EVENT_NONE);
+
+                                videoCall.registerCallback(videoCallCallback);
+
+                                cc.updateVideoCall(
+                                        videoCall,
+                                        videoCallCallback);
+                            }
+                        }
+                        else {
+                            Log.d("Change to existing video call.");
+                        }
+
+                    }
+                }
+            }
+            else {
+                Log.d("passed null call pointer to call callback");
+            }
+
+            if ((mEvents & EVENT_VIDEO_CALL_CHANGED)
+                    == EVENT_VIDEO_CALL_CHANGED) {
+                // FIXME: Need to determine what to return; probably not the whole video call
+                servicePostEvent("TelecomCallVideoCallChanged",
+                        new CallEvent(mCallId, new Object()));
+            }
+        }
+
+        @Override
+        public void onCallDestroyed(Call call) {
+            Log.d("CallCallback:onCallDestroyed()");
+
+            if ((mEvents & EVENT_CALL_DESTROYED)
+                    == EVENT_CALL_DESTROYED) {
+                servicePostEvent("TelecomCallDestroyed",
+                        new CallEvent(mCallId, call));
+            }
+        }
+
+        @Override
+        public void onConferenceableCallsChanged(
+                Call call, List<Call> conferenceableCalls) {
+            Log.d("CallCallback:onConferenceableCallsChanged()");
+
+            if ((mEvents & EVENT_CONFERENCABLE_CALLS_CHANGED)
+                    == EVENT_CONFERENCABLE_CALLS_CHANGED) {
+                servicePostEvent("TelecomCallDestroyed",
+                        new CallEvent(mCallId, conferenceableCalls));
+            }
+        }
+    }
+
+    private class VideoCallCallback extends InCallService.VideoCall.Callback {
+
+        public static final int EVENT_INVALID = -1;
+        public static final int EVENT_NONE = 0;
+        public static final int EVENT_SESSION_MODIFY_REQUEST_RECEIVED = 1 << 0;
+        public static final int EVENT_SESSION_MODIFY_RESPONSE_RECEIVED = 1 << 1;
+        public static final int EVENT_SESSION_EVENT = 1 << 2;
+        public static final int EVENT_PEER_DIMENSIONS_CHANGED = 1 << 3;
+        public static final int EVENT_VIDEO_QUALITY_CHANGED = 1 << 4;
+        public static final int EVENT_DATA_USAGE_CHANGED = 1 << 5;
+        public static final int EVENT_CAMERA_CAPABILITIES_CHANGED = 1 << 6;
+        public static final int EVENT_ALL =
+                EVENT_SESSION_MODIFY_REQUEST_RECEIVED |
+                EVENT_SESSION_MODIFY_RESPONSE_RECEIVED |
+                EVENT_SESSION_EVENT |
+                EVENT_PEER_DIMENSIONS_CHANGED |
+                EVENT_VIDEO_QUALITY_CHANGED |
+                EVENT_DATA_USAGE_CHANGED |
+                EVENT_CAMERA_CAPABILITIES_CHANGED;
+
+        private String mCallId;
+        private int mEvents;
+
+        public VideoCallCallback(String callId, int listeners) {
+
+            mCallId = callId;
+            mEvents = listeners & EVENT_ALL;
+        }
+
+        public void startListeningForEvents(int events) {
+            mEvents |= events & EVENT_ALL;
+        }
+
+        public void stopListeningForEvents(int events) {
+            mEvents &= ~(events & EVENT_ALL);
+        }
+
+        @Override
+        public void onSessionModifyRequestReceived(VideoProfile videoProfile) {
+            Log.d("VideoCallCallback:onSessionModifyRequestReceived()");
+
+            if ((mEvents & EVENT_SESSION_MODIFY_REQUEST_RECEIVED)
+                    == EVENT_SESSION_MODIFY_REQUEST_RECEIVED) {
+                servicePostEvent("TelecomVideoCallSessionModifyRequestReceived",
+                        // FIXME: Need to send a meaningful object here
+                        new CallEvent(mCallId, new Object()));
+            }
+        }
+
+        @Override
+        public void onSessionModifyResponseReceived(int status,
+                VideoProfile requestedProfile, VideoProfile responseProfile) {
+            Log.d("VideoCallCallback:onSessionModifyResponseReceived()");
+
+            if ((mEvents & EVENT_SESSION_MODIFY_RESPONSE_RECEIVED)
+                    == EVENT_SESSION_MODIFY_RESPONSE_RECEIVED) {
+                servicePostEvent("TelecomVideoCallSessionModifyResponseReceived",
+                        // FIXME: Need to send a meaningful object here
+                        new CallEvent(mCallId, new Object()));
+            }
+
+        }
+
+        @Override
+        public void onCallSessionEvent(int event) {
+            Log.d("VideoCallCallback:onCallSessionEvent()");
+
+            // public static final int SESSION_EVENT_CAMERA_READY = 6;
+
+            // FIXME Move to a dedicated translation function
+            String eventString = "";
+            switch (event) {
+                case Connection.VideoProvider.SESSION_EVENT_RX_PAUSE:
+                    eventString = "SESSION_EVENT_RX_PAUSE";
+                    break;
+                case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
+                    eventString = "SESSION_EVENT_RX_RESUME";
+                    break;
+                case Connection.VideoProvider.SESSION_EVENT_TX_START:
+                    eventString = "SESSION_EVENT_RX_RESUME";
+                    break;
+                case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
+                    eventString = "SESSION_EVENT_TX_STOP";
+                    break;
+                case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
+                    eventString = "SESSION_EVENT_CAMERA_FAILURE";
+                    break;
+                case Connection.VideoProvider.SESSION_EVENT_CAMERA_READY:
+                    eventString = "SESSION_EVENT_CAMERA_READY";
+                    break;
+                default:
+                    // FIXME Define the unknown string explicitly
+                    eventString = "SESSION_EVENT_UNKOWN";
+                    break;
+            }
+
+            if ((mEvents & EVENT_SESSION_EVENT)
+                    == EVENT_SESSION_EVENT) {
+                servicePostEvent("TelecomVideoCallSessionEvent",
+                        new CallEvent(mCallId, new Object()));
+            }
+        }
+
+        @Override
+        public void onPeerDimensionsChanged(int width, int height) {
+            Log.d("VideoCallCallback:onPeerDimensionsChanged()");
+
+            if ((mEvents & EVENT_PEER_DIMENSIONS_CHANGED)
+                    == EVENT_PEER_DIMENSIONS_CHANGED) {
+
+                HashMap<String, Integer> temp = new HashMap<String, Integer>();
+                temp.put("Width", width);
+                temp.put("Height", height);
+
+                servicePostEvent("TelecomVideoCallPeerDimensionsChanged",
+                        new CallEvent(mCallId, temp));
+            }
+        }
+
+        @Override
+        public void onVideoQualityChanged(int videoQuality) {
+            Log.d("VideoCallCallback:onVideoQualityChanged()");
+
+            if ((mEvents & EVENT_VIDEO_QUALITY_CHANGED)
+                    == EVENT_VIDEO_QUALITY_CHANGED) {
+                servicePostEvent("TelecomVideoCallVideoQualityChanged",
+                        new CallEvent(mCallId, new Integer(videoQuality)));
+            }
+        }
+
+        @Override
+        public void onCallDataUsageChanged(long dataUsage) {
+            Log.d("VideoCallCallback:onCallDataUsageChanged()");
+
+            if ((mEvents & EVENT_DATA_USAGE_CHANGED)
+                    == EVENT_DATA_USAGE_CHANGED) {
+                servicePostEvent("TelecomVideoCallDataUsageChanged",
+                        new CallEvent(mCallId, new Long(dataUsage)));
+            }
+        }
+
+        @Override
+        public void onCameraCapabilitiesChanged(
+                CameraCapabilities cameraCapabilities) {
+            Log.d("VideoCallCallback:onCallDataUsageChanged()");
+
+            if ((mEvents & EVENT_DATA_USAGE_CHANGED)
+                    == EVENT_DATA_USAGE_CHANGED) {
+                servicePostEvent("TelecomVideoCallDataUsageChanged",
+                        new CallEvent(mCallId, cameraCapabilities));
+            }
+
+        }
+    }
+
+    /*
+     * Container Class for Call and CallCallback Objects
+     */
+    private class CallContainer {
+
+        /*
+         * Call Container Members
+         */
+
+        private Call mCall;
+        private CallCallback mCallCallback;
+        private VideoCall mVideoCall;
+        private VideoCallCallback mVideoCallCallback;
+
+        /*
+         * Call Container Functions
+         */
+
+        public CallContainer(Call call,
+                CallCallback callback,
+                VideoCall videoCall,
+                VideoCallCallback videoCallCallback) {
+            mCall = call;
+            mCallCallback = callback;
+            mVideoCall = videoCall;
+            mVideoCallCallback = videoCallCallback;
+        }
+
+        public Call getCall() {
+            return mCall;
+        }
+
+        public CallCallback getCallback() {
+            return mCallCallback;
+        }
+
+        public InCallService.VideoCall getVideoCall() {
+            return mVideoCall;
+        }
+
+        public VideoCallCallback getVideoCallCallback() {
+            return mVideoCallCallback;
+        }
+
+        public void updateVideoCall(VideoCall videoCall, VideoCallCallback videoCallCallback) {
+            if (videoCall == null && videoCallCallback != null) {
+                // nastygram
+                return;
+            }
+            mVideoCall = videoCall;
+            mVideoCallCallback = videoCallCallback;
+        }
+    }
+
+    /*
+     * FIXME: Refactor so that these are instance members of the incallservice Then we can perform
+     * null checks using the design pattern of the "manager" classes
+     */
+
+    private static EventFacade mEventFacade = null;
+    private static HashMap<String, CallContainer> mCallContainerMap =
+            new HashMap<String, CallContainer>();
 
     @Override
-    public void onPhoneCreated(Phone phone) {
-        Log.d("onPhoneCreated");
-        mPhone = phone;
-        mPhone.addListener(mPhoneListener);
+    public void onCallAdded(Call call) {
+        Log.d("onCallAdded: " + call.toString());
+        String id = getCallId(call);
+        Log.d("Adding " + id);
+        CallCallback callCallback = new CallCallback(
+                id, CallCallback.EVENT_NONE);
+
+        call.registerCallback(callCallback);
+
+        VideoCall videoCall = call.getVideoCall();
+        VideoCallCallback videoCallCallback = null;
+
+        if (videoCall != null) {
+            synchronized (mLock) {
+                if (getVideoCallById(id) == null) {
+                    videoCallCallback = new VideoCallCallback(
+                            id, VideoCallCallback.EVENT_NONE);
+                    videoCall.registerCallback(videoCallCallback);
+                }
+            }
+        }
+        else {
+            // No valid video object
+            Log.d("No Video Call provided to InCallService.");
+        }
+
+        mCallContainerMap.put(id,
+                new CallContainer(call,
+                        callCallback,
+                        videoCall,
+                        videoCallCallback));
+
+        /*
+         * Once we have a call active, anchor the inCallService instance as a psuedo-singleton.
+         * Because object lifetime is not guaranteed we shouldn't do this in the
+         * constructor/destructor.
+         */
+        if (mService == null) {
+            mService = this;
+        }
+        else if (mService != this) {
+            Log.e("Multiple InCall Services Active in SL4A!");
+        }
     }
 
     @Override
-    public void onPhoneDestroyed(Phone phone) {
-        Log.d("onPhoneDestroyed");
-        mPhone.removeListener(mPhoneListener);
-        mPhone = null;
+    public void onCallRemoved(Call call) {
+        Log.d("onCallRemoved: " + call.toString());
+        String id = getCallId(call);
+        Log.d("Removing " + id);
+
+        // TODO: Should we remove the listener from the call?
+
+        mCallContainerMap.remove(id);
+
+        if (mCallContainerMap.size() == 0) {
+            mService = null;
+        }
+    }
+
+    public static void setEventFacade(EventFacade facade) {
+        mEventFacade = facade;
+    }
+
+    private static boolean servicePostEvent(String eventName, Object event) {
+
+        if (mEventFacade == null) {
+            // FIXME: Need to actually throw an exception or log something here
+            return false;
+        }
+
+        mEventFacade.postEvent(eventName, event);
+
+        return true;
+    }
+
+    private static String getCallId(Call call) {
+        return call.toString();
+    }
+
+    private static Call getCallById(String callId) {
+
+        CallContainer cc = mCallContainerMap.get(callId);
+
+        if (cc != null) {
+            return cc.getCall();
+        }
+
+        return null;
+    }
+
+    private static CallCallback getCallCallbackById(String callId) {
+
+        CallContainer cc = mCallContainerMap.get(callId);
+
+        if (cc != null) {
+            return cc.getCallback();
+        }
+
+        return null;
+    }
+
+    private static InCallService.VideoCall getVideoCallById(String callId) {
+
+        CallContainer cc = mCallContainerMap.get(callId);
+
+        if (cc != null) {
+            return cc.getVideoCall();
+
+        }
+
+        return null;
+    }
+
+    private static VideoCallCallback
+    getVideoCallListenerById(String callId) {
+
+        CallContainer cc = mCallContainerMap.get(callId);
+
+        if (cc != null) {
+            return cc.getVideoCallCallback();
+        }
+
+        return null;
+    }
+
+    /*
+     * Public Call/Phone Functions
+     */
+
+    public static void callDisconnect(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        c.disconnect();
+    }
+
+    public static void holdCall(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.hold();
+    }
+
+    public static void mergeCallsInConference(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.mergeConference();
+    }
+
+    public static void splitCallFromConf(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.splitFromConference();
+    }
+
+    public static void unholdCall(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.unhold();
+    }
+
+    public static void joinCallsInConf(String callIdOne, String callIdTwo) {
+        Call callOne = getCallById(callIdOne);
+        Call callTwo = getCallById(callIdTwo);
+
+        if (callOne == null || callTwo == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        callOne.conference(callTwo);
+    }
+
+    public static Set<String> getCallIdList() {
+        return mCallContainerMap.keySet();
+    }
+
+    public static void clearCallList() {
+        mCallContainerMap.clear();
+    }
+
+    public static String callGetState(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            return getCallStateString(STATE_INVALID);
+        }
+
+        return getCallStateString(c.getState());
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void overrideProximitySensor(Boolean screenOn) {
+        InCallServiceImpl svc = getService();
+        if (svc == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        Phone phone = svc.getPhone();
+        if (phone == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        phone.setProximitySensorOff(screenOn);
+    }
+
+    public static AudioState serviceGetAudioState() {
+        InCallServiceImpl svc = getService();
+
+        if (svc != null) {
+            return svc.getAudioState();
+        }
+        else {
+            return null;
+        }
+    }
+
+    // Wonky name due to conflict with internal function
+    public static void serviceSetAudioRoute(String route) {
+        InCallServiceImpl svc = getService();
+
+        if (svc == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        Log.d(String.format("Setting Audio Route to %d", route));
+
+        int r = getAudioRoute(route);
+
+        if (r == INVALID_AUDIO_ROUTE) {
+            Log.d(String.format("Invalid Audio route %s:%d", route, r));
+            return;
+        }
+        svc.setAudioRoute(r);
+    }
+
+    public static void callStartListeningForEvent(String callId, String strEvent) {
+
+        CallCallback cl = getCallCallbackById(callId);
+
+        if (cl == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        int event = getCallCallbackEvent(strEvent);
+
+        if (event == CallCallback.EVENT_INVALID) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        cl.startListeningForEvents(event);
+    }
+
+    public static void callStopListeningForEvent(String callId, String strEvent) {
+        CallCallback cl = getCallCallbackById(callId);
+
+        if (cl == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        int event = getCallCallbackEvent(strEvent);
+
+        if (event == CallCallback.EVENT_INVALID) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        cl.stopListeningForEvents(event);
+    }
+
+    public static void videoCallStartListeningForEvent(String callId, String strEvent) {
+        VideoCallCallback cl = getVideoCallListenerById(callId);
+
+        if (cl == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        int event = getVideoCallCallbackEvent(strEvent);
+
+        if (event == VideoCallCallback.EVENT_INVALID) {
+            // TODO: Print a nastygrams
+            return;
+        }
+
+        cl.stopListeningForEvents(event);
+    }
+
+    public static void videoCallStopListeningForEvent(String callId, String strEvent) {
+        VideoCallCallback cl = getVideoCallListenerById(callId);
+
+        if (cl == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        int event = getVideoCallCallbackEvent(strEvent);
+
+        if (event == VideoCallCallback.EVENT_INVALID) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        cl.stopListeningForEvents(event);
+    }
+
+    public static String videoCallGetState(String callId) {
+        Call c = getCallById(callId);
+
+        if (c == null) {
+            // TODO: Print a nastygram
+            return "STATE_INVALID";
+        }
+
+        return getVideoCallStateString(c.getDetails().getVideoState());
+    }
+
+    public static void videoCallSendSessionModifyRequest(
+            String callId, String videoStateString, String videoQualityString) {
+        VideoCall vc = getVideoCallById(callId);
+
+        if (vc == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+
+        int videoState = getVideoCallState(videoStateString);
+        int videoQuality = getVideoCallQuality(videoQualityString);
+
+        Log.d(String.format("Sending Modify request for %s:%d, %s:%d",
+                videoStateString, videoState, videoQualityString, videoQuality));
+
+        vc.sendSessionModifyRequest(new VideoProfile(videoState, videoQuality));
+    }
+
+    public static void callAnswer(String callId, String videoState) {
+        Call c = getCallById(callId);
+
+        if (c == null) {
+            // TODO: Print a nastygram
+        }
+
+        int state = getVideoCallState(videoState);
+
+        if (state == CallCallback.STATE_INVALID) {
+            // TODO: Print a nastygram
+            state = VideoProfile.VideoState.AUDIO_ONLY;
+        }
+
+        c.answer(state);
+    }
+
+    public static void callReject(String callId, String message) {
+        Call c = getCallById(callId);
+
+        if (c == null) {
+            // TODO: Print a nastygram
+        }
+
+        c.reject((message != null) ? true : false, message);
+    }
+
+    /*
+     * String Mapping Functions for Facade Parameter Translation
+     */
+
+    private static String getVideoCallStateString(int state) {
+        switch (state) {
+            case VideoProfile.VideoState.AUDIO_ONLY:
+                return "AUDIO_ONLY";
+            case VideoProfile.VideoState.TX_ENABLED:
+                return "TX_ENABLED";
+            case VideoProfile.VideoState.RX_ENABLED:
+                return "RX_ENABLED";
+            case VideoProfile.VideoState.BIDIRECTIONAL:
+                return "BIDIRECTIONAL";
+            case VideoProfile.VideoState.PAUSED:
+                return "PAUSED";
+            default:
+        }
+        // probably need to wtf here
+        return "STATE_INVALID";
+    }
+
+    private static int getVideoCallState(String state) {
+        switch (state.toUpperCase()) {
+            case "AUDIO_ONLY":
+                return VideoProfile.VideoState.AUDIO_ONLY;
+            case "TX_ENABLED":
+                return VideoProfile.VideoState.TX_ENABLED;
+            case "RX_ENABLED":
+                return VideoProfile.VideoState.RX_ENABLED;
+            case "BIDIRECTIONAL":
+                return VideoProfile.VideoState.BIDIRECTIONAL;
+            case "PAUSED":
+                return VideoProfile.VideoState.PAUSED;
+            default:
+        }
+        // probably need to wtf here
+        return CallCallback.STATE_INVALID;
+    }
+
+    private static int getVideoCallQuality(String quality) {
+
+        switch (quality.toUpperCase()) {
+            case "QUALITY_UNKNOWN":
+                return VideoProfile.QUALITY_UNKNOWN;
+            case "QUALITY_HIGH":
+                return VideoProfile.QUALITY_HIGH;
+            case "QUALITY_MEDIUM":
+                return VideoProfile.QUALITY_MEDIUM;
+            case "QUALITY_LOW":
+                return VideoProfile.QUALITY_LOW;
+            case "QUALITY_DEFAULT":
+                return VideoProfile.QUALITY_DEFAULT;
+            default:
+        }
+        // probably need to wtf here
+        return QUALITY_INVALID;
+    }
+
+    private static String getVideoCallQualityString(int quality) {
+        switch (quality) {
+            case VideoProfile.QUALITY_UNKNOWN:
+                return "QUALITY_UNKNOWN";
+            case VideoProfile.QUALITY_HIGH:
+                return "QUALITY_HIGH";
+            case VideoProfile.QUALITY_MEDIUM:
+                return "QUALITY_MEDIUM";
+            case VideoProfile.QUALITY_LOW:
+                return "QUALITY_LOW";
+            case VideoProfile.QUALITY_DEFAULT:
+                return "QUALITY_DEFAULT";
+            default:
+        }
+        // probably need to wtf here
+        return "QUALITY_INVALID";
+    }
+
+    public static int getCallCallbackEvent(String event) {
+
+        switch (event.toUpperCase()) {
+            case "EVENT_STATE_CHANGED":
+                return CallCallback.EVENT_STATE_CHANGED;
+            case "EVENT_PARENT_CHANGED":
+                return CallCallback.EVENT_PARENT_CHANGED;
+            case "EVENT_CHILDREN_CHANGED":
+                return CallCallback.EVENT_CHILDREN_CHANGED;
+            case "EVENT_DETAILS_CHANGED":
+                return CallCallback.EVENT_DETAILS_CHANGED;
+            case "EVENT_CANNED_TEXT_RESPONSES_LOADED":
+                return CallCallback.EVENT_CANNED_TEXT_RESPONSES_LOADED;
+            case "EVENT_POST_DIAL_WAIT":
+                return CallCallback.EVENT_POST_DIAL_WAIT;
+            case "EVENT_VIDEO_CALL_CHANGED":
+                return CallCallback.EVENT_VIDEO_CALL_CHANGED;
+            case "EVENT_CALL_DESTROYED":
+                return CallCallback.EVENT_CALL_DESTROYED;
+            case "EVENT_CONFERENCABLE_CALLS_CHANGED":
+                return CallCallback.EVENT_CONFERENCABLE_CALLS_CHANGED;
+        }
+        // probably need to wtf here
+        return CallCallback.EVENT_INVALID;
+    }
+
+    private static String getCallCallbackEventString(int event) {
+
+        switch (event) {
+            case CallCallback.EVENT_STATE_CHANGED:
+                return "EVENT_STATE_CHANGED";
+            case CallCallback.EVENT_PARENT_CHANGED:
+                return "EVENT_PARENT_CHANGED";
+            case CallCallback.EVENT_CHILDREN_CHANGED:
+                return "EVENT_CHILDREN_CHANGED";
+            case CallCallback.EVENT_DETAILS_CHANGED:
+                return "EVENT_DETAILS_CHANGED";
+            case CallCallback.EVENT_CANNED_TEXT_RESPONSES_LOADED:
+                return "EVENT_CANNED_TEXT_RESPONSES_LOADED";
+            case CallCallback.EVENT_POST_DIAL_WAIT:
+                return "EVENT_POST_DIAL_WAIT";
+            case CallCallback.EVENT_VIDEO_CALL_CHANGED:
+                return "EVENT_VIDEO_CALL_CHANGED";
+            case CallCallback.EVENT_CALL_DESTROYED:
+                return "EVENT_CALL_DESTROYED";
+            case CallCallback.EVENT_CONFERENCABLE_CALLS_CHANGED:
+                return "EVENT_CONFERENCABLE_CALLS_CHANGED";
+        }
+        // probably need to wtf here
+        return "EVENT_INVALID";
+    }
+
+    public static int getVideoCallCallbackEvent(String event) {
+
+        switch (event.toUpperCase()) {
+            case "EVENT_SESSION_MODIFY_REQUEST_RECEIVED":
+                return VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED;
+            case "EVENT_SESSION_MODIFY_RESPONSE_RECEIVED":
+                return VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED;
+            case "EVENT_SESSION_EVENT":
+                return VideoCallCallback.EVENT_SESSION_EVENT;
+            case "EVENT_PEER_DIMENSIONS_CHANGED":
+                return VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED;
+            case "EVENT_VIDEO_QUALITY_CHANGED":
+                return VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED;
+            case "EVENT_DATA_USAGE_CHANGED":
+                return VideoCallCallback.EVENT_DATA_USAGE_CHANGED;
+            case "EVENT_CAMERA_CAPABILITIES_CHANGED":
+                return VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED;
+        }
+        // probably need to wtf here
+        return CallCallback.EVENT_INVALID;
+    }
+
+    private static String getVideoCallListenerEventString(int event) {
+
+        switch (event) {
+            case VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED:
+                return "EVENT_SESSION_MODIFY_REQUEST_RECEIVED";
+            case VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED:
+                return "EVENT_SESSION_MODIFY_RESPONSE_RECEIVED";
+            case VideoCallCallback.EVENT_SESSION_EVENT:
+                return "EVENT_SESSION_EVENT";
+            case VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED:
+                return "EVENT_PEER_DIMENSIONS_CHANGED";
+            case VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED:
+                return "EVENT_VIDEO_QUALITY_CHANGED";
+            case VideoCallCallback.EVENT_DATA_USAGE_CHANGED:
+                return "EVENT_DATA_USAGE_CHANGED";
+            case VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED:
+                return "EVENT_CAMERA_CAPABILITIES_CHANGED";
+        }
+        // probably need to wtf here
+        return "EVENT_INVALID";
+    }
+
+    private static String getCallStateString(int state) {
+        switch (state) {
+            case Call.STATE_NEW:
+                return "STATE_NEW";
+            case Call.STATE_DIALING:
+                return "STATE_DIALING";
+            case Call.STATE_RINGING:
+                return "STATE_RINGING";
+            case Call.STATE_HOLDING:
+                return "STATE_HOLDING";
+            case Call.STATE_ACTIVE:
+                return "STATE_ACTIVE";
+            case Call.STATE_DISCONNECTED:
+                return "STATE_DISCONNECTED";
+            case Call.STATE_PRE_DIAL_WAIT:
+                return "STATE_PRE_DIAL_WAIT";
+            case Call.STATE_CONNECTING:
+                return "STATE_CONNECTING";
+            case Call.STATE_DISCONNECTING:
+                return "STATE_DISCONNECTING";
+            case STATE_INVALID:
+                return "INVALID";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    private static int getAudioRoute(String audioRoute) {
+        switch (audioRoute.toUpperCase()) {
+            case "BLUETOOTH":
+                return AudioState.ROUTE_BLUETOOTH;
+            case "EARPIECE":
+                return AudioState.ROUTE_EARPIECE;
+            case "SPEAKER":
+                return AudioState.ROUTE_SPEAKER;
+            case "WIRED_HEADSET":
+                return AudioState.ROUTE_WIRED_HEADSET;
+            case "WIRED_OR_EARPIECE":
+                return AudioState.ROUTE_WIRED_OR_EARPIECE;
+            default:
+                return INVALID_AUDIO_ROUTE;
+        }
     }
 }
