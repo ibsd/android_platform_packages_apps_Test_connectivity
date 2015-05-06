@@ -8,12 +8,15 @@ import java.util.Set;
 
 import android.telecom.AudioState;
 import android.telecom.Call;
+import android.telecom.Call.Details;
 import android.telecom.CameraCapabilities;
+import android.telecom.Conference;
+import android.telecom.Connection;
+import android.telecom.ConnectionService;
 import android.telecom.InCallService;
 import android.telecom.Phone;
+import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
-import android.telecom.Call.Details;
-import android.telecom.Connection;
 
 import com.googlecode.android_scripting.Log;
 
@@ -39,20 +42,28 @@ public class InCallServiceImpl extends InCallService {
     public static final int INVALID_AUDIO_ROUTE = -1;
 
     // Container class to return the call ID along with the event
-    public class CallEvent {
+    public class CallEvent<EventType> {
 
-        public String mCallId;
-        public Object mEvent;
+        private final String mCallId;
+        private final EventType mEvent;
 
-        CallEvent(String callId, Object event) {
+        CallEvent(String callId, EventType event) {
             mCallId = callId;
             mEvent = event;
+        }
+
+        public String getCallId() {
+            return mCallId;
+        }
+
+        public EventType getEvent() {
+            return mEvent;
         }
     }
 
     // Currently the same as a call event... here for future use
-    public class VideoCallEvent extends CallEvent {
-        VideoCallEvent(String callId, Object event) {
+    public class VideoCallEvent<EventType> extends CallEvent<EventType> {
+        VideoCallEvent(String callId, EventType event) {
             super(callId, event);
         }
     }
@@ -109,7 +120,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_STATE_CHANGED)
                     == EVENT_STATE_CHANGED) {
                 servicePostEvent("TelecomCallStateChanged",
-                        new CallEvent(mCallId, state));
+                        new CallEvent<String>(mCallId, getCallStateString(state)));
             }
         }
 
@@ -120,7 +131,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_PARENT_CHANGED)
                     == EVENT_PARENT_CHANGED) {
                 servicePostEvent("TelecomCallParentChanged",
-                        new CallEvent(mCallId, parent));
+                        new CallEvent<String>(mCallId, getCallId(parent)));
             }
         }
 
@@ -131,8 +142,13 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_CHILDREN_CHANGED)
                     == EVENT_CHILDREN_CHANGED) {
-                servicePostEvent("TelecomCallParentChanged",
-                        new CallEvent(mCallId, children));
+                List<String> childList = new ArrayList<String>();
+
+                for (Call child : children) {
+                    childList.add(getCallId(child));
+                }
+                servicePostEvent("TelecomCallChildrenChanged",
+                        new CallEvent<List<String>>(mCallId, childList));
             }
         }
 
@@ -143,8 +159,8 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_DETAILS_CHANGED)
                     == EVENT_DETAILS_CHANGED) {
-                servicePostEvent("TelecomCallEventDetailsChanged",
-                        new CallEvent(mCallId, details));
+                servicePostEvent("TelecomCallDetailsChanged",
+                        new CallEvent<Details>(mCallId, details));
             }
         }
 
@@ -155,7 +171,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_CANNED_TEXT_RESPONSES_LOADED)
                     == EVENT_CANNED_TEXT_RESPONSES_LOADED) {
                 servicePostEvent("TelecomCallCannedTextResponsesLoaded",
-                        new CallEvent(mCallId, cannedTextResponses));
+                        new CallEvent<List<String>>(mCallId, cannedTextResponses));
             }
         }
 
@@ -166,7 +182,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_POST_DIAL_WAIT)
                     == EVENT_POST_DIAL_WAIT) {
                 servicePostEvent("TelecomCallPostDialWait",
-                        new CallEvent(mCallId, remainingPostDialSequence));
+                        new CallEvent<String>(mCallId, remainingPostDialSequence));
             }
         }
 
@@ -192,12 +208,10 @@ public class InCallServiceImpl extends InCallService {
                     synchronized (mLock) {
                         if (videoCall == null) {
                             Log.d("Yo dawg, I heard you like null video calls.");
-
+                            // Try and see if the videoCall has been added/changed after firing the
+                            // callback
+                            // This probably won't work.
                             videoCall = call.getVideoCall();
-
-                            if (videoCall == null) {
-                                Log.d("Damn son, you committed to this null.");
-                            }
                         }
                         if (cc.getVideoCall() != videoCall) {
                             if (videoCall == null) {
@@ -237,7 +251,7 @@ public class InCallServiceImpl extends InCallService {
                     == EVENT_VIDEO_CALL_CHANGED) {
                 // FIXME: Need to determine what to return; probably not the whole video call
                 servicePostEvent("TelecomCallVideoCallChanged",
-                        new CallEvent(mCallId, new Object()));
+                        new CallEvent<String>(mCallId, videoCall.toString()));
             }
         }
 
@@ -248,7 +262,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_CALL_DESTROYED)
                     == EVENT_CALL_DESTROYED) {
                 servicePostEvent("TelecomCallDestroyed",
-                        new CallEvent(mCallId, call));
+                        new CallEvent<Call>(mCallId, call));
             }
         }
 
@@ -259,8 +273,12 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_CONFERENCABLE_CALLS_CHANGED)
                     == EVENT_CONFERENCABLE_CALLS_CHANGED) {
-                servicePostEvent("TelecomCallDestroyed",
-                        new CallEvent(mCallId, conferenceableCalls));
+                List<String> confCallList = new ArrayList<String>();
+                for (Call cc : conferenceableCalls) {
+                    confCallList.add(getCallId(cc));
+                }
+                servicePostEvent("TelecomCallConferenceableCallsChanged",
+                        new CallEvent<List<String>>(mCallId, confCallList));
             }
         }
     }
@@ -310,7 +328,7 @@ public class InCallServiceImpl extends InCallService {
                     == EVENT_SESSION_MODIFY_REQUEST_RECEIVED) {
                 servicePostEvent("TelecomVideoCallSessionModifyRequestReceived",
                         // FIXME: Need to send a meaningful object here
-                        new CallEvent(mCallId, new Object()));
+                        new VideoCallEvent<VideoProfile>(mCallId, videoProfile));
             }
         }
 
@@ -321,9 +339,14 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_SESSION_MODIFY_RESPONSE_RECEIVED)
                     == EVENT_SESSION_MODIFY_RESPONSE_RECEIVED) {
+
+                HashMap<String, VideoProfile> smrrInfo = new HashMap<String, VideoProfile>();
+
+                smrrInfo.put("RequestedProfile", requestedProfile);
+                smrrInfo.put("ResponseProfile", responseProfile);
+
                 servicePostEvent("TelecomVideoCallSessionModifyResponseReceived",
-                        // FIXME: Need to send a meaningful object here
-                        new CallEvent(mCallId, new Object()));
+                        new VideoCallEvent<HashMap<String, VideoProfile>>(mCallId, smrrInfo));
             }
 
         }
@@ -332,39 +355,12 @@ public class InCallServiceImpl extends InCallService {
         public void onCallSessionEvent(int event) {
             Log.d("VideoCallCallback:onCallSessionEvent()");
 
-            // public static final int SESSION_EVENT_CAMERA_READY = 6;
-
-            // FIXME Move to a dedicated translation function
-            String eventString = "";
-            switch (event) {
-                case Connection.VideoProvider.SESSION_EVENT_RX_PAUSE:
-                    eventString = "SESSION_EVENT_RX_PAUSE";
-                    break;
-                case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
-                    eventString = "SESSION_EVENT_RX_RESUME";
-                    break;
-                case Connection.VideoProvider.SESSION_EVENT_TX_START:
-                    eventString = "SESSION_EVENT_RX_RESUME";
-                    break;
-                case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
-                    eventString = "SESSION_EVENT_TX_STOP";
-                    break;
-                case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
-                    eventString = "SESSION_EVENT_CAMERA_FAILURE";
-                    break;
-                case Connection.VideoProvider.SESSION_EVENT_CAMERA_READY:
-                    eventString = "SESSION_EVENT_CAMERA_READY";
-                    break;
-                default:
-                    // FIXME Define the unknown string explicitly
-                    eventString = "SESSION_EVENT_UNKOWN";
-                    break;
-            }
+            String eventString = getVideoCallSessionEventString(event);
 
             if ((mEvents & EVENT_SESSION_EVENT)
                     == EVENT_SESSION_EVENT) {
                 servicePostEvent("TelecomVideoCallSessionEvent",
-                        new CallEvent(mCallId, new Object()));
+                        new VideoCallEvent<String>(mCallId, eventString));
             }
         }
 
@@ -380,7 +376,7 @@ public class InCallServiceImpl extends InCallService {
                 temp.put("Height", height);
 
                 servicePostEvent("TelecomVideoCallPeerDimensionsChanged",
-                        new CallEvent(mCallId, temp));
+                        new VideoCallEvent<HashMap<String, Integer>>(mCallId, temp));
             }
         }
 
@@ -391,7 +387,8 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_VIDEO_QUALITY_CHANGED)
                     == EVENT_VIDEO_QUALITY_CHANGED) {
                 servicePostEvent("TelecomVideoCallVideoQualityChanged",
-                        new CallEvent(mCallId, new Integer(videoQuality)));
+                        new VideoCallEvent<String>(mCallId,
+                                getVideoCallQualityString(videoQuality)));
             }
         }
 
@@ -402,7 +399,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_DATA_USAGE_CHANGED)
                     == EVENT_DATA_USAGE_CHANGED) {
                 servicePostEvent("TelecomVideoCallDataUsageChanged",
-                        new CallEvent(mCallId, new Long(dataUsage)));
+                        new VideoCallEvent<Long>(mCallId, dataUsage));
             }
         }
 
@@ -413,8 +410,8 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_DATA_USAGE_CHANGED)
                     == EVENT_DATA_USAGE_CHANGED) {
-                servicePostEvent("TelecomVideoCallDataUsageChanged",
-                        new CallEvent(mCallId, cameraCapabilities));
+                servicePostEvent("TelecomVideoCallCameraCapabilities",
+                        new VideoCallEvent<CameraCapabilities>(mCallId, cameraCapabilities));
             }
 
         }
@@ -488,8 +485,7 @@ public class InCallServiceImpl extends InCallService {
         Log.d("onCallAdded: " + call.toString());
         String id = getCallId(call);
         Log.d("Adding " + id);
-        CallCallback callCallback = new CallCallback(
-                id, CallCallback.EVENT_NONE);
+        CallCallback callCallback = new CallCallback(id, CallCallback.EVENT_NONE);
 
         call.registerCallback(callCallback);
 
@@ -499,8 +495,7 @@ public class InCallServiceImpl extends InCallService {
         if (videoCall != null) {
             synchronized (mLock) {
                 if (getVideoCallById(id) == null) {
-                    videoCallCallback = new VideoCallCallback(
-                            id, VideoCallCallback.EVENT_NONE);
+                    videoCallCallback = new VideoCallCallback(id, VideoCallCallback.EVENT_NONE);
                     videoCall.registerCallback(videoCallCallback);
                 }
             }
@@ -545,13 +540,15 @@ public class InCallServiceImpl extends InCallService {
     }
 
     public static void setEventFacade(EventFacade facade) {
+        Log.d(String.format("setEventFacade(): Settings SL4A event facade to %s",
+                facade.toString()));
         mEventFacade = facade;
     }
 
     private static boolean servicePostEvent(String eventName, Object event) {
 
         if (mEventFacade == null) {
-            // FIXME: Need to actually throw an exception or log something here
+            Log.d("servicePostEvent():SL4A eventFacade Is Null!!");
             return false;
         }
 
@@ -560,8 +557,19 @@ public class InCallServiceImpl extends InCallService {
         return true;
     }
 
-    private static String getCallId(Call call) {
-        return call.toString();
+    public static String getCallId(Call call) {
+        if (call != null) {
+            return call.toString();
+        }
+        else
+            return "";
+    }
+
+    public static String getVideoCallId(InCallServiceImpl.VideoCall videoCall) {
+        if (videoCall != null)
+            return videoCall.toString();
+        else
+            return "";
     }
 
     private static Call getCallById(String callId) {
@@ -599,7 +607,7 @@ public class InCallServiceImpl extends InCallService {
     }
 
     private static VideoCallCallback
-    getVideoCallListenerById(String callId) {
+            getVideoCallListenerById(String callId) {
 
         CallContainer cc = mCallContainerMap.get(callId);
 
@@ -870,7 +878,7 @@ public class InCallServiceImpl extends InCallService {
      * String Mapping Functions for Facade Parameter Translation
      */
 
-    private static String getVideoCallStateString(int state) {
+    public static String getVideoCallStateString(int state) {
         switch (state) {
             case VideoProfile.VideoState.AUDIO_ONLY:
                 return "AUDIO_ONLY";
@@ -888,7 +896,7 @@ public class InCallServiceImpl extends InCallService {
         return "STATE_INVALID";
     }
 
-    private static int getVideoCallState(String state) {
+    public static int getVideoCallState(String state) {
         switch (state.toUpperCase()) {
             case "AUDIO_ONLY":
                 return VideoProfile.VideoState.AUDIO_ONLY;
@@ -925,7 +933,7 @@ public class InCallServiceImpl extends InCallService {
         return QUALITY_INVALID;
     }
 
-    private static String getVideoCallQualityString(int quality) {
+    public static String getVideoCallQualityString(int quality) {
         switch (quality) {
             case VideoProfile.QUALITY_UNKNOWN:
                 return "QUALITY_UNKNOWN";
@@ -943,7 +951,7 @@ public class InCallServiceImpl extends InCallService {
         return "QUALITY_INVALID";
     }
 
-    public static int getCallCallbackEvent(String event) {
+    private static int getCallCallbackEvent(String event) {
 
         switch (event.toUpperCase()) {
             case "EVENT_STATE_CHANGED":
@@ -969,7 +977,7 @@ public class InCallServiceImpl extends InCallService {
         return CallCallback.EVENT_INVALID;
     }
 
-    private static String getCallCallbackEventString(int event) {
+    public static String getCallCallbackEventString(int event) {
 
         switch (event) {
             case CallCallback.EVENT_STATE_CHANGED:
@@ -995,7 +1003,7 @@ public class InCallServiceImpl extends InCallService {
         return "EVENT_INVALID";
     }
 
-    public static int getVideoCallCallbackEvent(String event) {
+    private static int getVideoCallCallbackEvent(String event) {
 
         switch (event.toUpperCase()) {
             case "EVENT_SESSION_MODIFY_REQUEST_RECEIVED":
@@ -1017,7 +1025,7 @@ public class InCallServiceImpl extends InCallService {
         return CallCallback.EVENT_INVALID;
     }
 
-    private static String getVideoCallListenerEventString(int event) {
+    public static String getVideoCallListenerEventString(int event) {
 
         switch (event) {
             case VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED:
@@ -1039,7 +1047,7 @@ public class InCallServiceImpl extends InCallService {
         return "EVENT_INVALID";
     }
 
-    private static String getCallStateString(int state) {
+    public static String getCallStateString(int state) {
         switch (state) {
             case Call.STATE_NEW:
                 return "STATE_NEW";
@@ -1080,6 +1088,157 @@ public class InCallServiceImpl extends InCallService {
                 return AudioState.ROUTE_WIRED_OR_EARPIECE;
             default:
                 return INVALID_AUDIO_ROUTE;
+        }
+    }
+
+    public static String getVideoCallSessionEventString(int event) {
+
+        switch (event) {
+            case Connection.VideoProvider.SESSION_EVENT_RX_PAUSE:
+                return "SESSION_EVENT_RX_PAUSE";
+            case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
+                return "SESSION_EVENT_RX_RESUME";
+            case Connection.VideoProvider.SESSION_EVENT_TX_START:
+                return "SESSION_EVENT_RX_RESUME";
+            case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
+                return "SESSION_EVENT_TX_STOP";
+            case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
+                return "SESSION_EVENT_CAMERA_FAILURE";
+            case Connection.VideoProvider.SESSION_EVENT_CAMERA_READY:
+                return "SESSION_EVENT_CAMERA_READY";
+            default:
+                return "SESSION_EVENT_UNKOWN";
+        }
+    }
+
+    public static String getCallCapabilityString(int capability) {
+        switch (capability) {
+            case Call.Details.CAPABILITY_HOLD:
+                return "CAPABILITY_HOLD";
+            case Call.Details.CAPABILITY_SUPPORT_HOLD:
+                return "CAPABILITY_SUPPORT_HOLD";
+            case Call.Details.CAPABILITY_MERGE_CONFERENCE:
+                return "CAPABILITY_MERGE_CONFERENCE";
+            case Call.Details.CAPABILITY_SWAP_CONFERENCE:
+                return "CAPABILITY_SWAP_CONFERENCE";
+            case Call.Details.CAPABILITY_UNUSED_1:
+                return "CAPABILITY_UNUSED_1";
+            case Call.Details.CAPABILITY_RESPOND_VIA_TEXT:
+                return "CAPABILITY_RESPOND_VIA_TEXT";
+            case Call.Details.CAPABILITY_MUTE:
+                return "CAPABILITY_MUTE";
+            case Call.Details.CAPABILITY_MANAGE_CONFERENCE:
+                return "CAPABILITY_MANAGE_CONFERENCE";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_RX:
+                return "CAPABILITY_SUPPORTS_VT_LOCAL_RX";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_TX:
+                return "CAPABILITY_SUPPORTS_VT_LOCAL_TX";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL:
+                return "CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_RX:
+                return "CAPABILITY_SUPPORTS_VT_REMOTE_RX";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_TX:
+                return "CAPABILITY_SUPPORTS_VT_REMOTE_TX";
+            case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL:
+                return "CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL";
+            case Call.Details.CAPABILITY_SEPARATE_FROM_CONFERENCE:
+                return "CAPABILITY_SEPARATE_FROM_CONFERENCE";
+            case Call.Details.CAPABILITY_DISCONNECT_FROM_CONFERENCE:
+                return "CAPABILITY_DISCONNECT_FROM_CONFERENCE";
+            case Call.Details.CAPABILITY_SPEED_UP_MT_AUDIO:
+                return "CAPABILITY_SPEED_UP_MT_AUDIO";
+            case Call.Details.CAPABILITY_CAN_UPGRADE_TO_VIDEO:
+                return "CAPABILITY_CAN_UPGRADE_TO_VIDEO";
+            case Call.Details.CAPABILITY_CAN_PAUSE_VIDEO:
+                return "CAPABILITY_CAN_PAUSE_VIDEO";
+        }
+        return "CAPABILITY_UNKOWN";
+    }
+
+    public static List<String> getCallCapabilitiesString(int capabilities) {
+        final int[] capabilityConstants = new int[] {
+                Call.Details.CAPABILITY_HOLD,
+                Call.Details.CAPABILITY_SUPPORT_HOLD,
+                Call.Details.CAPABILITY_MERGE_CONFERENCE,
+                Call.Details.CAPABILITY_SWAP_CONFERENCE,
+                Call.Details.CAPABILITY_UNUSED_1,
+                Call.Details.CAPABILITY_RESPOND_VIA_TEXT,
+                Call.Details.CAPABILITY_MUTE,
+                Call.Details.CAPABILITY_MANAGE_CONFERENCE,
+                Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_RX,
+                Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_TX,
+                Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL,
+                Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_RX,
+                Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_TX,
+                Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL,
+                Call.Details.CAPABILITY_SEPARATE_FROM_CONFERENCE,
+                Call.Details.CAPABILITY_DISCONNECT_FROM_CONFERENCE,
+                Call.Details.CAPABILITY_SPEED_UP_MT_AUDIO,
+                Call.Details.CAPABILITY_CAN_UPGRADE_TO_VIDEO,
+                Call.Details.CAPABILITY_CAN_PAUSE_VIDEO
+        };
+
+        List<String> capabilityList = new ArrayList<String>();
+
+        for (int capability : capabilityConstants) {
+            if ((capabilities & capability) == capability) {
+                capabilityList.add(getCallCapabilityString(capability));
+            }
+        }
+        return capabilityList;
+    }
+
+    public static String getCallPropertyString(int property) {
+
+        switch (property) {
+            case Call.Details.PROPERTY_CONFERENCE:
+                return "PROPERTY_CONFERENCE";
+            case Call.Details.PROPERTY_GENERIC_CONFERENCE:
+                return "PROPERTY_GENERIC_CONFERENCE";
+            case Call.Details.PROPERTY_EMERGENCY_CALLBACK_MODE:
+                return "PROPERTY_EMERGENCY_CALLBACK_MODE";
+            case Call.Details.PROPERTY_WIFI:
+                return "PROPERTY_WIFI";
+            case Call.Details.PROPERTY_HIGH_DEF_AUDIO:
+                return "PROPERTY_HIGH_DEF_AUDIO";
+            default:
+                // FIXME define PROPERTY_UNKNOWN somewhere
+                return "PROPERTY_UNKNOWN";
+        }
+    }
+
+    public static List<String> getCallPropertiesString(int properties) {
+        final int[] propertyConstants = new int[] {
+                Call.Details.PROPERTY_CONFERENCE,
+                Call.Details.PROPERTY_GENERIC_CONFERENCE,
+                Call.Details.PROPERTY_EMERGENCY_CALLBACK_MODE,
+                Call.Details.PROPERTY_WIFI,
+                Call.Details.PROPERTY_HIGH_DEF_AUDIO
+        };
+
+        List<String> propertyList = new ArrayList<String>();
+
+        for (int property : propertyConstants) {
+            if ((properties & property) == property) {
+                propertyList.add(getCallPropertyString(property));
+            }
+        }
+
+        return propertyList;
+    }
+
+    public static String getCallPresentationInfoString(int presentation) {
+        switch (presentation) {
+            case TelecomManager.PRESENTATION_ALLOWED:
+                return "PRESENTATION_ALLOWED";
+            case TelecomManager.PRESENTATION_RESTRICTED:
+                return "PRESENTATION_RESTRICTED";
+            case TelecomManager.PRESENTATION_PAYPHONE:
+                return "PRESENTATION_PAYPHONE";
+            case TelecomManager.PRESENTATION_UNKNOWN:
+                return "PRESENTATION_UNKNOWN";
+            default:
+                return "PRESENTATION_UNKNOWN";
         }
     }
 }

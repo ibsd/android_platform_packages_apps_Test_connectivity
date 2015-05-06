@@ -50,11 +50,17 @@ import android.net.wifi.WifiScanner.ScanData;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.telecom.AudioState;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
+import android.telecom.Call;
+import android.telecom.Call.Details;
+import android.telecom.VideoProfile;
+import android.telecom.CameraCapabilities;
+import android.telecom.InCallService;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
@@ -79,6 +85,8 @@ import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
 import com.googlecode.android_scripting.facade.tele.TelephonyUtils;
+//FIXME: Refactor classes, constants and conversions out of here
+import com.googlecode.android_scripting.facade.tele.InCallServiceImpl;
 
 public class JsonBuilder {
 
@@ -243,6 +251,21 @@ public class JsonBuilder {
         }
         if (data instanceof CellInfoCdma) {
             return buildCellInfoCdma((CellInfoCdma) data);
+        }
+        if (data instanceof Call) {
+            return buildCall((Call) data);
+        }
+        if (data instanceof Call.Details) {
+            return buildCallDetails((Call.Details) data);
+        }
+        if (data instanceof InCallServiceImpl.CallEvent<?>) {
+            return buildCallEvent((InCallServiceImpl.CallEvent<?>) data);
+        }
+        if (data instanceof VideoProfile) {
+            return buildVideoProfile((VideoProfile) data);
+        }
+        if (data instanceof CameraCapabilities) {
+            return buildCameraCapabilities((CameraCapabilities) data);
         }
 
         return data.toString();
@@ -834,6 +857,106 @@ public class JsonBuilder {
         info.put("isGroupOwner", data.isGroupOwner);
         info.put("groupOwnerAddress", data.groupOwnerAddress);
         return info;
+    }
+
+    private static <T> JSONObject buildCallEvent(InCallServiceImpl.CallEvent<T> callEvent)
+            throws JSONException {
+        JSONObject jsonEvent = new JSONObject();
+        jsonEvent.put("CallId", callEvent.getCallId());
+        jsonEvent.put("Event", build(callEvent.getEvent()));
+        return jsonEvent;
+    }
+
+    private static JSONObject buildUri(Uri uri) throws JSONException {
+        return new JSONObject().put("Uri", build(uri.toString()));
+    }
+
+    private static JSONObject buildCallDetails(Call.Details details) throws JSONException {
+
+        JSONObject callDetails = new JSONObject();
+
+        callDetails.put("Handle", buildUri(details.getHandle()));
+        callDetails.put("HandlePresentation",
+                build(InCallServiceImpl.getCallPresentationInfoString(
+                        details.getHandlePresentation())));
+        callDetails.put("CallerDisplayName", build(details.getCallerDisplayName()));
+
+        // TODO AccountHandle
+        //callDetails.put("AccountHandle", build(""));
+
+        callDetails.put("Capabilities",
+                build(InCallServiceImpl.getCallCapabilitiesString(details.getCallCapabilities())));
+
+        callDetails.put("Properties",
+                build(InCallServiceImpl.getCallPropertiesString(details.getCallProperties())));
+
+        // TODO Parse fields in Disconnect Cause
+        callDetails.put("DisconnectCause", build(details.getDisconnectCause().toString()));
+        callDetails.put("ConnectTimeMillis", build(details.getConnectTimeMillis()));
+
+        // TODO: GatewayInfo
+        //callDetails.put("GatewayInfo", build(""));
+
+        callDetails.put("VideoState",
+                build(InCallServiceImpl.getVideoCallStateString(details.getVideoState())));
+
+        // TODO: StatusHints
+        //callDetails.put("StatusHints", build(""));
+
+        callDetails.put("Extras", build(details.getExtras()));
+
+        return callDetails;
+    }
+
+    private static JSONObject buildCall(Call call) throws JSONException {
+
+        JSONObject callInfo = new JSONObject();
+
+        callInfo.put("Parent", build(InCallServiceImpl.getCallId(call)));
+
+        // TODO:Make a function out of this for consistency
+        ArrayList<String> children = new ArrayList<String>();
+        for (Call child : call.getChildren()) {
+            children.add(InCallServiceImpl.getCallId(child));
+        }
+        callInfo.put("Children", build(children));
+
+        // TODO:Make a function out of this for consistency
+        ArrayList<String> conferenceables = new ArrayList<String>();
+        for (Call conferenceable : call.getChildren()) {
+            children.add(InCallServiceImpl.getCallId(conferenceable));
+        }
+        callInfo.put("ConferenceableCalls", build(conferenceables));
+
+        callInfo.put("State", build(InCallServiceImpl.getCallStateString(call.getState())));
+        callInfo.put("CannedTextResponses", build(call.getCannedTextResponses()));
+        callInfo.put("VideoCall", InCallServiceImpl.getVideoCallId(call.getVideoCall()));
+        callInfo.put("Details", build(call.getDetails()));
+
+        return callInfo;
+    }
+
+    private static JSONObject buildVideoProfile(VideoProfile videoProfile) throws JSONException {
+        JSONObject profile = new JSONObject();
+
+        profile.put("VideoState",
+                InCallServiceImpl.getVideoCallStateString(videoProfile.getVideoState()));
+        profile.put("VideoQuality",
+                InCallServiceImpl.getVideoCallQualityString(videoProfile.getQuality()));
+
+        return profile;
+    }
+
+    private static JSONObject buildCameraCapabilities(CameraCapabilities cameraCapabilities)
+            throws JSONException {
+        JSONObject capabilities = new JSONObject();
+
+        capabilities.put("Height", build(cameraCapabilities.getHeight()));
+        capabilities.put("Width", build(cameraCapabilities.getWidth()));
+        capabilities.put("ZoomSupported", build(cameraCapabilities.isZoomSupported()));
+        capabilities.put("MaxZoom", build(cameraCapabilities.getMaxZoom()));
+
+        return capabilities;
     }
 
     private JsonBuilder() {
