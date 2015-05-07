@@ -216,7 +216,14 @@ public class TelecomCallFacade extends RpcReceiver {
         return InCallServiceImpl.videoCallGetState(callId);
     }
 
-    @Rpc(description = "Get the Video Call State")
+    @Rpc(description = "Get the Video Call Quality")
+    public String telecomCallVideoGetQuality(
+                        @RpcParameter(name = "call")
+            String callId) {
+        return InCallServiceImpl.videoCallGetQuality(callId);
+    }
+
+    @Rpc(description = "Send a request to modify the video call session parameters")
     public void telecomCallVideoSendSessionModifyRequest(
                         @RpcParameter(name = "call")
             String callId,
@@ -225,5 +232,16 @@ public class TelecomCallFacade extends RpcReceiver {
                         @RpcParameter(name = "videoQuality")
             String videoQuality) {
         InCallServiceImpl.videoCallSendSessionModifyRequest(callId, videoState, videoQuality);
+    }
+
+    @Rpc(description = "Send a response to a modify the video call session request")
+    public void telecomCallVideoSendSessionModifyResponse(
+                        @RpcParameter(name = "call")
+            String callId,
+                        @RpcParameter(name = "videoState")
+            String videoState,
+                        @RpcParameter(name = "videoQuality")
+            String videoQuality) {
+        InCallServiceImpl.videoCallSendSessionModifyResponse(callId, videoState, videoQuality);
     }
 }

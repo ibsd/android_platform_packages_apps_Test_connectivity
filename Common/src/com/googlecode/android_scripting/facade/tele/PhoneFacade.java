@@ -537,6 +537,7 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    //FIXME: b/20917712 to support videoCall parameter in Extras
     @Deprecated
     @Rpc(description = "Calls a phone by resolving a generic URI.")
     public void phoneCall(
@@ -562,6 +563,7 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    //FIXME: b/20917712 to support videoCall parameter in Extras
     @Rpc(description = "Calls a phone by resolving a Content-type URI.")
     public void phoneCallContentUri(
                         @RpcParameter(name = "uriString")
@@ -608,6 +610,7 @@ public class PhoneFacade extends RpcReceiver {
         phoneCallNumber(number, videoCall);
     }
 
+    //FIXME: b/20917712 to support videoCall parameter in Extras
     @Rpc(description = "Calls a phone number.")
     public void phoneCallNumber(
                         @RpcParameter(name = "number")
@@ -620,6 +623,7 @@ public class PhoneFacade extends RpcReceiver {
         phoneCallTelUri("tel:" + URLEncoder.encode(number, "ASCII"), videoCall);
     }
 
+    //FIXME: b/20917712 to support videoCall parameter in Extras
     @Rpc(description = "Calls a phone by Tel-URI.")
     public void phoneCallTelUri(
             @RpcParameter(name = "uriString")
@@ -1237,6 +1241,7 @@ public class PhoneFacade extends RpcReceiver {
     public String getCallStateForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
         switch (mTelephonyManager.getCallState(subId)) {
+            //TODO: b/20916221: Standardize names using enum-name convention
             case TelephonyManager.CALL_STATE_IDLE:
                 return "idle";
             case TelephonyManager.CALL_STATE_RINGING:
