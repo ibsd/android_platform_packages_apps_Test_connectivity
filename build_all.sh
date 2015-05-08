@@ -88,21 +88,24 @@ echo
 }
 
 function sl4a_flash {
+for SERIAL in $(adb devices | tail -n +2 | cut -sf 1);
+do
+  echo "flashing serial number = $SERIAL"
+  export ANDROID_SERIAL="$SERIAL"
+  echo -e "${y}Switching to root${NC}"
+  adb root
+  adb wait-for-device remount
 
-echo -e "${y}Switching to root${NC}"
-adb root
-adb wait-for-device remount
+  echo -e "${y}Uninstalling old apk from device${NC}"
+  adb uninstall $APP_PACKAGE_NAME
+  adb shell rm -r /system/priv-app/$APP_NAME.apk
 
-echo -e "${y}Uninstalling old apk from device${NC}"
-adb uninstall $APP_PACKAGE_NAME
-adb shell rm -r /system/priv-app/$APP_NAME.apk
-
-echo -e "${lb}Installing apk to device${NC}"
-cd $APK_ROOT
-#exec adb install $APP_NAME.apk "installing apk to device"
-#exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
-exec adb install -r $APP_NAME.apk "installing apk to previliged dir"
-
+  echo -e "${lb}Installing apk to device${NC}"
+  cd $APK_ROOT
+  #exec adb install $APP_NAME.apk "installing apk to device"
+  #exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
+  exec adb install -r $APP_NAME.apk "installing apk to previliged dir"
+done
 }
 
 DO_BUILD=1
