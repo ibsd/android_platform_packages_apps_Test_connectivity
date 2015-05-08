@@ -17,6 +17,7 @@
     <uses-permission android:name="com.android.server.telecom.permission.REGISTER_PROVIDER_OR_SUBSCRIPTION" />
     <uses-permission android:name="android.permission.CONTROL_INCALL_EXPERIENCE" />
     <uses-permission android:name="android.permission.CONNECTIVITY_INTERNAL" />
+    <uses-permission android:name="android.permission.LOCATION_HARDWARE" /> 
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SEND_SMS" />
