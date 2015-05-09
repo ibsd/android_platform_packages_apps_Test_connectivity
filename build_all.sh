@@ -5,11 +5,11 @@
 #function to change jdk version
 function setup_jdk() {
   # Remove the current JDK from PATH
-  if [ -n "$JAVA_HOME" ] ; then
-    PATH=${PATH/$JAVA_HOME\/bin:/}
+  if [ -n "${JAVA_HOME}" ] ; then
+    PATH=${PATH/${JAVA_HOME}\/bin:/}
   fi
-  export JAVA_HOME=$1
-  export PATH=$JAVA_HOME/bin:$PATH
+  export JAVA_HOME=${1}
+  export PATH=${JAVA_HOME}/bin:${PATH}
 }
 
 #Color code for echo
@@ -30,7 +30,7 @@ declare -a lib_list=("Utils" "Common" "InterpreterForAndroid" "ScriptingLayer" "
 
 declare -a test_list=("Utils" "Common")
 
-IFS='_' read -a array <<< "$TARGET_PRODUCT"
+IFS='_' read -a array <<< "${TARGET_PRODUCT}"
 export TP=${array[0]}
 if [[ ${#array[@]} -eq 2 ]]; then
   export TP=${array[1]}
@@ -39,28 +39,28 @@ fi
 APP_NAME=sl4a
 APP_PACKAGE_NAME=com.googlecode.android_scripting
 
-BRANCH_ROOT=$PWD/../../../../..
-SL4A_ROOT=$BRANCH_ROOT/vendor/google_testing/comms/Tools/sl4a
-SHARED_LIB_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/JAVA_LIBRARIES
-APP_JAR_ROOT=$BRANCH_ROOT/out/target/common/obj/APPS
-APK_ROOT=$BRANCH_ROOT/out/target/product/$TP/system/priv-app/sl4a
-SL4A_PROJ_DIR=$SL4A_ROOT/ScriptingLayerForAndroid
+BRANCH_ROOT=${PWD}/../../../../..
+SL4A_ROOT=${BRANCH_ROOT}/vendor/google_testing/comms/Tools/sl4a
+SHARED_LIB_JAR_ROOT=${BRANCH_ROOT}/out/target/common/obj/JAVA_LIBRARIES
+APP_JAR_ROOT=${BRANCH_ROOT}/out/target/common/obj/APPS
+APK_ROOT=${BRANCH_ROOT}/out/target/product/${TP}/system/priv-app/sl4a
+SL4A_PROJ_DIR=${SL4A_ROOT}/ScriptingLayerForAndroid
 
 function sl4a_build {
 
 echo -e "${y}Removing intermediates of all the dependency libs${NC}"
 for i in "${lib_list[@]}"
 do
-  rm -r $SHARED_LIB_JAR_ROOT/sl4a."$i"_intermediates
+  rm -r ${SHARED_LIB_JAR_ROOT}/sl4a."${i}"_intermediates
 done
 
 echo -e "${y}Removing intermeidates of the app${NC}"
-rm -r $APP_JAR_ROOT/"$APP_NAME"_intermediates
+rm -r ${APP_JAR_ROOT}/"${APP_NAME}"_intermediates
 #Remove the apk file
-rm $APK_ROOT/"$APP_NAME".apk
+rm ${APK_ROOT}/"${APP_NAME}".apk
 
 #Build all the dependency libs
-. $BRANCH_ROOT/build/envsetup.sh
+. ${BRANCH_ROOT}/build/envsetup.sh
 
 exec () {
   ${@:1:($#-1)}
@@ -74,15 +74,15 @@ exec () {
 
 for i in "${lib_list[@]}"
 do
-  echo -e "${lb}+++++++ Building $i +++++++${NC}"
-  cd $SL4A_ROOT/"$i"
-  exec mm -B "building $i"
+  echo -e "${lb}+++++++ Building ${i} +++++++${NC}"
+  cd $SL4A_ROOT/"${i}"
+  exec mm -B "building ${i}"
   echo
 done
 
-echo -e "${lb}+++++++ Building $APP_NAME.apk +++++++${NC}"
-cd $SL4A_PROJ_DIR
-exec mm -B "building $APP_NAME.apk"
+echo -e "${lb}+++++++ Building ${APP_NAME}.apk +++++++${NC}"
+cd ${SL4A_PROJ_DIR}
+exec mm -B "building ${APP_NAME}.apk"
 echo
 
 }
@@ -90,35 +90,40 @@ echo
 function sl4a_flash {
 for SERIAL in $(adb devices | tail -n +2 | cut -sf 1);
 do
-  echo "flashing serial number = $SERIAL"
-  export ANDROID_SERIAL="$SERIAL"
-  echo -e "${y}Switching to root${NC}"
-  adb root
-  adb wait-for-device remount
+  if [ "${SELECT_SERIAL}" == "0" ] || [ "${SELECT_SERIAL}" == "${SERIAL}" ]; then
+    echo "flashing serial number = ${SERIAL}"
+    export ANDROID_SERIAL="${SERIAL}"
+    echo -e "${y}Switching to root${NC}"
+    adb root
+    adb wait-for-device remount
 
-  echo -e "${y}Uninstalling old apk from device${NC}"
-  adb uninstall $APP_PACKAGE_NAME
-  adb shell rm -r /system/priv-app/$APP_NAME.apk
+    echo -e "${y}Uninstalling old apk from device${NC}"
+    adb uninstall ${APP_PACKAGE_NAME}
+    adb shell rm -r /system/priv-app/${APP_NAME}.apk
 
-  echo -e "${lb}Installing apk to device${NC}"
-  cd $APK_ROOT
-  #exec adb install $APP_NAME.apk "installing apk to device"
-  #exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
-  exec adb install -r $APP_NAME.apk "installing apk to previliged dir"
+    echo -e "${lb}Installing apk to device${NC}"
+    cd ${APK_ROOT}
+    #exec adb install $APP_NAME.apk "installing apk to device"
+    #exec adb push $APP_NAME.apk /system/priv-app "installing apk to previliged dir"
+    echo -e "installing apk to previliged dir"
+    adb install -r ${APP_NAME}.apk
+  fi
 done
 }
 
 DO_BUILD=1
 DO_FLASH=1
+SELECT_SERIAL=0
 
 if [ $# -ne 0 ] ; then
   DO_BUILD=0
   DO_FLASH=0
-  while getopts "bf" ARG
+  while getopts "bfs:" ARG
   do
-    case $ARG in
+    case ${ARG} in
       b) DO_BUILD=1 && echo "Build it we will.";;
       f) DO_FLASH=1 && echo "Flash it we must.";;
+      s) SELECT_SERIAL=${OPTARG} && echo "flash serial number: ${SELECT_SERIAL}";;
       ?) echo "Invalid Argument ${ARG}" && exit 1;;
     esac
   done
