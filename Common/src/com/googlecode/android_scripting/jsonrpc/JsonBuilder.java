@@ -277,7 +277,7 @@ public class JsonBuilder {
             throws JSONException {
         JSONObject state = new JSONObject();
         state.put("isMuted", data.isMuted());
-        state.put("AudioRoute", AudioState.audioRouteToString(data.getRoute()));
+        state.put("AudioRoute", InCallServiceImpl.getAudioRouteString(data.getRoute()));
         return state;
     }
 
