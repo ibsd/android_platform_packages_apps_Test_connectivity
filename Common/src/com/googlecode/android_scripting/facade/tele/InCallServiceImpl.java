@@ -348,7 +348,6 @@ public class InCallServiceImpl extends InCallService {
                 servicePostEvent("TelecomVideoCallSessionModifyResponseReceived",
                         new VideoCallEvent<HashMap<String, VideoProfile>>(mCallId, smrrInfo));
             }
-
         }
 
         @Override
@@ -821,12 +820,31 @@ public class InCallServiceImpl extends InCallService {
     public static String videoCallGetState(String callId) {
         Call c = getCallById(callId);
 
+        int state = CallCallback.STATE_INVALID;
+
         if (c == null) {
             // TODO: Print a nastygram
-            return "STATE_INVALID";
+        }
+        else {
+            state = c.getDetails().getVideoState();
         }
 
-        return getVideoCallStateString(c.getDetails().getVideoState());
+        return getVideoCallStateString(state);
+    }
+
+    public static String videoCallGetQuality(String callId) {
+        Call c = getCallById(callId);
+
+        int quality = VideoProfile.QUALITY_UNKNOWN;
+
+        if (c == null) {
+            // TODO: Print a nastygram
+        }
+        else {
+            quality = c.getDetails().getVideoState();
+        }
+
+        return getVideoCallStateString(quality);
     }
 
     public static void videoCallSendSessionModifyRequest(
@@ -834,7 +852,7 @@ public class InCallServiceImpl extends InCallService {
         VideoCall vc = getVideoCallById(callId);
 
         if (vc == null) {
-            // TODO: Print a nastygram
+            Log.d("Invalid video call for call ID");
             return;
         }
 
@@ -844,7 +862,37 @@ public class InCallServiceImpl extends InCallService {
         Log.d(String.format("Sending Modify request for %s:%d, %s:%d",
                 videoStateString, videoState, videoQualityString, videoQuality));
 
+        if (videoState == CallCallback.STATE_INVALID ||
+                videoQuality == QUALITY_INVALID || videoQuality == VideoProfile.QUALITY_UNKNOWN) {
+            Log.d("Invalid session modify request!");
+            return;
+        }
+
         vc.sendSessionModifyRequest(new VideoProfile(videoState, videoQuality));
+    }
+
+    public static void videoCallSendSessionModifyResponse(
+            String callId, String videoStateString, String videoQualityString) {
+        VideoCall vc = getVideoCallById(callId);
+
+        if (vc == null) {
+            Log.d("Invalid video call for call ID");
+            return;
+        }
+
+        int videoState = getVideoCallState(videoStateString);
+        int videoQuality = getVideoCallQuality(videoQualityString);
+
+        Log.d(String.format("Sending Modify request for %s:%d, %s:%d",
+                videoStateString, videoState, videoQualityString, videoQuality));
+
+        if (videoState == CallCallback.STATE_INVALID ||
+                videoQuality == QUALITY_INVALID || videoQuality == VideoProfile.QUALITY_UNKNOWN) {
+            Log.d("Invalid session modify request!");
+            return;
+        }
+
+        vc.sendSessionModifyResponse(new VideoProfile(videoState, videoQuality));
     }
 
     public static void callAnswer(String callId, String videoState) {
