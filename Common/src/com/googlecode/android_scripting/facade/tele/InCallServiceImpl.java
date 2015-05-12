@@ -9,7 +9,6 @@ import java.util.Set;
 import android.telecom.AudioState;
 import android.telecom.Call;
 import android.telecom.Call.Details;
-import android.telecom.CameraCapabilities;
 import android.telecom.Conference;
 import android.telecom.Connection;
 import android.telecom.ConnectionService;
@@ -17,6 +16,7 @@ import android.telecom.InCallService;
 import android.telecom.Phone;
 import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
+import android.telecom.VideoProfile.CameraCapabilities;
 
 import com.googlecode.android_scripting.Log;
 

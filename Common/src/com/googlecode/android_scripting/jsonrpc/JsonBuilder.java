@@ -59,7 +59,7 @@ import android.telecom.PhoneAccountHandle;
 import android.telecom.Call;
 import android.telecom.Call.Details;
 import android.telecom.VideoProfile;
-import android.telecom.CameraCapabilities;
+import android.telecom.VideoProfile.CameraCapabilities;
 import android.telecom.InCallService;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
