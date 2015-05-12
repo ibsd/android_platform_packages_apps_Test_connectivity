@@ -313,7 +313,12 @@ public class InCallServiceImpl extends InCallService {
         }
 
         public void startListeningForEvents(int events) {
+            Log.d(String.format(
+                    "VideoCallCallback(%s):startListeningForEvents(%x): events:%x",
+                    mCallId, events, mEvents));
+
             mEvents |= events & EVENT_ALL;
+
         }
 
         public void stopListeningForEvents(int events) {
@@ -322,14 +327,14 @@ public class InCallServiceImpl extends InCallService {
 
         @Override
         public void onSessionModifyRequestReceived(VideoProfile videoProfile) {
-            Log.d("VideoCallCallback:onSessionModifyRequestReceived()");
+            Log.d(String.format("VideoCallCallback(%s):onSessionModifyRequestReceived()", mCallId));
 
             if ((mEvents & EVENT_SESSION_MODIFY_REQUEST_RECEIVED)
                     == EVENT_SESSION_MODIFY_REQUEST_RECEIVED) {
                 servicePostEvent("TelecomVideoCallSessionModifyRequestReceived",
-                        // FIXME: Need to send a meaningful object here
                         new VideoCallEvent<VideoProfile>(mCallId, videoProfile));
             }
+
         }
 
         @Override
@@ -540,7 +545,7 @@ public class InCallServiceImpl extends InCallService {
 
     public static void setEventFacade(EventFacade facade) {
         Log.d(String.format("setEventFacade(): Settings SL4A event facade to %s",
-                facade.toString()));
+                (facade != null) ? facade.toString() : "null"));
         mEventFacade = facade;
     }
 
@@ -733,9 +738,9 @@ public class InCallServiceImpl extends InCallService {
             return;
         }
 
-        Log.d(String.format("Setting Audio Route to %d", route));
-
         int r = getAudioRoute(route);
+
+        Log.d(String.format("Setting Audio Route to %s:%d", route, r));
 
         if (r == INVALID_AUDIO_ROUTE) {
             Log.d(String.format("Invalid Audio route %s:%d", route, r));
@@ -785,18 +790,18 @@ public class InCallServiceImpl extends InCallService {
         VideoCallCallback cl = getVideoCallListenerById(callId);
 
         if (cl == null) {
-            // TODO: Print a nastygram
+            Log.d(String.format("Couldn't find a call with call id:%s", callId));
             return;
         }
 
         int event = getVideoCallCallbackEvent(strEvent);
 
         if (event == VideoCallCallback.EVENT_INVALID) {
-            // TODO: Print a nastygrams
+            Log.d(String.format("Failed to find a valid event:[%s]", strEvent));
             return;
         }
 
-        cl.stopListeningForEvents(event);
+        cl.startListeningForEvents(event);
     }
 
     public static void videoCallStopListeningForEvent(String callId, String strEvent) {
@@ -1137,6 +1142,10 @@ public class InCallServiceImpl extends InCallService {
             default:
                 return INVALID_AUDIO_ROUTE;
         }
+    }
+
+    public static String getAudioRouteString(int audioRoute) {
+        return AudioState.audioRouteToString(audioRoute);
     }
 
     public static String getVideoCallSessionEventString(int event) {
