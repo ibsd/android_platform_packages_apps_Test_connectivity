@@ -18,6 +18,9 @@ package com.googlecode.android_scripting.jsonrpc;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,26 +44,25 @@ import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.RttManager.RttCapabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiScanner.ScanData;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
-import android.telecom.Call;
-import android.telecom.Call.Details;
 import android.telecom.VideoProfile;
 import android.telecom.VideoProfile.CameraCapabilities;
-import android.telecom.InCallService;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
@@ -78,15 +80,16 @@ import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionInfo;
 import android.telephony.gsm.GsmCellLocation;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 
 import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
-import com.googlecode.android_scripting.facade.tele.TelephonyUtils;
 //FIXME: Refactor classes, constants and conversions out of here
 import com.googlecode.android_scripting.facade.tele.InCallServiceImpl;
+import com.googlecode.android_scripting.facade.tele.TelephonyUtils;
 
 public class JsonBuilder {
 
@@ -654,9 +657,9 @@ public class JsonBuilder {
         result.put("rat", "lte");
         result.put("registered", data.isRegistered());
         CellIdentityLte cellidentity =
-                        ((CellInfoLte) data).getCellIdentity();
+                ((CellInfoLte) data).getCellIdentity();
         CellSignalStrengthLte signalstrength =
-                        ((CellInfoLte) data).getCellSignalStrength();
+                ((CellInfoLte) data).getCellSignalStrength();
         result.put("mcc", cellidentity.getMcc());
         result.put("mnc", cellidentity.getMnc());
         result.put("cid", cellidentity.getCi());
@@ -674,9 +677,9 @@ public class JsonBuilder {
         result.put("rat", "gsm");
         result.put("registered", data.isRegistered());
         CellIdentityGsm cellidentity =
-                      ((CellInfoGsm) data).getCellIdentity();
+                ((CellInfoGsm) data).getCellIdentity();
         CellSignalStrengthGsm signalstrength =
-                      ((CellInfoGsm) data).getCellSignalStrength();
+                ((CellInfoGsm) data).getCellSignalStrength();
         result.put("mcc", cellidentity.getMcc());
         result.put("mnc", cellidentity.getMnc());
         result.put("cid", cellidentity.getCid());
@@ -692,9 +695,9 @@ public class JsonBuilder {
         result.put("rat", "wcdma");
         result.put("registered", data.isRegistered());
         CellIdentityWcdma cellidentity =
-                          ((CellInfoWcdma) data).getCellIdentity();
+                ((CellInfoWcdma) data).getCellIdentity();
         CellSignalStrengthWcdma signalstrength =
-                          ((CellInfoWcdma) data).getCellSignalStrength();
+                ((CellInfoWcdma) data).getCellSignalStrength();
         result.put("mcc", cellidentity.getMcc());
         result.put("mnc", cellidentity.getMnc());
         result.put("cid", cellidentity.getCid());
@@ -711,9 +714,9 @@ public class JsonBuilder {
         result.put("rat", "cdma");
         result.put("registered", data.isRegistered());
         CellIdentityCdma cellidentity =
-                       ((CellInfoCdma) data).getCellIdentity();
+                ((CellInfoCdma) data).getCellIdentity();
         CellSignalStrengthCdma signalstrength =
-                       ((CellInfoCdma) data).getCellSignalStrength();
+                ((CellInfoCdma) data).getCellSignalStrength();
         result.put("network_id", cellidentity.getNetworkId());
         result.put("system_id", cellidentity.getSystemId());
         result.put("basestation_id", cellidentity.getBasestationId());
@@ -817,6 +820,10 @@ public class JsonBuilder {
         config.put("BSSID", data.BSSID);
         config.put("priority", data.priority);
         config.put("hiddenSSID", data.hiddenSSID);
+        config.put("FQDN", data.FQDN);
+        config.put("providerFriendlyName", data.providerFriendlyName);
+        config.put("isPasspoint", data.isPasspoint());
+        config.put("hiddenSSID", data.hiddenSSID);
         if (data.status == WifiConfiguration.Status.CURRENT) {
             config.put("status", "CURRENT");
         } else if (data.status == WifiConfiguration.Status.DISABLED) {
@@ -826,6 +833,28 @@ public class JsonBuilder {
         } else {
             config.put("status", "UNKNOWN");
         }
+        // config.put("enterpriseConfig", buildWifiEnterpriseConfig(data.enterpriseConfig));
+        return config;
+    }
+
+    private static Object buildWifiEnterpriseConfig(WifiEnterpriseConfig data)
+            throws JSONException, CertificateEncodingException {
+        JSONObject config = new JSONObject();
+        config.put(WifiEnterpriseConfig.PLMN_KEY, data.getPlmn());
+        config.put(WifiEnterpriseConfig.REALM_KEY, data.getRealm());
+        config.put(WifiEnterpriseConfig.EAP_KEY, data.getEapMethod());
+        config.put(WifiEnterpriseConfig.PHASE2_KEY, data.getPhase2Method());
+        config.put(WifiEnterpriseConfig.ALTSUBJECT_MATCH_KEY, data.getAltSubjectMatch());
+        X509Certificate caCert = data.getCaCertificate();
+        String caCertString = Base64.encodeToString(caCert.getEncoded(), Base64.DEFAULT);
+        config.put(WifiEnterpriseConfig.CA_CERT_KEY, caCertString);
+        X509Certificate clientCert = data.getClientCertificate();
+        String clientCertString = Base64.encodeToString(clientCert.getEncoded(), Base64.DEFAULT);
+        config.put(WifiEnterpriseConfig.CLIENT_CERT_KEY, clientCertString);
+        PrivateKey pk = data.getClientPrivateKey();
+        String privateKeyString = Base64.encodeToString(pk.getEncoded(), Base64.DEFAULT);
+        config.put(WifiEnterpriseConfig.PRIVATE_KEY_ID_KEY, privateKeyString);
+        config.put(WifiEnterpriseConfig.PASSWORD_KEY, data.getPassword());
         return config;
     }
 
@@ -883,7 +912,7 @@ public class JsonBuilder {
         callDetails.put("CallerDisplayName", build(details.getCallerDisplayName()));
 
         // TODO AccountHandle
-        //callDetails.put("AccountHandle", build(""));
+        // callDetails.put("AccountHandle", build(""));
 
         callDetails.put("Capabilities",
                 build(InCallServiceImpl.getCallCapabilitiesString(details.getCallCapabilities())));
@@ -896,13 +925,13 @@ public class JsonBuilder {
         callDetails.put("ConnectTimeMillis", build(details.getConnectTimeMillis()));
 
         // TODO: GatewayInfo
-        //callDetails.put("GatewayInfo", build(""));
+        // callDetails.put("GatewayInfo", build(""));
 
         callDetails.put("VideoState",
                 build(InCallServiceImpl.getVideoCallStateString(details.getVideoState())));
 
         // TODO: StatusHints
-        //callDetails.put("StatusHints", build(""));
+        // callDetails.put("StatusHints", build(""));
 
         callDetails.put("Extras", build(details.getExtras()));
 

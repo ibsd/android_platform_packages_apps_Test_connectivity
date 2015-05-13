@@ -2,8 +2,11 @@
 package com.googlecode.android_scripting.facade.wifi;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -321,7 +324,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private WifiConfiguration genWifiEnterpriseConfig(JSONObject j) throws JSONException,
-    GeneralSecurityException {
+            GeneralSecurityException {
         if (j == null) {
             return null;
         }
@@ -457,7 +460,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PrivateKey strToPrivateKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -466,7 +469,7 @@ public class WifiManagerFacade extends RpcReceiver {
     }
 
     private PublicKey strToPublicKey(String key) throws NoSuchAlgorithmException,
-    InvalidKeySpecException {
+            InvalidKeySpecException {
         byte[] keyBytes = base64StrToBytes(key);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
@@ -484,15 +487,33 @@ public class WifiManagerFacade extends RpcReceiver {
         return config;
     }
 
-    @Rpc(description = "Test for base64 string transfer.")
-    public void wifiTest(String base64Str) throws JSONException, UnsupportedEncodingException {
-        Log.d(new String(Base64.decode(base64Str, Base64.DEFAULT), "UTF-8"));
+    @Rpc(description = "test.")
+    public String wifiTest(String certString) throws CertificateException, IOException {
+        // TODO(angli): Make this work. Convert a X509Certificate back to a string.
+        X509Certificate caCert = strToX509Cert(certString);
+        caCert.getEncoded();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutput out = new ObjectOutputStream(bos);
+        out.writeObject(caCert);
+        byte[] data = bos.toByteArray();
+        bos.close();
+        return Base64.encodeToString(data, Base64.DEFAULT);
     }
 
     @Rpc(description = "Add a network.")
     public Integer wifiAddNetwork(@RpcParameter(name = "wifiConfig") JSONObject wifiConfig)
             throws JSONException {
         return mWifi.addNetwork(genWifiConfig(wifiConfig));
+    }
+
+    @Rpc(description = "Builds a WifiConfiguration from Hotspot 2.0 MIME file.")
+    public WifiConfiguration wifiBuildConfig(
+            @RpcParameter(name = "uriString") String uriString,
+            @RpcParameter(name = "mimeType") String mimeType,
+            String dataString)
+            throws JSONException {
+        byte[] data = base64StrToBytes(dataString);
+        return mWifi.buildWifiConfig(uriString, mimeType, data);
     }
 
     @Rpc(description = "Cancel Wi-fi Protected Setup.")
@@ -549,7 +570,14 @@ public class WifiManagerFacade extends RpcReceiver {
         // Create Certificate
         WifiActionListener listener = new WifiActionListener(mEventFacade, "EnterpriseConnect");
         WifiConfiguration wifiConfig = genWifiEnterpriseConfig(config);
-        mWifi.connect(wifiConfig, listener);
+        if (wifiConfig.isPasspoint()) {
+            Log.d("Got a passpoint config, add it and save config.");
+            mWifi.addNetwork(wifiConfig);
+            mWifi.saveConfiguration();
+        } else {
+            Log.d("Got a non-passpoint enterprise config, connect directly.");
+            mWifi.connect(wifiConfig, listener);
+        }
     }
 
     /**
@@ -705,8 +733,8 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
             @RpcParameter(name = "config",
-            description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
-                    throws JSONException {
+                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+            throws JSONException {
         WpsInfo info = parseWpsInfo(config);
         WifiWpsCallback listener = new WifiWpsCallback();
         Log.d("Starting wps with: " + info);
@@ -742,7 +770,7 @@ public class WifiManagerFacade extends RpcReceiver {
             returns = "True if Wifi scan is always available.")
     public Boolean wifiToggleScanAlwaysAvailable(
             @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
-                    throws SettingNotFoundException {
+            throws SettingNotFoundException {
         ContentResolver cr = mService.getContentResolver();
         int isSet = 0;
         if (enabled == null) {
