@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import android.telecom.AudioState;
 import android.telecom.Call;
 import android.telecom.Call.Details;
+import android.telecom.CallAudioState;
 import android.telecom.Conference;
 import android.telecom.Connection;
 import android.telecom.ConnectionService;
@@ -718,11 +718,11 @@ public class InCallServiceImpl extends InCallService {
         phone.setProximitySensorOff(screenOn);
     }
 
-    public static AudioState serviceGetAudioState() {
+    public static CallAudioState serviceGetCallAudioState() {
         InCallServiceImpl svc = getService();
 
         if (svc != null) {
-            return svc.getAudioState();
+            return svc.getCallAudioState();
         }
         else {
             return null;
@@ -1130,22 +1130,22 @@ public class InCallServiceImpl extends InCallService {
     private static int getAudioRoute(String audioRoute) {
         switch (audioRoute.toUpperCase()) {
             case "BLUETOOTH":
-                return AudioState.ROUTE_BLUETOOTH;
+                return CallAudioState.ROUTE_BLUETOOTH;
             case "EARPIECE":
-                return AudioState.ROUTE_EARPIECE;
+                return CallAudioState.ROUTE_EARPIECE;
             case "SPEAKER":
-                return AudioState.ROUTE_SPEAKER;
+                return CallAudioState.ROUTE_SPEAKER;
             case "WIRED_HEADSET":
-                return AudioState.ROUTE_WIRED_HEADSET;
+                return CallAudioState.ROUTE_WIRED_HEADSET;
             case "WIRED_OR_EARPIECE":
-                return AudioState.ROUTE_WIRED_OR_EARPIECE;
+                return CallAudioState.ROUTE_WIRED_OR_EARPIECE;
             default:
                 return INVALID_AUDIO_ROUTE;
         }
     }
 
     public static String getAudioRouteString(int audioRoute) {
-        return AudioState.audioRouteToString(audioRoute);
+        return CallAudioState.audioRouteToString(audioRoute);
     }
 
     public static String getVideoCallSessionEventString(int event) {

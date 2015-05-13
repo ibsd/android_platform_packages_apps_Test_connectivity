@@ -53,7 +53,7 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelUuid;
-import android.telecom.AudioState;
+import android.telecom.CallAudioState;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.Call;
@@ -133,8 +133,8 @@ public class JsonBuilder {
         if (data instanceof Address) {
             return buildJsonAddress((Address) data);
         }
-        if (data instanceof AudioState) {
-            return buildJsonAudioState((AudioState) data);
+        if (data instanceof CallAudioState) {
+            return buildJsonAudioState((CallAudioState) data);
         }
         if (data instanceof Location) {
             return buildJsonLocation((Location) data);
@@ -273,7 +273,7 @@ public class JsonBuilder {
         // data.getClass().getName());
     }
 
-    private static JSONObject buildJsonAudioState(AudioState data)
+    private static JSONObject buildJsonAudioState(CallAudioState data)
             throws JSONException {
         JSONObject state = new JSONObject();
         state.put("isMuted", data.isMuted());

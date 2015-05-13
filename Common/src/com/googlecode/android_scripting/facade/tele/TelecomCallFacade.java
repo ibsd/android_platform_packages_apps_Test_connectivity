@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 import android.app.Service;
-import android.telecom.AudioState;
 import android.telecom.Call;
+import android.telecom.CallAudioState;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.VideoProfile;
@@ -115,8 +115,8 @@ public class TelecomCallFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Obtains the current call audio state of the phone.")
-    public AudioState telecomCallGetAudioState() {
-        return InCallServiceImpl.serviceGetAudioState();
+    public CallAudioState telecomCallGetAudioState() {
+        return InCallServiceImpl.serviceGetCallAudioState();
     }
 
     @Rpc(description = "Lists the IDs (phone numbers or hex hashes) "
