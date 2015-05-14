@@ -926,6 +926,62 @@ public class InCallServiceImpl extends InCallService {
 
         c.reject((message != null) ? true : false, message);
     }
+    public static String getCallParent(String callId) {
+        Call c = getCallById(callId);
+
+        if (c == null) {
+            // TODO: Print a nastygram
+            return null;
+        }
+        Call callParent = c.getParent();
+        return getCallId(callParent);
+    }
+    public static List<String> getCallChildren(String callId) {
+        Call c = getCallById(callId);
+
+        if (c == null) {
+            // TODO: Print a nastygram
+            return null;
+        }
+        List<String> childrenList = new ArrayList<String>();
+        List<Call> callChildren = c.getChildren();
+        for(Call call:callChildren) {
+            childrenList.add(getCallId(call));
+        }
+        return childrenList;
+    }
+    public static void swapCallsInConference(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.swapConference();
+    }
+    public static void callPlayDtmfTone(String callId, char digit) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.playDtmfTone(digit);
+    }
+    public static void callStopDtmfTone(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            // TODO: Print a nastygram
+            return;
+        }
+        c.stopDtmfTone();
+    }
+    public static List<String> callGetCannedTextResponses(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            return null;
+        }
+
+        return c.getCannedTextResponses();
+    }
 
     /*
      * String Mapping Functions for Facade Parameter Translation

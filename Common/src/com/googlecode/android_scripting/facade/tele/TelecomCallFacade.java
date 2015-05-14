@@ -124,7 +124,40 @@ public class TelecomCallFacade extends RpcReceiver {
     public Set<String> telecomCallGetCallIds() {
         return InCallServiceImpl.getCallIdList();
     }
-
+    @Rpc(description = "Get callId's children")
+    public List<String> telecomCallGetCallChildren(
+                        @RpcParameter(name = "callId") String callId) {
+        return InCallServiceImpl.getCallChildren(callId);
+    }
+    @Rpc(description = "Get callId's parent")
+    public String telecomCallGetCallParent(
+                        @RpcParameter(name = "callId") String callId) {
+        return InCallServiceImpl.getCallParent(callId);
+    }
+    @Rpc(description = "Swaps the calls within this conference")
+    public void telecomCallSwapCallsInConference(
+                        @RpcParameter(name = "callId") String callId) {
+        InCallServiceImpl.swapCallsInConference(callId);
+    }
+    @Rpc(description = "Play a dual-tone multi-frequency signaling (DTMF) tone")
+    public void telecomCallPlayDtmfTone(
+                        @RpcParameter(name = "callId") String callId,
+                        @RpcParameter(name = "digit") String digitString) {
+        for(int i = 0; i < digitString.length(); i++) {
+            char c = digitString.charAt(i);
+            InCallServiceImpl.callPlayDtmfTone(callId, c);
+        }
+    }
+    @Rpc(description = "Stop any dual-tone multi-frequency signaling (DTMF) tone")
+    public void telecomCallStopDtmfTone(
+                        @RpcParameter(name = "callId") String callId) {
+        InCallServiceImpl.callStopDtmfTone(callId);
+    }
+    @Rpc(description = "Obtains a list of text message, user to reject call.")
+    public List<String> telecomCallGetCannedTextResponses(
+                        @RpcParameter(name = "callId") String callId) {
+        return InCallServiceImpl.callGetCannedTextResponses(callId);
+    }
     @Rpc(description = "Reset the Call List.")
     public void telecomCallClearCallList() {
         InCallServiceImpl.clearCallList();
