@@ -701,6 +701,36 @@ public class InCallServiceImpl extends InCallService {
         return getCallStateString(c.getState());
     }
 
+    public static Call.Details callGetDetails(String callId) {
+        Call c = getCallById(callId);
+        if (c == null) {
+            Log.d(String.format("Couldn't find an active call with ID:%s", callId));
+            return null;
+        }
+
+        return c.getDetails();
+    }
+
+    public static List<String> callGetCallProperties(String callId) {
+        Call.Details details = callGetDetails(callId);
+
+        if(details == null) {
+            return null;
+        }
+
+        return getCallPropertiesString(details.getCallProperties());
+    }
+
+    public static List<String> callGetCallCapabilities(String callId) {
+        Call.Details details = callGetDetails(callId);
+
+        if(details == null) {
+            return null;
+        }
+
+        return getCallCapabilitiesString(details.getCallCapabilities());
+    }
+
     @SuppressWarnings("deprecation")
     public static void overrideProximitySensor(Boolean screenOn) {
         InCallServiceImpl svc = getService();

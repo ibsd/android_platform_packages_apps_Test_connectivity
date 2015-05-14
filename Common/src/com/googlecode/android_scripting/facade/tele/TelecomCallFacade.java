@@ -224,6 +224,27 @@ public class TelecomCallFacade extends RpcReceiver {
         InCallServiceImpl.callStopListeningForEvent(callId, event);
     }
 
+    @Rpc(description = "Get the detailed information about a call")
+    public Call.Details telecomCallGetDetails(
+                        @RpcParameter(name = "callId")
+            String callId) {
+        return InCallServiceImpl.callGetDetails(callId);
+    }
+
+    @Rpc(description = "Return the capabilities for a call")
+    public  List<String> telecomCallGetCapabilities(
+                        @RpcParameter(name = "callId")
+            String callId) {
+        return InCallServiceImpl.callGetCallCapabilities(callId);
+    }
+
+    @Rpc(description = "Return the properties for a call")
+    public  List<String> telecomCallGetProperties(
+                        @RpcParameter(name = "callId")
+            String callId) {
+        return InCallServiceImpl.callGetCallProperties(callId);
+    }
+
     @Rpc(description = "Start Listening for a VideoCall Event")
     public void telecomCallVideoStartListeningForEvent(
                         @RpcParameter(name = "call")
