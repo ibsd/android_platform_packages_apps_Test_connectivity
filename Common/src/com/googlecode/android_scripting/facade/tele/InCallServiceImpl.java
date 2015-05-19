@@ -714,7 +714,7 @@ public class InCallServiceImpl extends InCallService {
     public static List<String> callGetCallProperties(String callId) {
         Call.Details details = callGetDetails(callId);
 
-        if(details == null) {
+        if (details == null) {
             return null;
         }
 
@@ -724,7 +724,7 @@ public class InCallServiceImpl extends InCallService {
     public static List<String> callGetCallCapabilities(String callId) {
         Call.Details details = callGetDetails(callId);
 
-        if(details == null) {
+        if (details == null) {
             return null;
         }
 
@@ -956,6 +956,7 @@ public class InCallServiceImpl extends InCallService {
 
         c.reject((message != null) ? true : false, message);
     }
+
     public static String getCallParent(String callId) {
         Call c = getCallById(callId);
 
@@ -966,6 +967,7 @@ public class InCallServiceImpl extends InCallService {
         Call callParent = c.getParent();
         return getCallId(callParent);
     }
+
     public static List<String> getCallChildren(String callId) {
         Call c = getCallById(callId);
 
@@ -975,11 +977,12 @@ public class InCallServiceImpl extends InCallService {
         }
         List<String> childrenList = new ArrayList<String>();
         List<Call> callChildren = c.getChildren();
-        for(Call call:callChildren) {
+        for (Call call : callChildren) {
             childrenList.add(getCallId(call));
         }
         return childrenList;
     }
+
     public static void swapCallsInConference(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
@@ -988,6 +991,7 @@ public class InCallServiceImpl extends InCallService {
         }
         c.swapConference();
     }
+
     public static void callPlayDtmfTone(String callId, char digit) {
         Call c = getCallById(callId);
         if (c == null) {
@@ -996,6 +1000,7 @@ public class InCallServiceImpl extends InCallService {
         }
         c.playDtmfTone(digit);
     }
+
     public static void callStopDtmfTone(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
@@ -1004,6 +1009,7 @@ public class InCallServiceImpl extends InCallService {
         }
         c.stopDtmfTone();
     }
+
     public static List<String> callGetCannedTextResponses(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
@@ -1242,7 +1248,7 @@ public class InCallServiceImpl extends InCallService {
             case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
                 return "SESSION_EVENT_RX_RESUME";
             case Connection.VideoProvider.SESSION_EVENT_TX_START:
-                return "SESSION_EVENT_RX_RESUME";
+                return "SESSION_EVENT_TX_START";
             case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
                 return "SESSION_EVENT_TX_STOP";
             case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
