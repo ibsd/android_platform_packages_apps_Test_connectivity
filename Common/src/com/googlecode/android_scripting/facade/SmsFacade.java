@@ -45,7 +45,6 @@ import java.util.ArrayList;
 
 /**
  * Exposes SmsManager functionality.
- *
  */
 public class SmsFacade extends RpcReceiver {
 
@@ -68,45 +67,44 @@ public class SmsFacade extends RpcReceiver {
     private boolean mGsmEmergencyCBListenerRegistered;
     private boolean mCdmaEmergencyCBListenerRegistered;
 
-
     private static final String MESSAGE_STATUS_DELIVERED_ACTION =
             "com.googlecode.android_scripting.sms.MESSAGE_STATUS_DELIVERED";
     private static final String MESSAGE_SENT_ACTION =
             "com.googlecode.android_scripting.sms.MESSAGE_SENT";
     private static final String MESSAGE_RECEIVED_ACTION =
             "android.provider.Telephony.SMS_RECEIVED";
-    private static final String EMERGENCY_CB_MESSAGE_RECEIVED_ACTION=
+    private static final String EMERGENCY_CB_MESSAGE_RECEIVED_ACTION =
             "android.provider.Telephony.SMS_EMERGENCY_CB_RECEIVED";
     private final int MAX_MESSAGE_LENGTH = 160;
     private final int INTERNATIONAL_NUMBER_LENGTH = 12;
     private final int DOMESTIC_NUMBER_LENGTH = 10;
 
     private final int[] mGsmCbMessageIdList = {
-        SmsCbConstants.MESSAGE_ID_ETWS_EARTHQUAKE_WARNING,
-        SmsCbConstants.MESSAGE_ID_ETWS_TSUNAMI_WARNING,
-        SmsCbConstants.MESSAGE_ID_ETWS_EARTHQUAKE_AND_TSUNAMI_WARNING,
-        SmsCbConstants.MESSAGE_ID_ETWS_TEST_MESSAGE ,
-        SmsCbConstants.MESSAGE_ID_ETWS_OTHER_EMERGENCY_TYPE,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_PRESIDENTIAL_LEVEL,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_IMMEDIATE_OBSERVED,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_IMMEDIATE_LIKELY,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_EXPECTED_OBSERVED,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_EXPECTED_LIKELY,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_IMMEDIATE_LIKELY,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_EXPECTED_OBSERVED,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_EXPECTED_LIKELY,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_CHILD_ABDUCTION_EMERGENCY,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_REQUIRED_MONTHLY_TEST,
-        SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXERCISE
+            SmsCbConstants.MESSAGE_ID_ETWS_EARTHQUAKE_WARNING,
+            SmsCbConstants.MESSAGE_ID_ETWS_TSUNAMI_WARNING,
+            SmsCbConstants.MESSAGE_ID_ETWS_EARTHQUAKE_AND_TSUNAMI_WARNING,
+            SmsCbConstants.MESSAGE_ID_ETWS_TEST_MESSAGE,
+            SmsCbConstants.MESSAGE_ID_ETWS_OTHER_EMERGENCY_TYPE,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_PRESIDENTIAL_LEVEL,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_IMMEDIATE_OBSERVED,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_IMMEDIATE_LIKELY,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_EXPECTED_OBSERVED,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXTREME_EXPECTED_LIKELY,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_IMMEDIATE_LIKELY,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_EXPECTED_OBSERVED,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_SEVERE_EXPECTED_LIKELY,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_CHILD_ABDUCTION_EMERGENCY,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_REQUIRED_MONTHLY_TEST,
+            SmsCbConstants.MESSAGE_ID_CMAS_ALERT_EXERCISE
     };
 
     private final int[] mCdmaCbMessageIdList = {
             SmsEnvelope.SERVICE_CATEGORY_CMAS_PRESIDENTIAL_LEVEL_ALERT,
-            SmsEnvelope.SERVICE_CATEGORY_CMAS_EXTREME_THREAT ,
+            SmsEnvelope.SERVICE_CATEGORY_CMAS_EXTREME_THREAT,
             SmsEnvelope.SERVICE_CATEGORY_CMAS_SEVERE_THREAT,
-            SmsEnvelope.SERVICE_CATEGORY_CMAS_CHILD_ABDUCTION_EMERGENCY ,
+            SmsEnvelope.SERVICE_CATEGORY_CMAS_CHILD_ABDUCTION_EMERGENCY,
             SmsEnvelope.SERVICE_CATEGORY_CMAS_TEST_MESSAGE
-        };
+    };
 
     public SmsFacade(FacadeManager manager) {
         super(manager);
@@ -119,7 +117,7 @@ public class SmsFacade extends RpcReceiver {
         mNumReceivedSentEvents = 0;
         mNumExpectedDeliveredEvents = 0;
         mNumReceivedDeliveredEvents = 0;
-        mListeningIncomingSms=false;
+        mListeningIncomingSms = false;
         mGsmEmergencyCBMessageListener = new SmsEmergencyCBMessageListener();
         mCdmaEmergencyCBMessageListener = new SmsEmergencyCBMessageListener();
         mGsmEmergencyCBListenerRegistered = false;
@@ -144,22 +142,22 @@ public class SmsFacade extends RpcReceiver {
     public void smsStopTrackingIncomingMessage() {
         mListeningIncomingSms = false;
         try {
-        mService.unregisterReceiver(mSmsIncomingListener);
-        } catch( Exception e ) {
-          Log.e( "Tried to unregister nonexistent SMS Listener!");
+            mService.unregisterReceiver(mSmsIncomingListener);
+        } catch (Exception e) {
+            Log.e("Tried to unregister nonexistent SMS Listener!");
         }
     }
 
     @Rpc(description = "Send a text message to a specified number.")
     public void smsSendTextMessage(
-            @RpcParameter(name = "phoneNumber")
+                        @RpcParameter(name = "phoneNumber")
             String phoneNumber,
-            @RpcParameter(name = "message")
+                        @RpcParameter(name = "message")
             String message,
-            @RpcParameter(name = "deliveryReportRequired")
+                        @RpcParameter(name = "deliveryReportRequired")
             Boolean deliveryReportRequired) {
 
-        if(message.length() > MAX_MESSAGE_LENGTH) {
+        if (message.length() > MAX_MESSAGE_LENGTH) {
             ArrayList<String> messagesParts = mSms.divideMessage(message);
             mNumExpectedSentEvents = mNumExpectedDeliveredEvents = messagesParts.size();
             ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
@@ -168,11 +166,13 @@ public class SmsFacade extends RpcReceiver {
                 sentIntents.add(PendingIntent.getBroadcast(mService, 0, mSendIntent, 0));
                 deliveredIntents.add(PendingIntent.getBroadcast(mService, 0, mDeliveredIntent, 0));
             }
-            mSms.sendMultipartTextMessage(phoneNumber, null, messagesParts, sentIntents, deliveredIntents);
+            mSms.sendMultipartTextMessage(phoneNumber, null, messagesParts, sentIntents,
+                    deliveredIntents);
         } else {
             mNumExpectedSentEvents = mNumExpectedDeliveredEvents = 1;
             PendingIntent sentIntent = PendingIntent.getBroadcast(mService, 0, mSendIntent, 0);
-            PendingIntent deliveredIntent = PendingIntent.getBroadcast(mService, 0, mDeliveredIntent, 0);
+            PendingIntent deliveredIntent = PendingIntent.getBroadcast(mService, 0,
+                    mDeliveredIntent, 0);
             mSms.sendTextMessage(phoneNumber, null, message, sentIntent, deliveredIntent);
         }
     }
@@ -184,57 +184,57 @@ public class SmsFacade extends RpcReceiver {
 
     @Rpc(description = "Starts tracking GSM Emergency CB Messages.")
     public void smsStartTrackingGsmEmergencyCBMessage() {
-        if(!mGsmEmergencyCBListenerRegistered) {
+        if (!mGsmEmergencyCBListenerRegistered) {
             for (int messageId : mGsmCbMessageIdList) {
                 mSms.enableCellBroadcast(
-                     messageId,
-                     SmsManager.CELL_BROADCAST_RAN_TYPE_GSM);
-             }
+                        messageId,
+                        SmsManager.CELL_BROADCAST_RAN_TYPE_GSM);
+            }
 
-             mEmergencyCBMessage = new IntentFilter(EMERGENCY_CB_MESSAGE_RECEIVED_ACTION);
-             mService.registerReceiver(mGsmEmergencyCBMessageListener,
-                                       mEmergencyCBMessage);
-             mGsmEmergencyCBListenerRegistered = true;
+            mEmergencyCBMessage = new IntentFilter(EMERGENCY_CB_MESSAGE_RECEIVED_ACTION);
+            mService.registerReceiver(mGsmEmergencyCBMessageListener,
+                    mEmergencyCBMessage);
+            mGsmEmergencyCBListenerRegistered = true;
         }
     }
 
     @Rpc(description = "Stop tracking GSM Emergency CB Messages")
     public void smsStopTrackingGsmEmergencyCBMessage() {
-        if(mGsmEmergencyCBListenerRegistered) {
+        if (mGsmEmergencyCBListenerRegistered) {
             mService.unregisterReceiver(mGsmEmergencyCBMessageListener);
             mGsmEmergencyCBListenerRegistered = false;
             for (int messageId : mGsmCbMessageIdList) {
                 mSms.disableCellBroadcast(
-                     messageId,
-                     SmsManager.CELL_BROADCAST_RAN_TYPE_GSM);
+                        messageId,
+                        SmsManager.CELL_BROADCAST_RAN_TYPE_GSM);
             }
         }
     }
 
     @Rpc(description = "Starts tracking CDMA Emergency CB Messages")
     public void smsStartTrackingCdmaEmergencyCBMessage() {
-        if(!mCdmaEmergencyCBListenerRegistered) {
+        if (!mCdmaEmergencyCBListenerRegistered) {
             for (int messageId : mCdmaCbMessageIdList) {
                 mSms.enableCellBroadcast(
-                     messageId,
-                     SmsManager.CELL_BROADCAST_RAN_TYPE_CDMA);
+                        messageId,
+                        SmsManager.CELL_BROADCAST_RAN_TYPE_CDMA);
             }
             mEmergencyCBMessage = new IntentFilter(EMERGENCY_CB_MESSAGE_RECEIVED_ACTION);
             mService.registerReceiver(mCdmaEmergencyCBMessageListener,
-                                      mEmergencyCBMessage);
+                    mEmergencyCBMessage);
             mCdmaEmergencyCBListenerRegistered = true;
         }
     }
 
     @Rpc(description = "Stop tracking CDMA Emergency CB Message.")
     public void smsStopTrackingCdmaEmergencyCBMessage() {
-        if(mCdmaEmergencyCBListenerRegistered) {
+        if (mCdmaEmergencyCBListenerRegistered) {
             mService.unregisterReceiver(mCdmaEmergencyCBMessageListener);
             mCdmaEmergencyCBListenerRegistered = false;
             for (int messageId : mCdmaCbMessageIdList) {
                 mSms.disableCellBroadcast(
-                     messageId,
-                     SmsManager.CELL_BROADCAST_RAN_TYPE_CDMA);
+                        messageId,
+                        SmsManager.CELL_BROADCAST_RAN_TYPE_CDMA);
             }
         }
     }
@@ -249,7 +249,7 @@ public class SmsFacade extends RpcReceiver {
             if (MESSAGE_STATUS_DELIVERED_ACTION.equals(action)) {
                 if (resultCode == Activity.RESULT_OK) {
                     mNumReceivedDeliveredEvents++;
-                    if(mNumReceivedDeliveredEvents == mNumExpectedDeliveredEvents ) {
+                    if (mNumReceivedDeliveredEvents == mNumExpectedDeliveredEvents) {
                         Log.d("SMS Message delivered successfully");
                         mEventFacade.postEvent("onSmsDeliverSuccess", event);
                         mNumReceivedDeliveredEvents = 0;
@@ -262,32 +262,32 @@ public class SmsFacade extends RpcReceiver {
             } else if (MESSAGE_SENT_ACTION.equals(action)) {
                 if (resultCode == Activity.RESULT_OK) {
                     mNumReceivedSentEvents++;
-                    if(mNumReceivedSentEvents == mNumExpectedSentEvents ) {
+                    if (mNumReceivedSentEvents == mNumExpectedSentEvents) {
                         event.putString("Type", "SmsSentSuccess");
                         Log.d("SMS Message sent successfully");
-                       mEventFacade.postEvent("onSmsSentSuccess", event);
-                       mNumReceivedSentEvents = 0;
+                        mEventFacade.postEvent("onSmsSentSuccess", event);
+                        mNumReceivedSentEvents = 0;
                     }
                 } else {
                     Log.e("SMS Message send failed");
                     event.putString("Type", "SmsSentFailure");
-                    switch(resultCode) {
+                    switch (resultCode) {
                         case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                             event.putString("Reason", "GenericFailure");
                             break;
-                        case SmsManager.RESULT_ERROR_RADIO_OFF :
+                        case SmsManager.RESULT_ERROR_RADIO_OFF:
                             event.putString("Reason", "RadioOff");
                             break;
                         case SmsManager.RESULT_ERROR_NULL_PDU:
                             event.putString("Reason", "NullPdu");
                             break;
-                        case SmsManager.RESULT_ERROR_NO_SERVICE :
+                        case SmsManager.RESULT_ERROR_NO_SERVICE:
                             event.putString("Reason", "NoService");
                             break;
-                        case SmsManager.RESULT_ERROR_LIMIT_EXCEEDED  :
+                        case SmsManager.RESULT_ERROR_LIMIT_EXCEEDED:
                             event.putString("Reason", "LimitExceeded");
                             break;
-                        case SmsManager.RESULT_ERROR_FDN_CHECK_FAILURE :
+                        case SmsManager.RESULT_ERROR_FDN_CHECK_FAILURE:
                             event.putString("Reason", "FdnCheckFailure");
                             break;
                         default:
@@ -359,10 +359,10 @@ public class SmsFacade extends RpcReceiver {
                     Bundle event = new Bundle();
                     String eventName = null;
                     SmsCbMessage message = (SmsCbMessage) extras.get("message");
-                    if(message != null) {
-                        if(message.isEmergencyMessage()) {
+                    if (message != null) {
+                        if (message.isEmergencyMessage()) {
                             event.putString("geographicalScope", getGeographicalScope(
-                                             message.getGeographicalScope()));
+                                    message.getGeographicalScope()));
                             event.putInt("serialNumber", message.getSerialNumber());
                             event.putString("location", message.getLocation().toString());
                             event.putInt("serviceCategory", message.getServiceCategory());
@@ -373,30 +373,30 @@ public class SmsFacade extends RpcReceiver {
                                 // CMAS message
                                 eventName = "onCmasReceived";
                                 event.putString("cmasMessageClass", getCMASMessageClass(
-                                                 message.getCmasWarningInfo().getMessageClass()));
+                                        message.getCmasWarningInfo().getMessageClass()));
                                 event.putString("cmasCategory", getCMASCategory(
-                                                 message.getCmasWarningInfo().getCategory()));
+                                        message.getCmasWarningInfo().getCategory()));
                                 event.putString("cmasResponseType", getCMASResponseType(
-                                                 message.getCmasWarningInfo().getResponseType()));
+                                        message.getCmasWarningInfo().getResponseType()));
                                 event.putString("cmasSeverity", getCMASSeverity(
-                                                 message.getCmasWarningInfo().getSeverity()));
+                                        message.getCmasWarningInfo().getSeverity()));
                                 event.putString("cmasUrgency", getCMASUrgency(
-                                                 message.getCmasWarningInfo().getUrgency()));
+                                        message.getCmasWarningInfo().getUrgency()));
                                 event.putString("cmasCertainty", getCMASCertainty(
-                                                message.getCmasWarningInfo().getCertainty()));
+                                        message.getCmasWarningInfo().getCertainty()));
                             } else if (message.isEtwsMessage()) {
                                 // ETWS message
                                 eventName = "onEtwsReceived";
-                                event.putString("etwsWarningType",getETWSWarningType(
-                                                 message.getEtwsWarningInfo().getWarningType()));
+                                event.putString("etwsWarningType", getETWSWarningType(
+                                        message.getEtwsWarningInfo().getWarningType()));
                                 event.putBoolean("etwsIsEmergencyUserAlert",
-                                                  message.getEtwsWarningInfo().isEmergencyUserAlert());
+                                        message.getEtwsWarningInfo().isEmergencyUserAlert());
                                 event.putBoolean("etwsActivatePopup",
-                                                  message.getEtwsWarningInfo().isPopupAlert());
+                                        message.getEtwsWarningInfo().isPopupAlert());
                             } else {
                                 Log.d("Received message is not CMAS or ETWS");
                             }
-                            if(eventName != null)
+                            if (eventName != null)
                                 mEventFacade.postEvent(eventName, event);
                         }
                     }
@@ -408,9 +408,9 @@ public class SmsFacade extends RpcReceiver {
     }
 
     private static String getETWSWarningType(int type) {
-        switch(type) {
+        switch (type) {
             case SmsCbEtwsInfo.ETWS_WARNING_TYPE_EARTHQUAKE:
-                return"EARTHQUAKE";
+                return "EARTHQUAKE";
             case SmsCbEtwsInfo.ETWS_WARNING_TYPE_TSUNAMI:
                 return "TSUNAMI";
             case SmsCbEtwsInfo.ETWS_WARNING_TYPE_EARTHQUAKE_AND_TSUNAMI:
@@ -418,31 +418,31 @@ public class SmsFacade extends RpcReceiver {
             case SmsCbEtwsInfo.ETWS_WARNING_TYPE_TEST_MESSAGE:
                 return "TEST_MESSAGE";
             case SmsCbEtwsInfo.ETWS_WARNING_TYPE_OTHER_EMERGENCY:
-               return "OTHER_EMERGENCY";
-       }
-       return "UNKNOWN";
+                return "OTHER_EMERGENCY";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASMessageClass(int messageclass) {
-        switch(messageclass) {
+        switch (messageclass) {
             case SmsCbCmasInfo.CMAS_CLASS_PRESIDENTIAL_LEVEL_ALERT:
                 return "PRESIDENTIAL_LEVEL_ALERT";
             case SmsCbCmasInfo.CMAS_CLASS_EXTREME_THREAT:
                 return "EXTREME_THREAT";
             case SmsCbCmasInfo.CMAS_CLASS_SEVERE_THREAT:
                 return "SEVERE_THREAT";
-            case SmsCbCmasInfo.CMAS_CLASS_CHILD_ABDUCTION_EMERGENCY :
+            case SmsCbCmasInfo.CMAS_CLASS_CHILD_ABDUCTION_EMERGENCY:
                 return "CHILD_ABDUCTION_EMERGENCY";
             case SmsCbCmasInfo.CMAS_CLASS_REQUIRED_MONTHLY_TEST:
                 return "REQUIRED_MONTHLY_TEST";
-            case SmsCbCmasInfo.CMAS_CLASS_CMAS_EXERCISE :
+            case SmsCbCmasInfo.CMAS_CLASS_CMAS_EXERCISE:
                 return "CMAS_EXERCISE";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASCategory(int category) {
-        switch(category) {
+        switch (category) {
             case SmsCbCmasInfo.CMAS_CATEGORY_GEO:
                 return "GEOPHYSICAL";
             case SmsCbCmasInfo.CMAS_CATEGORY_MET:
@@ -467,12 +467,12 @@ public class SmsFacade extends RpcReceiver {
                 return "CHEMICAL";
             case SmsCbCmasInfo.CMAS_CATEGORY_OTHER:
                 return "OTHER";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASResponseType(int type) {
-        switch(type) {
+        switch (type) {
             case SmsCbCmasInfo.CMAS_RESPONSE_TYPE_SHELTER:
                 return "SHELTER";
             case SmsCbCmasInfo.CMAS_RESPONSE_TYPE_EVACUATE:
@@ -489,56 +489,56 @@ public class SmsFacade extends RpcReceiver {
                 return "ASSESS";
             case SmsCbCmasInfo.CMAS_RESPONSE_TYPE_NONE:
                 return "NONE";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASSeverity(int severity) {
-        switch(severity) {
+        switch (severity) {
             case SmsCbCmasInfo.CMAS_SEVERITY_EXTREME:
                 return "EXTREME";
             case SmsCbCmasInfo.CMAS_SEVERITY_SEVERE:
                 return "SEVERE";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASUrgency(int urgency) {
-        switch(urgency) {
+        switch (urgency) {
             case SmsCbCmasInfo.CMAS_URGENCY_IMMEDIATE:
                 return "IMMEDIATE";
             case SmsCbCmasInfo.CMAS_URGENCY_EXPECTED:
                 return "EXPECTED";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getCMASCertainty(int certainty) {
-        switch(certainty) {
+        switch (certainty) {
             case SmsCbCmasInfo.CMAS_CERTAINTY_OBSERVED:
                 return "IMMEDIATE";
             case SmsCbCmasInfo.CMAS_CERTAINTY_LIKELY:
                 return "LIKELY";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getGeographicalScope(int scope) {
-        switch(scope) {
+        switch (scope) {
             case SmsCbMessage.GEOGRAPHICAL_SCOPE_CELL_WIDE_IMMEDIATE:
                 return "CELL_WIDE_IMMEDIATE";
             case SmsCbMessage.GEOGRAPHICAL_SCOPE_PLMN_WIDE:
                 return "PLMN_WIDE ";
-            case SmsCbMessage.GEOGRAPHICAL_SCOPE_LA_WIDE :
+            case SmsCbMessage.GEOGRAPHICAL_SCOPE_LA_WIDE:
                 return "LA_WIDE";
             case SmsCbMessage.GEOGRAPHICAL_SCOPE_CELL_WIDE:
                 return "CELL_WIDE";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     private static String getPriority(int priority) {
-        switch(priority) {
+        switch (priority) {
             case SmsCbMessage.MESSAGE_PRIORITY_NORMAL:
                 return "NORMAL";
             case SmsCbMessage.MESSAGE_PRIORITY_INTERACTIVE:
@@ -547,17 +547,17 @@ public class SmsFacade extends RpcReceiver {
                 return "URGENT";
             case SmsCbMessage.MESSAGE_PRIORITY_EMERGENCY:
                 return "EMERGENCY";
-       }
-       return "UNKNOWN";
+        }
+        return "UNKNOWN";
     }
 
     @Override
     public void shutdown() {
-      mService.unregisterReceiver(mSmsSendListener);
-      if(mListeningIncomingSms) {
-          smsStopTrackingIncomingMessage();
-      }
-      smsStopTrackingGsmEmergencyCBMessage();
-      smsStopTrackingCdmaEmergencyCBMessage();
+        mService.unregisterReceiver(mSmsSendListener);
+        if (mListeningIncomingSms) {
+            smsStopTrackingIncomingMessage();
+        }
+        smsStopTrackingGsmEmergencyCBMessage();
+        smsStopTrackingCdmaEmergencyCBMessage();
     }
 }
