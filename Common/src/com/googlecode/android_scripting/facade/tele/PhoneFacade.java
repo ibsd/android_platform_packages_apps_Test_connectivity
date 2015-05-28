@@ -1230,14 +1230,14 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.isImsRegistered();
     }
 
-    @Rpc(description = "Returns a boolean of isVolteEnabled()")
-    public Boolean isVolteEnabled() {
-        return mTelephonyManager.isVolteEnabled();
+    @Rpc(description = "Returns a boolean of isVolteAvailable()")
+    public Boolean isVolteAvailable() {
+        return mTelephonyManager.isVolteAvailable();
     }
 
-    @Rpc(description = "Returns a boolean of isWifiCallingEnabled()")
-    public Boolean isWifiCallingEnabled() {
-        return mTelephonyManager.isWifiCallingEnabled();
+    @Rpc(description = "Returns a boolean of isWifiCallingAvailable()")
+    public Boolean isWifiCallingAvailable() {
+        return mTelephonyManager.isWifiCallingAvailable();
     }
 
     @Rpc(description = "Returns the service state for default subscription ID")
