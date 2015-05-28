@@ -33,6 +33,7 @@ import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
@@ -110,6 +111,15 @@ public class TelecomManagerFacade extends RpcReceiver {
             modeStr = "VCO";
         }
         return modeStr;
+    }
+
+    @Rpc(description = "Bring incallUI to foreground.")
+    public void telecomShowInCallScreen(
+            @RpcParameter(name = "showDialpad")
+            @RpcOptional
+            @RpcDefault("false")
+            Boolean showDialpad) {
+        mTelecomManager.showInCallScreen(showDialpad);
     }
 
     @Rpc(description = "Get the list of PhoneAccountHandles with calling capability.")

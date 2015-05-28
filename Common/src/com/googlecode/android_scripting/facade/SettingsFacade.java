@@ -20,6 +20,7 @@ import android.app.AlarmManager;
 import android.app.Service;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -30,6 +31,7 @@ import android.view.WindowManager;
 import com.android.internal.widget.LockPatternUtils;
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.FutureActivityTaskExecutor;
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.future.FutureActivityTask;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
@@ -44,6 +46,7 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
 public class SettingsFacade extends RpcReceiver {
 
     private final Service mService;
+    private final AndroidFacade mAndroidFacade;
     private final AudioManager mAudio;
     private final PowerManager mPower;
     private final AlarmManager mAlarm;
@@ -57,6 +60,7 @@ public class SettingsFacade extends RpcReceiver {
     public SettingsFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
+        mAndroidFacade = manager.getReceiver(AndroidFacade.class);
         mAudio = (AudioManager) mService.getSystemService(Context.AUDIO_SERVICE);
         mPower = (PowerManager) mService.getSystemService(Context.POWER_SERVICE);
         mAlarm = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
@@ -249,6 +253,20 @@ public class SettingsFacade extends RpcReceiver {
     @Rpc(description = "Set the system time zone.")
     public void setTimeZone(@RpcParameter(name = "timeZone") String timeZone) {
         mAlarm.setTimeZone(timeZone);
+    }
+
+    @Rpc(description = "Show Home Screen")
+    public void showHomeScreen() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            mAndroidFacade.startActivityIntent(intent, false);
+        } catch (RuntimeException e) {
+            Log.d("showHomeScreen RuntimeException" + e);
+        } catch (Exception e){
+            Log.d("showHomeScreen exception" + e);
+        }
     }
 
     @Override
