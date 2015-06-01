@@ -308,4 +308,31 @@ public class TelephonyStateListeners {
         }
     }
 
+    public static class VoiceMailStateChangeListener extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+
+        public static final int sListeningStates =
+                PhoneStateListener.LISTEN_MESSAGE_WAITING_INDICATOR;
+
+        public VoiceMailStateChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public VoiceMailStateChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        @Override
+        public void onMessageWaitingIndicatorChanged(boolean messageWaitingIndicator) {
+            Bundle event = new Bundle();
+            event.putBoolean("MessageWaitingIndicator", messageWaitingIndicator);
+
+            mEventFacade.postEvent(
+                    "onMessageWaitingIndicatorChanged", event);
+        }
+    }
+
 }
