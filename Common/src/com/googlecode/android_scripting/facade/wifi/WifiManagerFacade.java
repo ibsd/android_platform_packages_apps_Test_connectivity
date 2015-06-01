@@ -145,21 +145,19 @@ public class WifiManagerFacade extends RpcReceiver {
      */
     class WifiScanReceiver extends BroadcastReceiver {
         private final EventFacade mEventFacade;
-        private final Bundle mResults;
 
         WifiScanReceiver(EventFacade eventFacade) {
             mEventFacade = eventFacade;
-            mResults = new Bundle();
         }
 
         @Override
         public void onReceive(Context c, Intent intent) {
             String action = intent.getAction();
             if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                Bundle mResults = new Bundle();
                 Log.d("Wifi connection scan finished, results available.");
                 mResults.putLong("Timestamp", System.currentTimeMillis() / 1000);
                 mEventFacade.postEvent(mEventType + "ScanResultsAvailable", mResults);
-                mResults.clear();
                 mService.unregisterReceiver(mScanResultsAvailableReceiver);
             }
         }
