@@ -54,6 +54,8 @@ import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .DataConnectionStateChangeListener;
 import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
                                                    .ServiceStateChangeListener;
+import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+                                                   .VoiceMailStateChangeListener;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
@@ -139,6 +141,8 @@ public class PhoneFacade extends RpcReceiver {
                     mStateListeners.mDataConnectionRTInfoChangeListener =
                         new DataConnectionRealTimeInfoChangeListener(mEventFacade,
                                                                      subId);
+                    mStateListeners.mVoiceMailStateChangeListener =
+                        new VoiceMailStateChangeListener(mEventFacade, subId);
 
                     StateChangeListeners.put(subId, mStateListeners);
                 }
@@ -529,6 +533,50 @@ public class PhoneFacade extends RpcReceiver {
         try {
             mTelephonyManager.listen(
                 StateChangeListeners.get(subId).mServiceStateChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Starts tracking voice mail state change " +
+                       "for default subscription ID.")
+    public Boolean phoneStartTrackingVoiceMailStateChange() {
+        return phoneStartTrackingVoiceMailStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Starts tracking voice mail state change " +
+                       "for specified subscription ID.")
+    public Boolean phoneStartTrackingVoiceMailStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+         try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mVoiceMailStateChangeListener,
+                VoiceMailStateChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Stops tracking voice mail state change " +
+                       "for default subscription ID.")
+    public Boolean phoneStopTrackingVoiceMailStateChange() {
+        return phoneStopTrackingVoiceMailStateChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Stops tracking voice mail state change " +
+                       "for specified subscription ID.")
+    public Boolean phoneStopTrackingVoiceMailStateChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mVoiceMailStateChangeListener,
                 PhoneStateListener.LISTEN_NONE);
             return true;
         } catch (Exception e) {
@@ -950,6 +998,17 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getVoiceMailNumber(subId);
     }
 
+    @Rpc(description = "Get voice message count for specified subscription ID.")
+    public Integer getVoiceMailCountForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getVoiceMessageCount(subId);
+    }
+
+    @Rpc(description = "Get voice message count for default subscription ID.")
+    public Integer getVoiceMailCount() {
+        return mTelephonyManager.getVoiceMessageCount();
+    }
+
     @Rpc(description = "Returns true if the device is in  roaming state" +
                        "for default subscription ID")
     public Boolean checkNetworkRoaming() {
@@ -1200,6 +1259,7 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.isVideoCallingEnabled();
     }
 
+
     @Rpc(description = "Returns a boolean of isImsRegistered()")
     public Boolean isImsRegistered() {
         return mTelephonyManager.isImsRegistered();
@@ -1260,6 +1320,8 @@ public class PhoneFacade extends RpcReceiver {
                            mDataConnectionStateChangeListener;
         private DataConnectionRealTimeInfoChangeListener
                            mDataConnectionRTInfoChangeListener;
+        private VoiceMailStateChangeListener
+                           mVoiceMailStateChangeListener;
     }
 
     @Override
