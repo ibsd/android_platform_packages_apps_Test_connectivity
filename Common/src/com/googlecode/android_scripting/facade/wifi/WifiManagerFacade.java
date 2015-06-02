@@ -425,6 +425,9 @@ public class WifiManagerFacade extends RpcReceiver {
         } else {
             config.allowedKeyManagement.set(KeyMgmt.NONE);
         }
+        if (j.has("apBand")) {
+            config.apBand = j.getInt("apBand");
+        }
         return config;
     }
 
