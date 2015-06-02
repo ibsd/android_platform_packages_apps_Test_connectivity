@@ -307,7 +307,13 @@ public class BluetoothFacade extends RpcReceiver {
     @Rpc(description = "Cancel the current device discovery process.",
          returns = "true on success, false on error")
     public Boolean bluetoothCancelDiscovery() {
-        mService.unregisterReceiver(mDiscoveryReceiver);
+        //TODO (tturney): Figure out why bluetoothStartDiscovery sometimes
+        //doesn't register the reiever.
+        try {
+            mService.unregisterReceiver(mDiscoveryReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.d("IllegalArgumentExeption found when trying to unregister reciever");
+        }
         return mBluetoothAdapter.cancelDiscovery();
     }
 
@@ -332,7 +338,7 @@ public class BluetoothFacade extends RpcReceiver {
         return mBluetoothAdapter.configHciSnoopLog(value);
     }
 
-    @Rpc(description = "Get ")
+    @Rpc(description = "Get Bluetooth controller activity energy info.")
     public String bluetoothGetControllerActivityEnergyInfo(
         @RpcParameter(name = "value")
         Integer value

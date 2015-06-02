@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.IntentFilter;
+import android.os.ParcelFileDescriptor;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
@@ -40,6 +41,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.lang.reflect.Field;
 
 import org.apache.commons.codec.binary.Base64Codec;
 
@@ -399,9 +401,28 @@ class BluetoothConnection {
     return mDevice.getName();
   }
 
+  private synchronized void clearFileDescriptor() {
+    try {
+      Field field = BluetoothSocket.class.getDeclaredField("mPfd");
+      field.setAccessible(true);
+      ParcelFileDescriptor mPfd = (ParcelFileDescriptor) field.get(mSocket);
+      if (mPfd == null)
+        return;
+      mPfd.close();
+      mPfd = null;
+      try { field.set(mSocket, mPfd); }
+      catch(Exception e) {
+          Log.d("Exception setting mPfd = null in cleanCloseFix(): " + e.toString());
+      }
+    } catch (Exception e) {
+        Log.w("ParcelFileDescriptor could not be cleanly closed.", e);
+    }
+  }
+
   public void stop() {
     if (mSocket != null) {
       try {
+        clearFileDescriptor();
         mSocket.close();
       } catch (IOException e) {
         Log.e(e);
