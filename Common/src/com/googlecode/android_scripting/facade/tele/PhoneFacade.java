@@ -691,7 +691,7 @@ public class PhoneFacade extends RpcReceiver {
         if (videoCall) {
             Log.d("Placing a bi-directional video call");
             intent.putExtra(TelecomManager.EXTRA_START_CALL_WITH_VIDEO_STATE,
-                    VideoProfile.VideoState.BIDIRECTIONAL);
+                    VideoProfile.STATE_BIDIRECTIONAL);
         }
 
         mAndroidFacade.startActivityIntent(intent, false);

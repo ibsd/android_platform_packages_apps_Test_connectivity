@@ -911,7 +911,7 @@ public class InCallServiceImpl extends InCallService {
 
         if (state == CallCallback.STATE_INVALID) {
             // TODO: Print a nastygram
-            state = VideoProfile.VideoState.AUDIO_ONLY;
+            state = VideoProfile.STATE_AUDIO_ONLY;
         }
 
         c.answer(state);
@@ -989,15 +989,15 @@ public class InCallServiceImpl extends InCallService {
 
     public static String getVideoCallStateString(int state) {
         switch (state) {
-            case VideoProfile.VideoState.AUDIO_ONLY:
+            case VideoProfile.STATE_AUDIO_ONLY:
                 return "AUDIO_ONLY";
-            case VideoProfile.VideoState.TX_ENABLED:
+            case VideoProfile.STATE_TX_ENABLED:
                 return "TX_ENABLED";
-            case VideoProfile.VideoState.RX_ENABLED:
+            case VideoProfile.STATE_RX_ENABLED:
                 return "RX_ENABLED";
-            case VideoProfile.VideoState.BIDIRECTIONAL:
+            case VideoProfile.STATE_BIDIRECTIONAL:
                 return "BIDIRECTIONAL";
-            case VideoProfile.VideoState.PAUSED:
+            case VideoProfile.STATE_PAUSED:
                 return "PAUSED";
             default:
         }
@@ -1008,15 +1008,15 @@ public class InCallServiceImpl extends InCallService {
     public static int getVideoCallState(String state) {
         switch (state.toUpperCase()) {
             case "AUDIO_ONLY":
-                return VideoProfile.VideoState.AUDIO_ONLY;
+                return VideoProfile.STATE_AUDIO_ONLY;
             case "TX_ENABLED":
-                return VideoProfile.VideoState.TX_ENABLED;
+                return VideoProfile.STATE_TX_ENABLED;
             case "RX_ENABLED":
-                return VideoProfile.VideoState.RX_ENABLED;
+                return VideoProfile.STATE_RX_ENABLED;
             case "BIDIRECTIONAL":
-                return VideoProfile.VideoState.BIDIRECTIONAL;
+                return VideoProfile.STATE_BIDIRECTIONAL;
             case "PAUSED":
-                return VideoProfile.VideoState.PAUSED;
+                return VideoProfile.STATE_PAUSED;
             default:
         }
         // probably need to wtf here
