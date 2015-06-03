@@ -635,6 +635,8 @@ public class JsonBuilder {
                 supplicantState = null;
         }
         result.put("supplicant_state", build(supplicantState));
+        result.put("is_5ghz", data.is5GHz());
+        result.put("is_24ghz", data.is24GHz());
         return result;
     }
 
