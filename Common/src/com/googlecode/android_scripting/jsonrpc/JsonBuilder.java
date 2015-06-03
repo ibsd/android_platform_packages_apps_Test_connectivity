@@ -595,6 +595,14 @@ public class JsonBuilder {
         result.put("rssi", data.getRssi());
         result.put("BSSID", data.getBSSID());
         result.put("mac_address", data.getMacAddress());
+        // Trim the double quotes if exist
+        String ssid = data.getSSID();
+        if (ssid.charAt(0) == '"'
+                && ssid.charAt(ssid.length() - 1) == '"') {
+            result.put("SSID", ssid.substring(1, ssid.length() - 1));
+        } else {
+            result.put("SSID", ssid);
+        }
         result.put("SSID", data.getSSID());
         String supplicantState = "";
         switch (data.getSupplicantState()) {

@@ -301,6 +301,9 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("priority")) {
             config.priority = j.getInt("priority");
         }
+        if (j.has("apBand")) {
+        	config.apBand = j.getInt("apBand");
+        }
         if (j.has("preSharedKey")) {
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
             config.preSharedKey = j.getString("preSharedKey");
@@ -406,29 +409,6 @@ public class WifiManagerFacade extends RpcReceiver {
             return true;
         }
         return false;
-    }
-
-    private WifiConfiguration parseWifiApConfig(String configStr) throws JSONException {
-        if (configStr == null) {
-            return null;
-        }
-        JSONObject j = new JSONObject(configStr);
-        WifiConfiguration config = new WifiConfiguration();
-        if (j.has("SSID")) {
-            config.SSID = j.getString("SSID");
-        } else {
-            config.SSID = "AndroidAP";
-        }
-        if (j.has("PASSWORD")) {
-            config.allowedKeyManagement.set(KeyMgmt.WPA2_PSK);
-            config.preSharedKey = j.getString("PASSWORD");
-        } else {
-            config.allowedKeyManagement.set(KeyMgmt.NONE);
-        }
-        if (j.has("apBand")) {
-            config.apBand = j.getInt("apBand");
-        }
-        return config;
     }
 
     private WpsInfo parseWpsInfo(String infoStr) throws JSONException {
@@ -698,21 +678,21 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.removeNetwork(netId);
     }
 
-    @Rpc(description = "Start/stop wifi tethering.")
+    @Rpc(description = "Start/stop wifi soft AP.")
     public Boolean wifiSetApEnabled(
-            @RpcParameter(name = "configStr") @RpcOptional @RpcDefault(value = "{}") String configStr,
-            @RpcParameter(name = "enable") Boolean enable
-            ) throws JSONException {
+            @RpcParameter(name = "enable") Boolean enable,
+            @RpcParameter(name = "configJson")
+            JSONObject configJson) throws JSONException {
         int wifiState = mWifi.getWifiState();
         if (enable) {
             if ((wifiState == WifiManager.WIFI_STATE_ENABLING) ||
                     (wifiState == WifiManager.WIFI_STATE_ENABLED)) {
                 mWifi.setWifiEnabled(false);
             }
-            WifiConfiguration config = parseWifiApConfig(configStr);
-            return mWifi.setWifiApEnabled(config, enable);
+            WifiConfiguration config = genWifiConfig(configJson);
+            return mWifi.setWifiApEnabled(config, true);
         } else {
-            return mWifi.setWifiApEnabled(null, enable);
+            return mWifi.setWifiApEnabled(null, false);
         }
     }
 
