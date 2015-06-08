@@ -690,7 +690,16 @@ public class WifiManagerFacade extends RpcReceiver {
                 mWifi.setWifiEnabled(false);
             }
             WifiConfiguration config = genWifiConfig(configJson);
-            return mWifi.setWifiApEnabled(config, true);
+            // Need to strip of extra quotation marks for SSID and password.
+            String ssid = config.SSID;
+            if (ssid != null) {
+                config.SSID = ssid.substring(1, ssid.length() - 1);
+            }
+            String pwd = config.preSharedKey;
+            if (ssid != null) {
+                config.preSharedKey = pwd.substring(1, pwd.length() - 1);
+            }
+            return mWifi.setWifiApEnabled(config, enable);
         } else {
             return mWifi.setWifiApEnabled(null, false);
         }

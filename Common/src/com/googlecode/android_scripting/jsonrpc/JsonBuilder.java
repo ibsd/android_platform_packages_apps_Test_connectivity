@@ -603,7 +603,6 @@ public class JsonBuilder {
         } else {
             result.put("SSID", ssid);
         }
-        result.put("SSID", data.getSSID());
         String supplicantState = "";
         switch (data.getSupplicantState()) {
             case ASSOCIATED:
