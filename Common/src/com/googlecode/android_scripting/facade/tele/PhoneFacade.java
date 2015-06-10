@@ -244,6 +244,7 @@ public class PhoneFacade extends RpcReceiver {
                             RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
                     break;
                 default:
+                    Log.d("SL4A SetPreferredNetworkType False GSM");
                     return false;
             }
         } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
@@ -265,9 +266,11 @@ public class PhoneFacade extends RpcReceiver {
                             RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
                     break;
                 default:
+                    Log.d("SL4A SetPreferredNetworkType False CDMA");
                     return false;
             }
         } else {
+            Log.d("SL4A SetPreferredNetworkType False type:" + phoneType);
             return false;
         }
         Log.v("SL4A: Setting the preferred network setting of subId: "
