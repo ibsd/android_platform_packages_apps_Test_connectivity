@@ -41,6 +41,23 @@ public class InCallServiceImpl extends InCallService {
     // Provides a return value for getAudioRoute when input is invalid
     public static final int INVALID_AUDIO_ROUTE = -1;
 
+    public static final int VIDEO_STATE_AUDIO_ONLY = VideoProfile.STATE_AUDIO_ONLY;
+
+    public static final int VIDEO_STATE_TX_ENABLED = VideoProfile.STATE_TX_ENABLED;
+
+    public static final int VIDEO_STATE_RX_ENABLED = VideoProfile.STATE_RX_ENABLED;
+
+    public static final int VIDEO_STATE_BIDIRECTIONAL = VideoProfile.STATE_BIDIRECTIONAL;
+
+    public static final int VIDEO_STATE_TX_PAUSED =
+            VideoProfile.STATE_TX_ENABLED | VideoProfile.STATE_PAUSED;
+
+    public static final int VIDEO_STATE_RX_PAUSED =
+            VideoProfile.STATE_RX_ENABLED | VideoProfile.STATE_PAUSED;
+
+    public static final int VIDEO_STATE_BIDIRECTIONAL_PAUSED =
+            VideoProfile.STATE_BIDIRECTIONAL | VideoProfile.STATE_PAUSED;
+
     // Container class to return the call ID along with the event
     public class CallEvent<EventType> {
 
@@ -1025,16 +1042,20 @@ public class InCallServiceImpl extends InCallService {
 
     public static String getVideoCallStateString(int state) {
         switch (state) {
-            case VideoProfile.STATE_AUDIO_ONLY:
+            case VIDEO_STATE_AUDIO_ONLY:
                 return "AUDIO_ONLY";
-            case VideoProfile.STATE_TX_ENABLED:
+            case VIDEO_STATE_TX_ENABLED:
                 return "TX_ENABLED";
-            case VideoProfile.STATE_RX_ENABLED:
+            case VIDEO_STATE_RX_ENABLED:
                 return "RX_ENABLED";
-            case VideoProfile.STATE_BIDIRECTIONAL:
+            case VIDEO_STATE_BIDIRECTIONAL:
                 return "BIDIRECTIONAL";
-            case VideoProfile.STATE_PAUSED:
-                return "PAUSED";
+            case VIDEO_STATE_TX_PAUSED:
+                return "TX_PAUSED";
+            case VIDEO_STATE_RX_PAUSED:
+                return "RX_PAUSED";
+            case VIDEO_STATE_BIDIRECTIONAL_PAUSED:
+                return "BIDIRECTIONAL_PAUSED";
             default:
         }
         // probably need to wtf here
@@ -1044,15 +1065,20 @@ public class InCallServiceImpl extends InCallService {
     public static int getVideoCallState(String state) {
         switch (state.toUpperCase()) {
             case "AUDIO_ONLY":
-                return VideoProfile.STATE_AUDIO_ONLY;
+                return VIDEO_STATE_AUDIO_ONLY;
             case "TX_ENABLED":
-                return VideoProfile.STATE_TX_ENABLED;
+                return VIDEO_STATE_TX_ENABLED;
             case "RX_ENABLED":
-                return VideoProfile.STATE_RX_ENABLED;
+                return VIDEO_STATE_RX_ENABLED;
             case "BIDIRECTIONAL":
-                return VideoProfile.STATE_BIDIRECTIONAL;
-            case "PAUSED":
-                return VideoProfile.STATE_PAUSED;
+                return VIDEO_STATE_BIDIRECTIONAL;
+            case "TX_PAUSED":
+                return VIDEO_STATE_TX_PAUSED;
+            case "RX_PAUSED":
+                return VIDEO_STATE_RX_PAUSED;
+            case "BIDIRECTIONAL_PAUSED":
+                return VIDEO_STATE_BIDIRECTIONAL_PAUSED;
+
             default:
         }
         // probably need to wtf here
