@@ -1219,23 +1219,28 @@ public class PhoneFacade extends RpcReceiver {
         mTelephonyManager.enableVideoCalling(enable);
     }
 
-    @Rpc(description = "Returns a boolean of isVideoCallingEnabled()")
+    @Rpc(description = "Returns a boolean of whether or not " +
+            "video calling setting is enabled by the user")
     public Boolean isVideoCallingEnabled() {
         return mTelephonyManager.isVideoCallingEnabled();
     }
 
+    @Rpc(description = "Returns a boolean of whether video calling is available for use")
+    public Boolean isVideoCallingAvailable() {
+        return mTelephonyManager.isVideoTelephonyAvailable();
+    }
 
-    @Rpc(description = "Returns a boolean of isImsRegistered()")
+    @Rpc(description = "Returns a boolean of whether or not the device is ims registered")
     public Boolean isImsRegistered() {
         return mTelephonyManager.isImsRegistered();
     }
 
-    @Rpc(description = "Returns a boolean of isVolteAvailable()")
+    @Rpc(description = "Returns a boolean of whether or not volte calling is available for use")
     public Boolean isVolteAvailable() {
         return mTelephonyManager.isVolteAvailable();
     }
 
-    @Rpc(description = "Returns a boolean of isWifiCallingAvailable()")
+    @Rpc(description = "Returns a boolean of whether or not wifi calling is available for use")
     public Boolean isWifiCallingAvailable() {
         return mTelephonyManager.isWifiCallingAvailable();
     }
