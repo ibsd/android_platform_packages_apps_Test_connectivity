@@ -270,13 +270,6 @@ public class TelecomCallFacade extends RpcReceiver {
         return InCallServiceImpl.videoCallGetState(callId);
     }
 
-    @Rpc(description = "Get the Video Call Quality")
-    public String telecomCallVideoGetQuality(
-                        @RpcParameter(name = "call")
-            String callId) {
-        return InCallServiceImpl.videoCallGetQuality(callId);
-    }
-
     @Rpc(description = "Send a request to modify the video call session parameters")
     public void telecomCallVideoSendSessionModifyRequest(
                         @RpcParameter(name = "call")

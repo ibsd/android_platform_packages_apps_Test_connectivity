@@ -884,21 +884,6 @@ public class InCallServiceImpl extends InCallService {
         return getVideoCallStateString(state);
     }
 
-    public static String videoCallGetQuality(String callId) {
-        Call c = getCallById(callId);
-
-        int quality = VideoProfile.QUALITY_UNKNOWN;
-
-        if (c == null) {
-            // TODO: Print a nastygram
-        }
-        else {
-            quality = c.getDetails().getVideoState();
-        }
-
-        return getVideoCallStateString(quality);
-    }
-
     public static void videoCallSendSessionModifyRequest(
             String callId, String videoStateString, String videoQualityString) {
         VideoCall vc = getVideoCallById(callId);
