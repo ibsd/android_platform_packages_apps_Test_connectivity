@@ -534,10 +534,10 @@ public class JsonBuilder {
         result.put("channelWidth", scanResult.channelWidth);
         result.put("distanceCm", scanResult.distanceCm);
         result.put("distanceSdCm", scanResult.distanceSdCm);
-        result.put("is80211McRTTResponder", scanResult.is80211McRTTResponder);
+        result.put("is80211McRTTResponder", scanResult.is80211mcResponder());
         result.put("isAutoJoinCandidate", scanResult.isAutoJoinCandidate);
         result.put("numConnection", scanResult.numConnection);
-        result.put("passpointNetwork", scanResult.passpointNetwork);
+        result.put("passpointNetwork", scanResult.isPasspointNetwork());
         result.put("numIpConfigFailures", scanResult.numIpConfigFailures);
         result.put("numUsage", scanResult.numUsage);
         result.put("seen", scanResult.seen);
