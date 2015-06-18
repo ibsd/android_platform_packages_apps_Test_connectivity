@@ -7,6 +7,7 @@ import android.telephony.DataConnectionRealTimeInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.PreciseCallState;
 import android.telephony.ServiceState;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.telephony.VoLteServiceState;
 
@@ -24,15 +25,18 @@ public class TelephonyStateListeners {
         public boolean listenForeground = true;
         public boolean listenRinging = false;
         public boolean listenBackground = false;
+        public int subscriptionId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
 
         public CallStateChangeListener(EventFacade ef) {
             super();
             mEventFacade = ef;
+            subscriptionId = SubscriptionManager.getDefaultVoiceSubId();
         }
 
         public CallStateChangeListener(EventFacade ef, int subId) {
             super(subId);
             mEventFacade = ef;
+            subscriptionId = subId;
         }
 
         @Override
@@ -70,10 +74,10 @@ public class TelephonyStateListeners {
                     subEvent = "Ringing";
                     break;
             }
-         // Need to change.using mSubId temporarily
-            mCallStateEvent.putInt("subscriptionId", mSubId);
+            mCallStateEvent.putInt("subscriptionId", subscriptionId);
             // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged+subEvent, mCallStateEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged+subEvent,
+                                   mCallStateEvent);
         }
 
         @Override
@@ -119,10 +123,10 @@ public class TelephonyStateListeners {
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
                 subEvent = "Idle";
             }
-         // Need to change.using mSubId temporarily
-            EventMsg.putInt("subscriptionId", mSubId);
+            EventMsg.putInt("subscriptionId", subscriptionId);
             // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged+subEvent, EventMsg);
+            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged+subEvent,
+                                   EventMsg);
         }
     }
 
@@ -131,15 +135,18 @@ public class TelephonyStateListeners {
         private final EventFacade mEventFacade;
         public static final int sListeningStates =
                 PhoneStateListener.LISTEN_DATA_CONNECTION_REAL_TIME_INFO;
+        public int subscriptionId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
 
         public DataConnectionRealTimeInfoChangeListener(EventFacade ef) {
             super();
             mEventFacade = ef;
+            subscriptionId = SubscriptionManager.getDefaultDataSubId();
         }
 
         public DataConnectionRealTimeInfoChangeListener(EventFacade ef, int subId) {
             super(subId);
             mEventFacade = ef;
+            subscriptionId = subId;
         }
 
         @Override
@@ -159,10 +166,11 @@ public class TelephonyStateListeners {
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
                 subEvent = "Unknown";
             }
-         // Need to change.using mSubId temporarily
-            event.putInt("subscriptionId", mSubId);
+            event.putInt("subscriptionId", subscriptionId);
             // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged+subEvent, event);
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged+subEvent,
+                                   event);
+
         }
     }
 
@@ -172,17 +180,20 @@ public class TelephonyStateListeners {
         private final TelephonyManager mTelephonyManager;
         public static final int sListeningStates =
                 PhoneStateListener.LISTEN_DATA_CONNECTION_STATE;
+        public int subscriptionId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
 
         public DataConnectionStateChangeListener(EventFacade ef, TelephonyManager tm) {
             super();
             mEventFacade = ef;
             mTelephonyManager = tm;
+            subscriptionId = SubscriptionManager.getDefaultDataSubId();
         }
 
         public DataConnectionStateChangeListener(EventFacade ef, TelephonyManager tm, int subId) {
             super(subId);
             mEventFacade = ef;
             mTelephonyManager = tm;
+            subscriptionId = subId;
         }
 
         @Override
@@ -206,10 +217,10 @@ public class TelephonyStateListeners {
                 subEvent = "UnknownStateCode";
                 event.putInt("UnknownStateCode", state);
             }
-         // Need to change.using mSubId temporarily
-            event.putInt("subscriptionId", mSubId);
+            event.putInt("subscriptionId", subscriptionId);
             // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged+subEvent, event);
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged+subEvent,
+                                   event);
         }
     }
 
@@ -217,15 +228,18 @@ public class TelephonyStateListeners {
 
         private final EventFacade mEventFacade;
         public static final int sListeningStates = PhoneStateListener.LISTEN_SERVICE_STATE;
+        public int subscriptionId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
 
         public ServiceStateChangeListener(EventFacade ef) {
             super();
             mEventFacade = ef;
+            subscriptionId = SubscriptionManager.getDefaultDataSubId();
         }
 
         public ServiceStateChangeListener(EventFacade ef, int subId) {
             super(subId);
             mEventFacade = ef;
+            subscriptionId = subId;
         }
 
         @Override
@@ -277,11 +291,10 @@ public class TelephonyStateListeners {
                         break;
                 }
             }
-
-            // Need to change.using mSubId temporarily
-            event.putInt("subscriptionId", mSubId);
+            event.putInt("subscriptionId", subscriptionId);
             // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged+subEvent, event);
+            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged+subEvent,
+                                   event);
         }
     }
 

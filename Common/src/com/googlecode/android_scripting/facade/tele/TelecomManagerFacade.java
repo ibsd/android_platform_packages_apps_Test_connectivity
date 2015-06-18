@@ -17,6 +17,7 @@
 package com.googlecode.android_scripting.facade.tele;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -45,6 +46,7 @@ public class TelecomManagerFacade extends RpcReceiver {
     private final Service mService;
 
     private final TelecomManager mTelecomManager;
+    private final TelephonyManager mTelephonyManager;
 
     private List<PhoneAccountHandle> mEnabledAccountHandles = null;
 
@@ -52,6 +54,7 @@ public class TelecomManagerFacade extends RpcReceiver {
         super(manager);
         mService = manager.getService();
         mTelecomManager = new TelecomManager(mService);
+        mTelephonyManager = new TelephonyManager(mService);
     }
 
     @Override
@@ -154,6 +157,33 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Get the user-chosen default PhoneAccount for making outgoing phone calls.")
     public PhoneAccountHandle telecomGetUserSelectedOutgoingPhoneAccount() {
         return mTelecomManager.getUserSelectedOutgoingPhoneAccount();
+    }
+
+    @Rpc(description = "Set the PhoneAccount corresponding to user selcted subscription id " +
+                       " for making outgoing phone calls.")
+    public void telecomSetUserSelectedOutgoingPhoneAccountBySubId(
+                        @RpcParameter(name = "subId")
+                        Integer subId) throws Exception {
+          Iterator<PhoneAccountHandle> phoneAccounts =
+               mTelecomManager.getCallCapablePhoneAccounts().listIterator();
+
+          while (phoneAccounts.hasNext()) {
+              PhoneAccountHandle phoneAccountHandle = phoneAccounts.next();
+              PhoneAccount phoneAccount =
+                       mTelecomManager.getPhoneAccount(phoneAccountHandle);
+              if (subId == mTelephonyManager.getSubIdForPhoneAccount(phoneAccount)) {
+                  mTelecomManager.setUserSelectedOutgoingPhoneAccount(phoneAccountHandle);
+                  Log.d(String.format(
+                      "Set default Outgoing Phone Account for subscription(%s)", subId));
+                  return;
+              }
+          }
+          Log.d(String.format(
+                  "Failed to find a matching Phone Account for subscription (%s).",
+                  subId));
+          throw new Exception(String.format(
+                  "Failed to find a matching Phone Account for subscription (%s).",
+                   subId));
     }
 
     @Rpc(description = "Returns whether there is an ongoing phone call.")
