@@ -88,11 +88,11 @@ public class TelecomManagerFacade extends RpcReceiver {
         int state = mTelecomManager.getCallState();
         String stateStr = null;
         if (state == TelephonyManager.CALL_STATE_RINGING) {
-            stateStr = "RINGING";
+            stateStr = TelephonyConstants.TELEPHONY_STATE_RINGING;
         } else if (state == TelephonyManager.CALL_STATE_IDLE) {
-            stateStr = "IDLE";
+            stateStr = TelephonyConstants.TELEPHONY_STATE_IDLE;
         } else if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
-            stateStr = "OFFHOOK";
+            stateStr = TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
         }
         return stateStr;
     }
@@ -102,13 +102,13 @@ public class TelecomManagerFacade extends RpcReceiver {
         int mode = mTelecomManager.getCurrentTtyMode();
         String modeStr = null;
         if (mode == TelecomManager.TTY_MODE_FULL) {
-            modeStr = "FULL";
+            modeStr = TelephonyConstants.TTY_MODE_FULL;
         } else if (mode == TelecomManager.TTY_MODE_HCO) {
-            modeStr = "HCO";
+            modeStr = TelephonyConstants.TTY_MODE_HCO;
         } else if (mode == TelecomManager.TTY_MODE_OFF) {
-            modeStr = "OFF";
+            modeStr = TelephonyConstants.TTY_MODE_OFF;
         } else if (mode == TelecomManager.TTY_MODE_VCO) {
-            modeStr = "VCO";
+            modeStr = TelephonyConstants.TTY_MODE_VCO;
         }
         return modeStr;
     }

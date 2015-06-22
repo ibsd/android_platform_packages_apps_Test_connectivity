@@ -103,19 +103,19 @@ public class ImsManagerFacade extends RpcReceiver {
         int mode_val;
 
         switch (mode.toUpperCase()) {
-            case "WIFI_ONLY":
+            case TelephonyConstants.WFC_MODE_WIFI_ONLY:
                 mode_val =
                         ImsConfig.WfcModeFeatureValueConstants.WIFI_ONLY;
                 break;
-            case "CELLULAR_PREFERRED":
+            case TelephonyConstants.WFC_MODE_CELLULAR_PREFERRED:
                 mode_val =
                         ImsConfig.WfcModeFeatureValueConstants.CELLULAR_PREFERRED;
                 break;
-            case "WIFI_PREFERRED":
+            case TelephonyConstants.WFC_MODE_WIFI_PREFERRED:
                 mode_val =
                         ImsConfig.WfcModeFeatureValueConstants.WIFI_PREFERRED;
                 break;
-            case "DISABLED":
+            case TelephonyConstants.WFC_MODE_DISABLED:
                 if (ImsManager.isWfcEnabledByPlatform(mContext) &&
                         ImsManager.isWfcEnabledByUser(mContext) == true) {
                     ImsManager.setWfcSetting(mContext, false);
@@ -137,17 +137,17 @@ public class ImsManagerFacade extends RpcReceiver {
     @Rpc(description = "Return current WFC Mode if Enabled.")
     public String imsGetWfcMode() {
         if(ImsManager.isWfcEnabledByUser(mContext) == false) {
-            return "DISABLED";
+            return TelephonyConstants.WFC_MODE_DISABLED;
         }
        switch(ImsManager.getWfcMode(mContext)) {
            case ImsConfig.WfcModeFeatureValueConstants.WIFI_PREFERRED:
-               return "WIFI_PREFERRED";
+               return TelephonyConstants.WFC_MODE_WIFI_PREFERRED;
            case ImsConfig.WfcModeFeatureValueConstants.CELLULAR_PREFERRED:
-               return "CELLULAR_PREFERRED";
+               return TelephonyConstants.WFC_MODE_CELLULAR_PREFERRED;
            case ImsConfig.WfcModeFeatureValueConstants.WIFI_ONLY:
-               return "WIFI_ONLY";
+               return TelephonyConstants.WFC_MODE_WIFI_ONLY;
            default:
-               return "UNKNOWN";
+               return TelephonyConstants.WFC_MODE_UNKNOWN;
        }
     }
 

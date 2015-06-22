@@ -65,6 +65,7 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
+import com.googlecode.android_scripting.facade.tele.TelephonyConstants;
 
 //FIXME: Change the build order to use constants defined in here
 //import com.googlecode.android_scripting.provider.TelephonyTestProvider;
@@ -467,7 +468,7 @@ public class SmsFacade extends RpcReceiver {
                 if (resultCode == Activity.RESULT_OK) {
                     if (mNumExpectedDeliveredEvents == 1) {
                         Log.d("SMS Message delivered successfully");
-                        mEventFacade.postEvent("onSmsDeliverSuccess", event);
+                        mEventFacade.postEvent(TelephonyConstants.EventSmsDeliverSuccess, event);
                     }
                     if (mNumExpectedDeliveredEvents > 0) {
                         mNumExpectedDeliveredEvents--;
@@ -475,14 +476,14 @@ public class SmsFacade extends RpcReceiver {
                 } else {
                     Log.e("SMS Message delivery failed");
                     // TODO . Need to find the reason for failure from pdu
-                    mEventFacade.postEvent("onSmsDeliverFailure", event);
+                    mEventFacade.postEvent(TelephonyConstants.EventSmsDeliverFailure, event);
                 }
             } else if (SMS_MESSAGE_SENT_ACTION.equals(action)) {
                 if (resultCode == Activity.RESULT_OK) {
                     if (mNumExpectedSentEvents == 1) {
                         event.putString("Type", "SmsSentSuccess");
                         Log.d("SMS Message sent successfully");
-                        mEventFacade.postEvent("onSmsSentSuccess", event);
+                        mEventFacade.postEvent(TelephonyConstants.EventSmsSentSuccess, event);
                     }
                     if (mNumExpectedSentEvents > 0) {
                         mNumExpectedSentEvents--;
@@ -513,7 +514,7 @@ public class SmsFacade extends RpcReceiver {
                             event.putString("Reason", "Unknown");
                             break;
                     }
-                    mEventFacade.postEvent("onSmsSentFailure", event);
+                    mEventFacade.postEvent(TelephonyConstants.EventSmsSentFailure, event);
                 }
             }
         }
@@ -545,7 +546,7 @@ public class SmsFacade extends RpcReceiver {
                     // TODO
                     // Need to explore how to get subId information.
                     event.putInt("subscriptionId", subId);
-                    mEventFacade.postEvent("onSmsReceived", event);
+                    mEventFacade.postEvent(TelephonyConstants.EventSmsReceived, event);
                 }
             }
         }
@@ -561,10 +562,10 @@ public class SmsFacade extends RpcReceiver {
             if (MMS_MESSAGE_SENT_ACTION.equals(action)) {
                 if (resultCode == Activity.RESULT_OK) {
                     Log.d("MMS Message sent successfully");
-                    mEventFacade.postEvent("onMmsSentSuccess", event);
+                    mEventFacade.postEvent(TelephonyConstants.EventMmsSentSuccess, event);
                 } else {
                     Log.e(String.format("MMS Message send failed: %d", resultCode));
-                    mEventFacade.postEvent("onMmsSentFailure", event);
+                    mEventFacade.postEvent(TelephonyConstants.EventMmsSentFailure, event);
                 }
             } else {
                 Log.e("MMS Send Listener Received Invalid Event" + intent.toString());
@@ -580,15 +581,15 @@ public class SmsFacade extends RpcReceiver {
             String action = intent.getAction();
             if (Intents.MMS_DOWNLOADED_ACTION.equals(action)) {
                 Log.d("New MMS Downloaded");
-                mEventFacade.postEvent("onMmsDownloaded", new Bundle());
+                mEventFacade.postEvent(TelephonyConstants.EventMmsDownloaded, new Bundle());
             }
             else if (Intents.WAP_PUSH_RECEIVED_ACTION.equals(action)) {
                 Log.d("New Wap Push Received");
-                mEventFacade.postEvent("onWapPushReceived", new Bundle());
+                mEventFacade.postEvent(TelephonyConstants.EventWapPushReceived, new Bundle());
             }
             else if (Intents.DATA_SMS_RECEIVED_ACTION.equals(action)) {
                 Log.d("New Data SMS Received");
-                mEventFacade.postEvent("onDataSmsReceived", new Bundle());
+                mEventFacade.postEvent(TelephonyConstants.EventDataSmsReceived, new Bundle());
             }
             else {
                 Log.e("MmsIncomingListener Received Unexpected Event" + intent.toString());
@@ -635,7 +636,7 @@ public class SmsFacade extends RpcReceiver {
                             event.putString("priority", getPriority(message.getMessagePriority()));
                             if (message.isCmasMessage()) {
                                 // CMAS message
-                                eventName = "onCmasReceived";
+                                eventName = TelephonyConstants.EventCmasReceived;
                                 event.putString("cmasMessageClass", getCMASMessageClass(
                                         message.getCmasWarningInfo().getMessageClass()));
                                 event.putString("cmasCategory", getCMASCategory(
@@ -650,7 +651,7 @@ public class SmsFacade extends RpcReceiver {
                                         message.getCmasWarningInfo().getCertainty()));
                             } else if (message.isEtwsMessage()) {
                                 // ETWS message
-                                eventName = "onEtwsReceived";
+                                eventName = TelephonyConstants.EventEtwsReceived;
                                 event.putString("etwsWarningType", getETWSWarningType(
                                         message.getEtwsWarningInfo().getWarningType()));
                                 event.putBoolean("etwsIsEmergencyUserAlert",

@@ -227,19 +227,19 @@ public class PhoneFacade extends RpcReceiver {
         int phoneType = mTelephonyManager.getPhoneType();
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
             switch (mode.toUpperCase()) {
-                case "4G":
-                case "LTE":
+                case TelephonyConstants.RAT_4G:
+                case TelephonyConstants.RAT_LTE:
                     networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
                     break;
-                case "3G":
-                case "WCDMA":
+                case TelephonyConstants.RAT_3G:
+                case TelephonyConstants.RAT_WCDMA:
                     networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
                     break;
-                case "2G":
-                case "GSM":
+                case TelephonyConstants.RAT_2G:
+                case TelephonyConstants.RAT_GSM:
                     networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
                     break;
-                case "GLOBAL":
+                case TelephonyConstants.RAT_GLOBAL:
                     networkType =
                             RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
                     break;
@@ -249,19 +249,19 @@ public class PhoneFacade extends RpcReceiver {
             }
         } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
             switch (mode.toUpperCase()) {
-                case "4G":
-                case "LTE":
+                case TelephonyConstants.RAT_4G:
+                case TelephonyConstants.RAT_LTE:
                     networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
                     break;
-                case "3G":
-                case "EVDO":
+                case TelephonyConstants.RAT_3G:
+                case TelephonyConstants.RAT_EVDO:
                     networkType = RILConstants.NETWORK_MODE_CDMA;
                     break;
-                case "2G":
-                case "1X":
+                case TelephonyConstants.RAT_2G:
+                case TelephonyConstants.RAT_1XRTT:
                     networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
                     break;
-                case "GLOBAL":
+                case TelephonyConstants.RAT_GLOBAL:
                     networkType =
                             RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
                     break;
@@ -309,30 +309,30 @@ public class PhoneFacade extends RpcReceiver {
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
             switch (mode) {
                 case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
-                    return "LTE";
+                    return TelephonyConstants.RAT_LTE;
                 case RILConstants.NETWORK_MODE_WCDMA_PREF:
-                    return "WCDMA";
+                    return TelephonyConstants.RAT_WCDMA;
                 case RILConstants.NETWORK_MODE_GSM_ONLY:
-                    return "GSM";
+                    return TelephonyConstants.RAT_GSM;
                 case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                    return "GLOBAL";
+                    return TelephonyConstants.RAT_GLOBAL;
                 default:
                     Log.d("Unknown mode in phone type GSM: " + mode);
-                    return "UNKNOWN";
+                    return TelephonyConstants.RAT_UNKNOWN;
             }
         } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
             switch (mode) {
                 case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-                    return "LTE";
+                    return TelephonyConstants.RAT_LTE;
                 case RILConstants.NETWORK_MODE_CDMA:
-                    return "EVDO";
+                    return TelephonyConstants.RAT_EVDO;
                 case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
-                    return "1X";
+                    return TelephonyConstants.RAT_1XRTT;
                 case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                    return "GLOBAL";
+                    return TelephonyConstants.RAT_GLOBAL;
                 default:
                     Log.d("Unknown mode in phone type CDMA: " + mode);
-                    return "UNKNOWN";
+                    return TelephonyConstants.RAT_UNKNOWN;
             }
         } else {
             Log.d("Unknown phone type: " + phoneType);
@@ -765,52 +765,6 @@ public class PhoneFacade extends RpcReceiver {
         return mTelephonyManager.getNetworkOperatorName(subId);
     }
 
-    private String getNetworkTypeString(int networkType) {
-
-        switch (networkType) {
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-                return "edge";
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-                return "gprs";
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-                return "umts";
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-                return "hsdpa";
-            case TelephonyManager.NETWORK_TYPE_HSUPA:
-                return "hsupa";
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-                return "cdma";
-            case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                return "evdo_0";
-            case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                return "evdo_a";
-            case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                return "evdo_b";
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-                return "1xrtt";
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                return "iden";
-            case TelephonyManager.NETWORK_TYPE_LTE:
-                return "lte";
-            case TelephonyManager.NETWORK_TYPE_EHRPD:
-                return "ehrpd";
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-                return "hspa";
-            case TelephonyManager.NETWORK_TYPE_HSPAP:
-                return "hspap";
-            case TelephonyManager.NETWORK_TYPE_GSM:
-                return "gsm";
-            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-                return "td_scdma";
-            case TelephonyManager.NETWORK_TYPE_IWLAN:
-                return "iwlan";
-            case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-                return "unknown";
-            default:
-                return null;
-        }
-    }
-
     @Rpc(description = "Returns the current RAT in use on the device.+" +
                        "for default subscription ID")
     public String getNetworkType() {
@@ -832,7 +786,7 @@ public class PhoneFacade extends RpcReceiver {
                 "Please use getVoiceNetworkType()" +
                 " or getDataNetworkTpe()");
 
-        return getNetworkTypeString(mTelephonyManager.getNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getNetworkType(subId));
     }
 
     @Rpc(description = "Returns the current voice RAT for" +
@@ -846,7 +800,7 @@ public class PhoneFacade extends RpcReceiver {
             " the specified voice subscription.")
     public String getVoiceNetworkTypeForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        return getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
     }
 
     @Rpc(description = "Returns the current data RAT for" +
@@ -860,20 +814,20 @@ public class PhoneFacade extends RpcReceiver {
             " the specified data subscription")
     public String getDataNetworkTypeForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        return getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
     }
 
     @Rpc(description = "Returns the device phone type.")
     public String getPhoneType() {
         switch (mTelephonyManager.getPhoneType()) {
             case TelephonyManager.PHONE_TYPE_GSM:
-                return "gsm";
+                return TelephonyConstants.PHONE_TYPE_GSM;
             case TelephonyManager.PHONE_TYPE_NONE:
-                return "none";
+                return TelephonyConstants.PHONE_TYPE_NONE;
             case TelephonyManager.PHONE_TYPE_CDMA:
-                return "cdma";
+                return TelephonyConstants.PHONE_TYPE_CDMA;
             case TelephonyManager.PHONE_TYPE_SIP:
-                return "sip";
+                return TelephonyConstants.PHONE_TYPE_SIP;
             default:
                 return null;
         }
@@ -942,19 +896,27 @@ public class PhoneFacade extends RpcReceiver {
                   @RpcParameter(name = "slotId") Integer slotId) {
         switch (mTelephonyManager.getSimState(slotId)) {
             case TelephonyManager.SIM_STATE_UNKNOWN:
-                return "uknown";
+                return TelephonyConstants.SIM_STATE_UNKNOWN;
             case TelephonyManager.SIM_STATE_ABSENT:
-                return "absent";
+                return TelephonyConstants.SIM_STATE_ABSENT;
             case TelephonyManager.SIM_STATE_PIN_REQUIRED:
-                return "pin_required";
+                return TelephonyConstants.SIM_STATE_PIN_REQUIRED;
             case TelephonyManager.SIM_STATE_PUK_REQUIRED:
-                return "puk_required";
+                return TelephonyConstants.SIM_STATE_PUK_REQUIRED;
             case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
-                return "network_locked";
+                return TelephonyConstants.SIM_STATE_NETWORK_LOCKED;
             case TelephonyManager.SIM_STATE_READY:
-                return "ready";
+                return TelephonyConstants.SIM_STATE_READY;
+            case TelephonyManager.SIM_STATE_NOT_READY:
+                return TelephonyConstants.SIM_STATE_NOT_READY;
+            case TelephonyManager.SIM_STATE_PERM_DISABLED:
+                return TelephonyConstants.SIM_STATE_PERM_DISABLED;
+            case TelephonyManager.SIM_STATE_CARD_IO_ERROR:
+                return TelephonyConstants.SIM_STATE_CARD_IO_ERROR;
             default:
-                return null;
+                Log.e("getSimStateForSlotId this should never happen. sim state:" +
+                        mTelephonyManager.getSimState(slotId));
+                return TelephonyConstants.SIM_STATE_UNKNOWN;
         }
     }
 
@@ -1240,15 +1202,15 @@ public class PhoneFacade extends RpcReceiver {
 
         switch(state) {
             case TelephonyManager.DATA_DISCONNECTED:
-                return "DATA_DISCONNECTED";
+                return TelephonyConstants.DATA_STATE_DISCONNECTED;
             case TelephonyManager.DATA_CONNECTING:
-                return "DATA_CONNECTING";
+                return TelephonyConstants.DATA_STATE_CONNECTING;
             case TelephonyManager.DATA_CONNECTED:
-                return "DATA_CONNECTED";
+                return TelephonyConstants.DATA_STATE_CONNECTED;
             case TelephonyManager.DATA_SUSPENDED:
-                return "DATA_SUSPENDED";
+                return TelephonyConstants.DATA_STATE_SUSPENDED;
             default:
-                return "DATA_UNKNOWN";
+                return TelephonyConstants.DATA_STATE_UNKNOWN;
         }
     }
 
@@ -1306,13 +1268,15 @@ public class PhoneFacade extends RpcReceiver {
         switch (mTelephonyManager.getCallState(subId)) {
             //TODO: b/20916221: Standardize names using enum-name convention
             case TelephonyManager.CALL_STATE_IDLE:
-                return "idle";
+                return TelephonyConstants.TELEPHONY_STATE_IDLE;
             case TelephonyManager.CALL_STATE_RINGING:
-                return "ringing";
+                return TelephonyConstants.TELEPHONY_STATE_RINGING;
             case TelephonyManager.CALL_STATE_OFFHOOK:
-                return "offhook";
+                return TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
             default:
-                return null;
+                Log.e("getCallStateForSubscription this should never happen. state:" +
+                        mTelephonyManager.getCallState(subId));
+                return TelephonyConstants.TELEPHONY_STATE_UNKNOWN;
         }
     }
 

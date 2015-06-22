@@ -72,7 +72,8 @@ public class TelephonyStateListeners {
             }
          // Need to change.using mSubId temporarily
             mCallStateEvent.putInt("subscriptionId", mSubId);
-            mEventFacade.postEvent("onCallStateChanged"+subEvent, mCallStateEvent);
+            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
+            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged+subEvent, mCallStateEvent);
         }
 
         @Override
@@ -120,7 +121,8 @@ public class TelephonyStateListeners {
             }
          // Need to change.using mSubId temporarily
             EventMsg.putInt("subscriptionId", mSubId);
-            mEventFacade.postEvent("onPreciseStateChanged"+subEvent, EventMsg);
+            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
+            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged+subEvent, EventMsg);
         }
     }
 
@@ -159,7 +161,8 @@ public class TelephonyStateListeners {
             }
          // Need to change.using mSubId temporarily
             event.putInt("subscriptionId", mSubId);
-            mEventFacade.postEvent("onDataConnectionRealTimeInfoChanged"+subEvent, event);
+            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged+subEvent, event);
         }
     }
 
@@ -205,7 +208,8 @@ public class TelephonyStateListeners {
             }
          // Need to change.using mSubId temporarily
             event.putInt("subscriptionId", mSubId);
-            mEventFacade.postEvent("onDataConnectionStateChanged"+subEvent, event);
+            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged+subEvent, event);
         }
     }
 
@@ -263,21 +267,21 @@ public class TelephonyStateListeners {
             if(subEvent.equals("InService")) {
                 switch(serviceState.getVoiceNetworkType()) {
                     case TelephonyManager.NETWORK_TYPE_LTE:
-                        subEvent = subEvent + "LTE" ;
+                        subEvent = subEvent + TelephonyConstants.RAT_LTE;
                         break;
                     case TelephonyManager.NETWORK_TYPE_UMTS:
-                        subEvent = subEvent + "UMTS";
+                        subEvent = subEvent + TelephonyConstants.RAT_UMTS;
                         break;
                     case TelephonyManager.NETWORK_TYPE_GSM:
-                        subEvent = subEvent + "GSM";
+                        subEvent = subEvent + TelephonyConstants.RAT_GSM;
                         break;
                 }
             }
 
             // Need to change.using mSubId temporarily
             event.putInt("subscriptionId", mSubId);
-
-            mEventFacade.postEvent("onServiceStateChanged"+subEvent, event);
+            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
+            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged+subEvent, event);
         }
     }
 
@@ -304,7 +308,7 @@ public class TelephonyStateListeners {
                     TelephonyUtils.getSrvccStateString(volteInfo.getSrvccState()));
 
             mEventFacade.postEvent(
-                    "onVolteServiceStateChanged", event);
+                    TelephonyConstants.EventVolteServiceStateChanged, event);
         }
     }
 
@@ -331,7 +335,7 @@ public class TelephonyStateListeners {
             event.putBoolean("MessageWaitingIndicator", messageWaitingIndicator);
 
             mEventFacade.postEvent(
-                    "onMessageWaitingIndicatorChanged", event);
+                    TelephonyConstants.EventMessageWaitingIndicatorChanged, event);
         }
     }
 

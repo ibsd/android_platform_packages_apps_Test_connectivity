@@ -27,6 +27,7 @@ import android.provider.Settings.SettingNotFoundException;
 import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.tele.TelephonyConstants;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
@@ -74,7 +75,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             */
             for (NetworkInfo info : mManager.getAllNetworkInfo()) {
                 if (info.getType() == netType) {
-                    mEventFacade.postEvent("onConnectivityChanged", info);
+                    mEventFacade.postEvent(TelephonyConstants.EventConnectivityChanged, info);
                 }
             }
         }

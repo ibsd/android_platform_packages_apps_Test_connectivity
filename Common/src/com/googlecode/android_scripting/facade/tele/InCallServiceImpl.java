@@ -136,7 +136,7 @@ public class InCallServiceImpl extends InCallService {
             Log.d("CallCallback:onStateChanged()");
             if ((mEvents & EVENT_STATE_CHANGED)
                     == EVENT_STATE_CHANGED) {
-                servicePostEvent("TelecomCallStateChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallStateChanged,
                         new CallEvent<String>(mCallId, getCallStateString(state)));
             }
         }
@@ -147,7 +147,7 @@ public class InCallServiceImpl extends InCallService {
             Log.d("CallCallback:onParentChanged()");
             if ((mEvents & EVENT_PARENT_CHANGED)
                     == EVENT_PARENT_CHANGED) {
-                servicePostEvent("TelecomCallParentChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallParentChanged,
                         new CallEvent<String>(mCallId, getCallId(parent)));
             }
         }
@@ -164,7 +164,7 @@ public class InCallServiceImpl extends InCallService {
                 for (Call child : children) {
                     childList.add(getCallId(child));
                 }
-                servicePostEvent("TelecomCallChildrenChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallChildrenChanged,
                         new CallEvent<List<String>>(mCallId, childList));
             }
         }
@@ -176,7 +176,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_DETAILS_CHANGED)
                     == EVENT_DETAILS_CHANGED) {
-                servicePostEvent("TelecomCallDetailsChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallDetailsChanged,
                         new CallEvent<Details>(mCallId, details));
             }
         }
@@ -187,7 +187,7 @@ public class InCallServiceImpl extends InCallService {
             Log.d("CallCallback:onCannedTextResponsesLoaded()");
             if ((mEvents & EVENT_CANNED_TEXT_RESPONSES_LOADED)
                     == EVENT_CANNED_TEXT_RESPONSES_LOADED) {
-                servicePostEvent("TelecomCallCannedTextResponsesLoaded",
+                servicePostEvent(TelephonyConstants.EventTelecomCallCannedTextResponsesLoaded,
                         new CallEvent<List<String>>(mCallId, cannedTextResponses));
             }
         }
@@ -198,7 +198,7 @@ public class InCallServiceImpl extends InCallService {
             Log.d("CallCallback:onPostDialWait()");
             if ((mEvents & EVENT_POST_DIAL_WAIT)
                     == EVENT_POST_DIAL_WAIT) {
-                servicePostEvent("TelecomCallPostDialWait",
+                servicePostEvent(TelephonyConstants.EventTelecomCallPostDialWait,
                         new CallEvent<String>(mCallId, remainingPostDialSequence));
             }
         }
@@ -267,7 +267,7 @@ public class InCallServiceImpl extends InCallService {
             if ((mEvents & EVENT_VIDEO_CALL_CHANGED)
                     == EVENT_VIDEO_CALL_CHANGED) {
                 // FIXME: Need to determine what to return; probably not the whole video call
-                servicePostEvent("TelecomCallVideoCallChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallVideoCallChanged,
                         new CallEvent<String>(mCallId, videoCall.toString()));
             }
         }
@@ -278,7 +278,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_CALL_DESTROYED)
                     == EVENT_CALL_DESTROYED) {
-                servicePostEvent("TelecomCallDestroyed",
+                servicePostEvent(TelephonyConstants.EventTelecomCallDestroyed,
                         new CallEvent<Call>(mCallId, call));
             }
         }
@@ -294,7 +294,7 @@ public class InCallServiceImpl extends InCallService {
                 for (Call cc : conferenceableCalls) {
                     confCallList.add(getCallId(cc));
                 }
-                servicePostEvent("TelecomCallConferenceableCallsChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomCallConferenceableCallsChanged,
                         new CallEvent<List<String>>(mCallId, confCallList));
             }
         }
@@ -348,7 +348,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_SESSION_MODIFY_REQUEST_RECEIVED)
                     == EVENT_SESSION_MODIFY_REQUEST_RECEIVED) {
-                servicePostEvent("TelecomVideoCallSessionModifyRequestReceived",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallSessionModifyRequestReceived,
                         new VideoCallEvent<VideoProfile>(mCallId, videoProfile));
             }
 
@@ -367,7 +367,7 @@ public class InCallServiceImpl extends InCallService {
                 smrrInfo.put("RequestedProfile", requestedProfile);
                 smrrInfo.put("ResponseProfile", responseProfile);
 
-                servicePostEvent("TelecomVideoCallSessionModifyResponseReceived",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallSessionModifyResponseReceived,
                         new VideoCallEvent<HashMap<String, VideoProfile>>(mCallId, smrrInfo));
             }
         }
@@ -380,7 +380,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_SESSION_EVENT)
                     == EVENT_SESSION_EVENT) {
-                servicePostEvent("TelecomVideoCallSessionEvent",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallSessionEvent,
                         new VideoCallEvent<String>(mCallId, eventString));
             }
         }
@@ -396,7 +396,7 @@ public class InCallServiceImpl extends InCallService {
                 temp.put("Width", width);
                 temp.put("Height", height);
 
-                servicePostEvent("TelecomVideoCallPeerDimensionsChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallPeerDimensionsChanged,
                         new VideoCallEvent<HashMap<String, Integer>>(mCallId, temp));
             }
         }
@@ -407,7 +407,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_VIDEO_QUALITY_CHANGED)
                     == EVENT_VIDEO_QUALITY_CHANGED) {
-                servicePostEvent("TelecomVideoCallVideoQualityChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallVideoQualityChanged,
                         new VideoCallEvent<String>(mCallId,
                                 getVideoCallQualityString(videoQuality)));
             }
@@ -419,7 +419,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_DATA_USAGE_CHANGED)
                     == EVENT_DATA_USAGE_CHANGED) {
-                servicePostEvent("TelecomVideoCallDataUsageChanged",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallDataUsageChanged,
                         new VideoCallEvent<Long>(mCallId, dataUsage));
             }
         }
@@ -431,7 +431,7 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_DATA_USAGE_CHANGED)
                     == EVENT_DATA_USAGE_CHANGED) {
-                servicePostEvent("TelecomVideoCallCameraCapabilities",
+                servicePostEvent(TelephonyConstants.EventTelecomVideoCallCameraCapabilities,
                         new VideoCallEvent<CameraCapabilities>(mCallId, cameraCapabilities));
             }
 
@@ -1028,40 +1028,40 @@ public class InCallServiceImpl extends InCallService {
     public static String getVideoCallStateString(int state) {
         switch (state) {
             case VIDEO_STATE_AUDIO_ONLY:
-                return "AUDIO_ONLY";
+                return TelephonyConstants.VT_STATE_AUDIO_ONLY;
             case VIDEO_STATE_TX_ENABLED:
-                return "TX_ENABLED";
+                return TelephonyConstants.VT_STATE_TX_ENABLED;
             case VIDEO_STATE_RX_ENABLED:
-                return "RX_ENABLED";
+                return TelephonyConstants.VT_STATE_RX_ENABLED;
             case VIDEO_STATE_BIDIRECTIONAL:
-                return "BIDIRECTIONAL";
+                return TelephonyConstants.VT_STATE_BIDIRECTIONAL;
             case VIDEO_STATE_TX_PAUSED:
-                return "TX_PAUSED";
+                return TelephonyConstants.VT_STATE_TX_PAUSED;
             case VIDEO_STATE_RX_PAUSED:
-                return "RX_PAUSED";
+                return TelephonyConstants.VT_STATE_RX_PAUSED;
             case VIDEO_STATE_BIDIRECTIONAL_PAUSED:
-                return "BIDIRECTIONAL_PAUSED";
+                return TelephonyConstants.VT_STATE_BIDIRECTIONAL_PAUSED;
             default:
         }
         // probably need to wtf here
-        return "STATE_INVALID";
+        return TelephonyConstants.VT_STATE_STATE_INVALID;
     }
 
     public static int getVideoCallState(String state) {
         switch (state.toUpperCase()) {
-            case "AUDIO_ONLY":
+            case TelephonyConstants.VT_STATE_AUDIO_ONLY:
                 return VIDEO_STATE_AUDIO_ONLY;
-            case "TX_ENABLED":
+            case TelephonyConstants.VT_STATE_TX_ENABLED:
                 return VIDEO_STATE_TX_ENABLED;
-            case "RX_ENABLED":
+            case TelephonyConstants.VT_STATE_RX_ENABLED:
                 return VIDEO_STATE_RX_ENABLED;
-            case "BIDIRECTIONAL":
+            case TelephonyConstants.VT_STATE_BIDIRECTIONAL:
                 return VIDEO_STATE_BIDIRECTIONAL;
-            case "TX_PAUSED":
+            case TelephonyConstants.VT_STATE_TX_PAUSED:
                 return VIDEO_STATE_TX_PAUSED;
-            case "RX_PAUSED":
+            case TelephonyConstants.VT_STATE_RX_PAUSED:
                 return VIDEO_STATE_RX_PAUSED;
-            case "BIDIRECTIONAL_PAUSED":
+            case TelephonyConstants.VT_STATE_BIDIRECTIONAL_PAUSED:
                 return VIDEO_STATE_BIDIRECTIONAL_PAUSED;
 
             default:
@@ -1073,15 +1073,15 @@ public class InCallServiceImpl extends InCallService {
     private static int getVideoCallQuality(String quality) {
 
         switch (quality.toUpperCase()) {
-            case "QUALITY_UNKNOWN":
+            case TelephonyConstants.VT_VIDEO_QUALITY_UNKNOWN:
                 return VideoProfile.QUALITY_UNKNOWN;
-            case "QUALITY_HIGH":
+            case TelephonyConstants.VT_VIDEO_QUALITY_HIGH:
                 return VideoProfile.QUALITY_HIGH;
-            case "QUALITY_MEDIUM":
+            case TelephonyConstants.VT_VIDEO_QUALITY_MEDIUM:
                 return VideoProfile.QUALITY_MEDIUM;
-            case "QUALITY_LOW":
+            case TelephonyConstants.VT_VIDEO_QUALITY_LOW:
                 return VideoProfile.QUALITY_LOW;
-            case "QUALITY_DEFAULT":
+            case TelephonyConstants.VT_VIDEO_QUALITY_DEFAULT:
                 return VideoProfile.QUALITY_DEFAULT;
             default:
         }
@@ -1092,19 +1092,19 @@ public class InCallServiceImpl extends InCallService {
     public static String getVideoCallQualityString(int quality) {
         switch (quality) {
             case VideoProfile.QUALITY_UNKNOWN:
-                return "QUALITY_UNKNOWN";
+                return TelephonyConstants.VT_VIDEO_QUALITY_UNKNOWN;
             case VideoProfile.QUALITY_HIGH:
-                return "QUALITY_HIGH";
+                return TelephonyConstants.VT_VIDEO_QUALITY_HIGH;
             case VideoProfile.QUALITY_MEDIUM:
-                return "QUALITY_MEDIUM";
+                return TelephonyConstants.VT_VIDEO_QUALITY_MEDIUM;
             case VideoProfile.QUALITY_LOW:
-                return "QUALITY_LOW";
+                return TelephonyConstants.VT_VIDEO_QUALITY_LOW;
             case VideoProfile.QUALITY_DEFAULT:
-                return "QUALITY_DEFAULT";
+                return TelephonyConstants.VT_VIDEO_QUALITY_DEFAULT;
             default:
         }
         // probably need to wtf here
-        return "QUALITY_INVALID";
+        return TelephonyConstants.VT_VIDEO_QUALITY_INVALID;
     }
 
     private static int getCallCallbackEvent(String event) {
@@ -1161,20 +1161,20 @@ public class InCallServiceImpl extends InCallService {
 
     private static int getVideoCallCallbackEvent(String event) {
 
-        switch (event.toUpperCase()) {
-            case "EVENT_SESSION_MODIFY_REQUEST_RECEIVED":
+        switch (event) {
+            case TelephonyConstants.EventSessionModifyRequestRceived:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED;
-            case "EVENT_SESSION_MODIFY_RESPONSE_RECEIVED":
+            case TelephonyConstants.EventSessionModifyResponsetRceived:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED;
-            case "EVENT_SESSION_EVENT":
+            case TelephonyConstants.EventSessionEvent:
                 return VideoCallCallback.EVENT_SESSION_EVENT;
-            case "EVENT_PEER_DIMENSIONS_CHANGED":
+            case TelephonyConstants.EventPeerDimensionsChanged:
                 return VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED;
-            case "EVENT_VIDEO_QUALITY_CHANGED":
+            case TelephonyConstants.EventVideoQualityChanged:
                 return VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED;
-            case "EVENT_DATA_USAGE_CHANGED":
+            case TelephonyConstants.EventDataUsageChanged:
                 return VideoCallCallback.EVENT_DATA_USAGE_CHANGED;
-            case "EVENT_CAMERA_CAPABILITIES_CHANGED":
+            case TelephonyConstants.EventCameraCapabilitiesChanged:
                 return VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED;
         }
         // probably need to wtf here
@@ -1185,62 +1185,62 @@ public class InCallServiceImpl extends InCallService {
 
         switch (event) {
             case VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED:
-                return "EVENT_SESSION_MODIFY_REQUEST_RECEIVED";
+                return TelephonyConstants.EventSessionModifyRequestRceived;
             case VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED:
-                return "EVENT_SESSION_MODIFY_RESPONSE_RECEIVED";
+                return TelephonyConstants.EventSessionModifyResponsetRceived;
             case VideoCallCallback.EVENT_SESSION_EVENT:
-                return "EVENT_SESSION_EVENT";
+                return TelephonyConstants.EventSessionEvent;
             case VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED:
-                return "EVENT_PEER_DIMENSIONS_CHANGED";
+                return TelephonyConstants.EventPeerDimensionsChanged;
             case VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED:
-                return "EVENT_VIDEO_QUALITY_CHANGED";
+                return TelephonyConstants.EventVideoQualityChanged;
             case VideoCallCallback.EVENT_DATA_USAGE_CHANGED:
-                return "EVENT_DATA_USAGE_CHANGED";
+                return TelephonyConstants.EventDataUsageChanged;
             case VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED:
-                return "EVENT_CAMERA_CAPABILITIES_CHANGED";
+                return TelephonyConstants.EventCameraCapabilitiesChanged;
         }
         // probably need to wtf here
-        return "EVENT_INVALID";
+        return TelephonyConstants.EventInvalid;
     }
 
     public static String getCallStateString(int state) {
         switch (state) {
             case Call.STATE_NEW:
-                return "STATE_NEW";
+                return TelephonyConstants.CALL_STATE_NEW;
             case Call.STATE_DIALING:
-                return "STATE_DIALING";
+                return TelephonyConstants.CALL_STATE_DIALING;
             case Call.STATE_RINGING:
-                return "STATE_RINGING";
+                return TelephonyConstants.CALL_STATE_RINGING;
             case Call.STATE_HOLDING:
-                return "STATE_HOLDING";
+                return TelephonyConstants.CALL_STATE_HOLDING;
             case Call.STATE_ACTIVE:
-                return "STATE_ACTIVE";
+                return TelephonyConstants.CALL_STATE_ACTIVE;
             case Call.STATE_DISCONNECTED:
-                return "STATE_DISCONNECTED";
+                return TelephonyConstants.CALL_STATE_DISCONNECTED;
             case Call.STATE_PRE_DIAL_WAIT:
-                return "STATE_PRE_DIAL_WAIT";
+                return TelephonyConstants.CALL_STATE_PRE_DIAL_WAIT;
             case Call.STATE_CONNECTING:
-                return "STATE_CONNECTING";
+                return TelephonyConstants.CALL_STATE_CONNECTING;
             case Call.STATE_DISCONNECTING:
-                return "STATE_DISCONNECTING";
+                return TelephonyConstants.CALL_STATE_DISCONNECTING;
             case STATE_INVALID:
-                return "INVALID";
+                return TelephonyConstants.CALL_STATE_INVALID;
             default:
-                return "UNKNOWN";
+                return TelephonyConstants.CALL_STATE_UNKNOWN;
         }
     }
 
     private static int getAudioRoute(String audioRoute) {
         switch (audioRoute.toUpperCase()) {
-            case "BLUETOOTH":
+            case TelephonyConstants.AUDIO_ROUTE_BLUETOOTH:
                 return CallAudioState.ROUTE_BLUETOOTH;
-            case "EARPIECE":
+            case TelephonyConstants.AUDIO_ROUTE_EARPIECE:
                 return CallAudioState.ROUTE_EARPIECE;
-            case "SPEAKER":
+            case TelephonyConstants.AUDIO_ROUTE_SPEAKER:
                 return CallAudioState.ROUTE_SPEAKER;
-            case "WIRED_HEADSET":
+            case TelephonyConstants.AUDIO_ROUTE_WIRED_HEADSET:
                 return CallAudioState.ROUTE_WIRED_HEADSET;
-            case "WIRED_OR_EARPIECE":
+            case TelephonyConstants.AUDIO_ROUTE_WIRED_OR_EARPIECE:
                 return CallAudioState.ROUTE_WIRED_OR_EARPIECE;
             default:
                 return INVALID_AUDIO_ROUTE;
@@ -1255,64 +1255,64 @@ public class InCallServiceImpl extends InCallService {
 
         switch (event) {
             case Connection.VideoProvider.SESSION_EVENT_RX_PAUSE:
-                return "SESSION_EVENT_RX_PAUSE";
+                return TelephonyConstants.SessionEventRxPause;
             case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
-                return "SESSION_EVENT_RX_RESUME";
+                return TelephonyConstants.SessionEventRxResume;
             case Connection.VideoProvider.SESSION_EVENT_TX_START:
-                return "SESSION_EVENT_TX_START";
+                return TelephonyConstants.SessionEventTxStart;
             case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
-                return "SESSION_EVENT_TX_STOP";
+                return TelephonyConstants.SessionEventTxStop;
             case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
-                return "SESSION_EVENT_CAMERA_FAILURE";
+                return TelephonyConstants.SessionEventCameraFailure;
             case Connection.VideoProvider.SESSION_EVENT_CAMERA_READY:
-                return "SESSION_EVENT_CAMERA_READY";
+                return TelephonyConstants.SessionEventCameraReady;
             default:
-                return "SESSION_EVENT_UNKOWN";
+                return TelephonyConstants.SessionEventUnknown;
         }
     }
 
     public static String getCallCapabilityString(int capability) {
         switch (capability) {
             case Call.Details.CAPABILITY_HOLD:
-                return "CAPABILITY_HOLD";
+                return TelephonyConstants.CALL_CAPABILITY_HOLD;
             case Call.Details.CAPABILITY_SUPPORT_HOLD:
-                return "CAPABILITY_SUPPORT_HOLD";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORT_HOLD;
             case Call.Details.CAPABILITY_MERGE_CONFERENCE:
-                return "CAPABILITY_MERGE_CONFERENCE";
+                return TelephonyConstants.CALL_CAPABILITY_MERGE_CONFERENCE;
             case Call.Details.CAPABILITY_SWAP_CONFERENCE:
-                return "CAPABILITY_SWAP_CONFERENCE";
+                return TelephonyConstants.CALL_CAPABILITY_SWAP_CONFERENCE;
             case Call.Details.CAPABILITY_UNUSED_1:
-                return "CAPABILITY_UNUSED_1";
+                return TelephonyConstants.CALL_CAPABILITY_UNUSED_1;
             case Call.Details.CAPABILITY_RESPOND_VIA_TEXT:
-                return "CAPABILITY_RESPOND_VIA_TEXT";
+                return TelephonyConstants.CALL_CAPABILITY_RESPOND_VIA_TEXT;
             case Call.Details.CAPABILITY_MUTE:
-                return "CAPABILITY_MUTE";
+                return TelephonyConstants.CALL_CAPABILITY_MUTE;
             case Call.Details.CAPABILITY_MANAGE_CONFERENCE:
-                return "CAPABILITY_MANAGE_CONFERENCE";
+                return TelephonyConstants.CALL_CAPABILITY_MANAGE_CONFERENCE;
             case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_RX:
-                return "CAPABILITY_SUPPORTS_VT_LOCAL_RX";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_LOCAL_RX;
             case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_TX:
-                return "CAPABILITY_SUPPORTS_VT_LOCAL_TX";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_LOCAL_TX;
             case Call.Details.CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL:
-                return "CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_LOCAL_BIDIRECTIONAL;
             case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_RX:
-                return "CAPABILITY_SUPPORTS_VT_REMOTE_RX";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_REMOTE_RX;
             case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_TX:
-                return "CAPABILITY_SUPPORTS_VT_REMOTE_TX";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_REMOTE_TX;
             case Call.Details.CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL:
-                return "CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL";
+                return TelephonyConstants.CALL_CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL;
             case Call.Details.CAPABILITY_SEPARATE_FROM_CONFERENCE:
-                return "CAPABILITY_SEPARATE_FROM_CONFERENCE";
+                return TelephonyConstants.CALL_CAPABILITY_SEPARATE_FROM_CONFERENCE;
             case Call.Details.CAPABILITY_DISCONNECT_FROM_CONFERENCE:
-                return "CAPABILITY_DISCONNECT_FROM_CONFERENCE";
+                return TelephonyConstants.CALL_CAPABILITY_DISCONNECT_FROM_CONFERENCE;
             case Call.Details.CAPABILITY_SPEED_UP_MT_AUDIO:
-                return "CAPABILITY_SPEED_UP_MT_AUDIO";
+                return TelephonyConstants.CALL_CAPABILITY_SPEED_UP_MT_AUDIO;
             case Call.Details.CAPABILITY_CAN_UPGRADE_TO_VIDEO:
-                return "CAPABILITY_CAN_UPGRADE_TO_VIDEO";
+                return TelephonyConstants.CALL_CAPABILITY_CAN_UPGRADE_TO_VIDEO;
             case Call.Details.CAPABILITY_CAN_PAUSE_VIDEO:
-                return "CAPABILITY_CAN_PAUSE_VIDEO";
+                return TelephonyConstants.CALL_CAPABILITY_CAN_PAUSE_VIDEO;
         }
-        return "CAPABILITY_UNKOWN";
+        return TelephonyConstants.CALL_CAPABILITY_UNKOWN;
     }
 
     public static List<String> getCallCapabilitiesString(int capabilities) {
@@ -1352,18 +1352,18 @@ public class InCallServiceImpl extends InCallService {
 
         switch (property) {
             case Call.Details.PROPERTY_CONFERENCE:
-                return "PROPERTY_CONFERENCE";
+                return TelephonyConstants.CALL_PROPERTY_CONFERENCE;
             case Call.Details.PROPERTY_GENERIC_CONFERENCE:
-                return "PROPERTY_GENERIC_CONFERENCE";
+                return TelephonyConstants.CALL_PROPERTY_GENERIC_CONFERENCE;
             case Call.Details.PROPERTY_EMERGENCY_CALLBACK_MODE:
-                return "PROPERTY_EMERGENCY_CALLBACK_MODE";
+                return TelephonyConstants.CALL_PROPERTY_EMERGENCY_CALLBACK_MODE;
             case Call.Details.PROPERTY_WIFI:
-                return "PROPERTY_WIFI";
+                return TelephonyConstants.CALL_PROPERTY_WIFI;
             case Call.Details.PROPERTY_HIGH_DEF_AUDIO:
-                return "PROPERTY_HIGH_DEF_AUDIO";
+                return TelephonyConstants.CALL_PROPERTY_HIGH_DEF_AUDIO;
             default:
                 // FIXME define PROPERTY_UNKNOWN somewhere
-                return "PROPERTY_UNKNOWN";
+                return TelephonyConstants.CALL_PROPERTY_UNKNOWN;
         }
     }
 
@@ -1390,15 +1390,13 @@ public class InCallServiceImpl extends InCallService {
     public static String getCallPresentationInfoString(int presentation) {
         switch (presentation) {
             case TelecomManager.PRESENTATION_ALLOWED:
-                return "PRESENTATION_ALLOWED";
+                return TelephonyConstants.CALL_PRESENTATION_ALLOWED;
             case TelecomManager.PRESENTATION_RESTRICTED:
-                return "PRESENTATION_RESTRICTED";
+                return TelephonyConstants.CALL_PRESENTATION_RESTRICTED;
             case TelecomManager.PRESENTATION_PAYPHONE:
-                return "PRESENTATION_PAYPHONE";
-            case TelecomManager.PRESENTATION_UNKNOWN:
-                return "PRESENTATION_UNKNOWN";
+                return TelephonyConstants.CALL_PRESENTATION_PAYPHONE;
             default:
-                return "PRESENTATION_UNKNOWN";
+                return TelephonyConstants.CALL_PRESENTATION_UNKNOWN;
         }
     }
 }
