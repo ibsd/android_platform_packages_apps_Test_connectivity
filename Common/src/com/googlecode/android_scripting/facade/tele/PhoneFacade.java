@@ -376,11 +376,11 @@ public class PhoneFacade extends RpcReceiver {
                    Boolean listen,
                    @RpcParameter(name = "subId") Integer subId) {
         try {
-            if (type.equals("Foreground")) {
+            if (type.equals(TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_FOREGROUND)) {
                 StateChangeListeners.get(subId).mCallStateChangeListener.listenForeground = listen;
-            } else if (type.equals("Ringing")) {
+            } else if (type.equals(TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_RINGING)) {
                 StateChangeListeners.get(subId).mCallStateChangeListener.listenRinging = listen;
-            } else if (type.equals("Background")) {
+            } else if (type.equals(TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_BACKGROUND)) {
                 StateChangeListeners.get(subId).mCallStateChangeListener.listenBackground = listen;
             }
             return true;
