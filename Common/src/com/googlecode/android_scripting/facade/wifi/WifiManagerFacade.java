@@ -343,7 +343,7 @@ public class WifiManagerFacade extends RpcReceiver {
         }
         if (j.has("roamingConsortiumIds")) {
             JSONArray ids = j.getJSONArray("roamingConsortiumIds");
-            Long[] rIds = new Long[ids.length()];
+            long[] rIds = new long[ids.length()];
             for (int i = 0; i < ids.length(); i++) {
                 rIds[i] = ids.getLong(i);
             }
