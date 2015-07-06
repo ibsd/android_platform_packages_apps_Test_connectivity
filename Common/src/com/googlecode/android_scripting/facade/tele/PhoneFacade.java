@@ -1280,6 +1280,11 @@ public class PhoneFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Returns the sim count.")
+    public int getSimCount() {
+        return mTelephonyManager.getSimCount();
+    }
+
     private static class StateChangeListener {
         private ServiceStateChangeListener mServiceStateChangeListener;
         private CallStateChangeListener mCallStateChangeListener;
