@@ -48,6 +48,29 @@ public class TelephonyConstants {
     public static final String CALL_STATE_INVALID = "INVALID";
 
     /**
+     * Constant for PRECISE Call State (for call object)
+     * **/
+    public static final String PRECISE_CALL_STATE_ACTIVE = "ACTIVE";
+    public static final String PRECISE_CALL_STATE_ALERTING = "ALERTING";
+    public static final String PRECISE_CALL_STATE_DIALING = "DIALING";
+    public static final String PRECISE_CALL_STATE_INCOMING = "INCOMING";
+    public static final String PRECISE_CALL_STATE_HOLDING = "HOLDING";
+    public static final String PRECISE_CALL_STATE_DISCONNECTED = "DISCONNECTED";
+    public static final String PRECISE_CALL_STATE_WAITING = "WAITING";
+    public static final String PRECISE_CALL_STATE_DISCONNECTING = "DISCONNECTING";
+    public static final String PRECISE_CALL_STATE_IDLE = "IDLE";
+    public static final String PRECISE_CALL_STATE_UNKNOWN = "UNKNOWN";
+    public static final String PRECISE_CALL_STATE_INVALID = "INVALID";
+
+    /**
+     * Constant for DC POWER STATE
+     * **/
+    public static final String DC_POWER_STATE_LOW = "LOW";
+    public static final String DC_POWER_STATE_HIGH = "HIGH";
+    public static final String DC_POWER_STATE_MEDIUM = "MEDIUM";
+    public static final String DC_POWER_STATE_UNKNOWN = "UNKNOWN";
+
+    /**
      * Constant for Audio Route
      * **/
     public static final String AUDIO_ROUTE_EARPIECE = "EARPIECE";
@@ -190,6 +213,13 @@ public class TelephonyConstants {
     public static final String VOLTE_SERVICE_STATE_HANDOVER_FAILED = "FAILED";
     public static final String VOLTE_SERVICE_STATE_HANDOVER_CANCELED = "CANCELED";
     public static final String VOLTE_SERVICE_STATE_HANDOVER_UNKNOWN = "UNKNOWN";
+
+    /**
+     * Constant for precise call state state listen level
+     * **/
+    public static final String PRECISE_CALL_STATE_LISTEN_LEVEL_FOREGROUND = "FOREGROUND";
+    public static final String PRECISE_CALL_STATE_LISTEN_LEVEL_RINGING = "RINGING";
+    public static final String PRECISE_CALL_STATE_LISTEN_LEVEL_BACKGROUND = "BACKGROUND";
 
     /**
      * Constant for Messaging Event Name

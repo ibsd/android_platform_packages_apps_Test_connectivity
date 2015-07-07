@@ -65,19 +65,18 @@ public class TelephonyStateListeners {
             }
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
-                    subEvent = "Idle";
+                    subEvent = TelephonyConstants.TELEPHONY_STATE_IDLE;
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-                    subEvent = "Offhook";
+                    subEvent = TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
-                    subEvent = "Ringing";
+                    subEvent = TelephonyConstants.TELEPHONY_STATE_RINGING;
                     break;
             }
             mCallStateEvent.putInt("subscriptionId", subscriptionId);
-            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged+subEvent,
-                                   mCallStateEvent);
+            mCallStateEvent.putString("subEvent", subEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged, mCallStateEvent);
         }
 
         @Override
@@ -87,15 +86,21 @@ public class TelephonyStateListeners {
             int backgroundState = callState.getBackgroundCallState();
             if (listenForeground &&
                 foregroundState != PreciseCallState.PRECISE_CALL_STATE_NOT_VALID) {
-                processCallState(foregroundState, "Foreground", callState);
+                processCallState(foregroundState,
+                        TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_FOREGROUND,
+                        callState);
             }
             if (listenRinging &&
                 ringingState != PreciseCallState.PRECISE_CALL_STATE_NOT_VALID) {
-                processCallState(ringingState, "Ringing", callState);
+                processCallState(ringingState,
+                        TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_RINGING,
+                        callState);
             }
             if (listenBackground &&
                 backgroundState != PreciseCallState.PRECISE_CALL_STATE_NOT_VALID) {
-                processCallState(backgroundState, "Background", callState);
+                processCallState(backgroundState,
+                        TelephonyConstants.PRECISE_CALL_STATE_LISTEN_LEVEL_BACKGROUND,
+                        callState);
             }
         }
 
@@ -104,29 +109,30 @@ public class TelephonyStateListeners {
             String subEvent = null;
             EventMsg.putString("Type", which);
             if (newState == PreciseCallState.PRECISE_CALL_STATE_ACTIVE) {
-                subEvent = "Active";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_ACTIVE;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_HOLDING) {
-                subEvent = "Holding";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_HOLDING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DIALING) {
-                subEvent = "Dialing";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DIALING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_ALERTING) {
-                subEvent = "Alerting";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_ALERTING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
-                subEvent = "Incoming";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_INCOMING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_WAITING) {
-                subEvent = "Waiting";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_WAITING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTED) {
-                subEvent = "Disconnected";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DISCONNECTED;
                 EventMsg.putInt("Cause", callState.getPreciseDisconnectCause());
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTING) {
-                subEvent = "Disconnecting";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DISCONNECTING;
             } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
-                subEvent = "Idle";
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_IDLE;
+            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_NOT_VALID) {
+                subEvent = TelephonyConstants.PRECISE_CALL_STATE_INVALID;
             }
             EventMsg.putInt("subscriptionId", subscriptionId);
-            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged+subEvent,
-                                   EventMsg);
+            EventMsg.putString("subEvent", subEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged, EventMsg);
         }
     }
 
@@ -158,19 +164,17 @@ public class TelephonyStateListeners {
 
             int state = dcRtInfo.getDcPowerState();
             if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_LOW) {
-                subEvent = "Low";
+                subEvent = TelephonyConstants.DC_POWER_STATE_LOW;
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_HIGH) {
-                subEvent = "High";
+                subEvent = TelephonyConstants.DC_POWER_STATE_HIGH;
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_MEDIUM) {
-                subEvent = "Medium";
+                subEvent = TelephonyConstants.DC_POWER_STATE_MEDIUM;
             } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
-                subEvent = "Unknown";
+                subEvent = TelephonyConstants.DC_POWER_STATE_UNKNOWN;
             }
             event.putInt("subscriptionId", subscriptionId);
-            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged+subEvent,
-                                   event);
-
+            event.putString("subEvent", subEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged, event);
         }
     }
 
@@ -202,25 +206,24 @@ public class TelephonyStateListeners {
             String subEvent = null;
             event.putString("Type", "DataConnectionState");
             if (state == TelephonyManager.DATA_DISCONNECTED) {
-                subEvent = "Disconnected";
+                subEvent = TelephonyConstants.DATA_STATE_DISCONNECTED;
             } else if (state == TelephonyManager.DATA_CONNECTING) {
-                subEvent = "Connecting";
+                subEvent = TelephonyConstants.DATA_STATE_CONNECTING;
             } else if (state == TelephonyManager.DATA_CONNECTED) {
-                subEvent = "Connected";
+                subEvent = TelephonyConstants.DATA_STATE_CONNECTED;
                 event.putString("DataNetworkType", TelephonyUtils.getNetworkTypeString(
                                  mTelephonyManager.getDataNetworkType()));
             } else if (state == TelephonyManager.DATA_SUSPENDED) {
-                subEvent = "Suspended";
+                subEvent = TelephonyConstants.DATA_STATE_SUSPENDED;
             } else if (state == TelephonyManager.DATA_UNKNOWN) {
-                subEvent = "Unknown";
+                subEvent = TelephonyConstants.DATA_STATE_UNKNOWN;
             } else {
                 subEvent = "UnknownStateCode";
                 event.putInt("UnknownStateCode", state);
             }
             event.putInt("subscriptionId", subscriptionId);
-            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged+subEvent,
-                                   event);
+            event.putString("subEvent", subEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged, event);
         }
     }
 
@@ -246,20 +249,21 @@ public class TelephonyStateListeners {
         public void onServiceStateChanged(ServiceState serviceState) {
             Bundle event = new Bundle();
             String subEvent = null;
+            String networkRat = null;
             switch(serviceState.getState()) {
                 case ServiceState.STATE_EMERGENCY_ONLY:
-                    subEvent = "EmergencyOnly";
+                    subEvent = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
                 break;
                 case ServiceState.STATE_IN_SERVICE:
-                    subEvent = "InService";
+                    subEvent = TelephonyConstants.SERVICE_STATE_IN_SERVICE;
                 break;
                 case ServiceState.STATE_OUT_OF_SERVICE:
-                    subEvent = "OutOfService";
+                    subEvent = TelephonyConstants.SERVICE_STATE_OUT_OF_SERVICE;
                     if(serviceState.isEmergencyOnly())
-                        subEvent = "EmergencyOnly";
+                        subEvent = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
                 break;
                 case ServiceState.STATE_POWER_OFF:
-                    subEvent = "PowerOff";
+                    subEvent = TelephonyConstants.SERVICE_STATE_POWER_OFF;
                 break;
             }
             event.putString("VoiceRegState", TelephonyUtils.getNetworkStateString(
@@ -281,20 +285,22 @@ public class TelephonyStateListeners {
             if(subEvent.equals("InService")) {
                 switch(serviceState.getVoiceNetworkType()) {
                     case TelephonyManager.NETWORK_TYPE_LTE:
-                        subEvent = subEvent + TelephonyConstants.RAT_LTE;
+                        networkRat = TelephonyConstants.RAT_LTE;
                         break;
                     case TelephonyManager.NETWORK_TYPE_UMTS:
-                        subEvent = subEvent + TelephonyConstants.RAT_UMTS;
+                        networkRat = TelephonyConstants.RAT_UMTS;
                         break;
                     case TelephonyManager.NETWORK_TYPE_GSM:
-                        subEvent = subEvent + TelephonyConstants.RAT_GSM;
+                        networkRat = TelephonyConstants.RAT_GSM;
                         break;
+                }
+                if (networkRat != null) {
+                    event.putString("networkRat", networkRat);
                 }
             }
             event.putInt("subscriptionId", subscriptionId);
-            // TODO: b/22063774 remove "xxxEvent+subEvent" style event name.
-            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged+subEvent,
-                                   event);
+            event.putString("subEvent", subEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged, event);
         }
     }
 
