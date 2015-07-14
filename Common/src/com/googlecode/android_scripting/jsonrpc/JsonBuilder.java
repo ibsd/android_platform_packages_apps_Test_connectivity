@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -76,6 +77,7 @@ import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
 import android.telephony.CellSignalStrengthWcdma;
+import android.telephony.ModemActivityInfo;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionInfo;
@@ -269,6 +271,9 @@ public class JsonBuilder {
         }
         if (data instanceof CameraCapabilities) {
             return buildCameraCapabilities((CameraCapabilities) data);
+        }
+        if (data instanceof ModemActivityInfo) {
+            return buildModemActivityInfo((ModemActivityInfo) data);
         }
 
         return data.toString();
@@ -996,6 +1001,25 @@ public class JsonBuilder {
         capabilities.put("MaxZoom", build(cameraCapabilities.getMaxZoom()));
 
         return capabilities;
+    }
+
+    private static JSONObject buildModemActivityInfo(ModemActivityInfo modemInfo)
+            throws JSONException {
+        JSONObject info = new JSONObject();
+
+        info.put("Timestamp", modemInfo.getTimestamp());
+        info.put("SleepTimeMs", modemInfo.getSleepTimeMillis());
+        info.put("IdleTimeMs", modemInfo.getIdleTimeMillis());
+        //convert from int[] to List<Integer> for proper JSON translation
+        int[] txTimes = modemInfo.getTxTimeMillis();
+        List<Integer> tmp = new ArrayList<Integer>(txTimes.length);
+        for(int val : txTimes) {
+            tmp.add(val);
+        }
+        info.put("TxTimeMs", build(tmp));
+        info.put("RxTimeMs", modemInfo.getRxTimeMillis());
+        info.put("EnergyUsedMw", modemInfo.getEnergyUsed());
+        return info;
     }
 
     private JsonBuilder() {
