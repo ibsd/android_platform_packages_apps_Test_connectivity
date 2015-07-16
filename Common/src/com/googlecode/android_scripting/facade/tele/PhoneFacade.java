@@ -25,9 +25,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
-import android.telephony.CellLocation;
-import android.telephony.NeighboringCellInfo;
 import android.telephony.CellInfo;
+import android.telephony.CellLocation;
+import android.telephony.ModemActivityInfo;
+import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -36,7 +37,7 @@ import android.telephony.SubscriptionInfo;
 import android.telecom.VideoProfile;
 import android.telecom.TelecomManager;
 
-import com.android.internal.telephony.ITelephony;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.RILConstants;
 import com.android.internal.telephony.TelephonyProperties;
 
@@ -83,7 +84,6 @@ public class PhoneFacade extends RpcReceiver {
     private final AndroidFacade mAndroidFacade;
     private final EventFacade mEventFacade;
     private final TelephonyManager mTelephonyManager;
-    private ITelephony mITelephony;
     private final SubscriptionManager mSubscriptionManager;
     private List<SubscriptionInfo> mSubInfos;
     private HashMap<Integer, StateChangeListener> StateChangeListeners =
@@ -721,8 +721,8 @@ public class PhoneFacade extends RpcReceiver {
 
     @Rpc(description = "Answers an incoming ringing call.")
     public void phoneAnswerCall() throws RemoteException {
-        mITelephony.silenceRinger();
-        mITelephony.answerRingingCall();
+        mTelephonyManager.silenceRinger();
+        mTelephonyManager.answerRingingCall();
     }
 
     @Rpc(description = "Dials a phone number.")
@@ -839,6 +839,11 @@ public class PhoneFacade extends RpcReceiver {
                       SubscriptionManager.getDefaultSubId());
     }
 
+    @Rpc(description = "Get the latest power consumption stats from the modem")
+    public void phoneGetModemActivityInfo() {
+        ModemActivityInfo info = mTelephonyManager.getModemActivityInfo();
+    }
+
     @Rpc(description = "Returns the MCC for specified subscription ID")
     public String getSimCountryIsoForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
@@ -918,6 +923,20 @@ public class PhoneFacade extends RpcReceiver {
                         mTelephonyManager.getSimState(slotId));
                 return TelephonyConstants.SIM_STATE_UNKNOWN;
         }
+    }
+
+    @Rpc(description = "Get Authentication Challenge Response from a " +
+            "given SIM Application")
+    public String phoneGetIccSimChallengeResponse(Integer appType, String data) {
+        return phoneGetIccSimChallengeResponseForSubscription(
+                SubscriptionManager.getDefaultSubId(), appType, data);
+    }
+
+    @Rpc(description = "Get Authentication Challenge Response from a " +
+            "given SIM Application for a specified Subscription")
+    public String phoneGetIccSimChallengeResponseForSubscription(Integer subId, Integer appType,
+            String data) {
+        return mTelephonyManager.getIccSimChallengeResponse(subId, appType, data);
     }
 
     @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
