@@ -188,14 +188,20 @@ public class HttpFacade extends RpcReceiver {
         mServerTimeout = timeout;
     }
 
-    @Rpc(description = "Ping to host, return success (true) or fail (false).")
+    @Rpc(description = "Ping to host(URL or IP), return success (true) or fail (false).")
     // The optional timeout parameter is in unit of second.
-    public Boolean pingHost(@RpcParameter(name = "url") String urlString,
+    public Boolean pingHost(@RpcParameter(name = "host") String hostString,
             @RpcParameter(name = "timeout") @RpcOptional Integer timeout) {
-        Log.d("url:" + urlString);
         try {
-            URL url = new URL(urlString);
-            String host = url.getHost();
+            String host;
+            try {
+                URL url = new URL(hostString);
+                host = url.getHost();
+            } catch (java.net.MalformedURLException e) {
+                Log.d("hostString is not URL, it may be IP address.");
+                host = hostString;
+            }
+
             Log.d("Host:" + host);
             String pingCmdString = "ping -c 1 ";
             if (timeout != null) {
