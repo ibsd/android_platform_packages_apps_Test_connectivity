@@ -36,10 +36,13 @@ import android.provider.Telephony;
 import android.telephony.SubscriptionInfo;
 import android.telecom.VideoProfile;
 import android.telecom.TelecomManager;
+import android.util.Base64;
 
 import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.RILConstants;
 import com.android.internal.telephony.TelephonyProperties;
+
+import com.google.common.io.BaseEncoding;
 
 import android.content.ContentValues;
 import android.os.SystemProperties;
@@ -927,23 +930,30 @@ public class PhoneFacade extends RpcReceiver {
 
     @Rpc(description = "Get Authentication Challenge Response from a " +
             "given SIM Application")
-    public String phoneGetIccSimChallengeResponse(Integer appType, String data) {
+    public String phoneGetIccSimChallengeResponse(@RpcParameter(name = "appType") Integer appType,
+            @RpcParameter(name = "hexChallenge") String hexChallenge) {
         return phoneGetIccSimChallengeResponseForSubscription(
-                SubscriptionManager.getDefaultSubId(), appType, data);
+                SubscriptionManager.getDefaultSubId(), appType, hexChallenge);
     }
 
     @Rpc(description = "Get Authentication Challenge Response from a " +
             "given SIM Application for a specified Subscription")
-    public String phoneGetIccSimChallengeResponseForSubscription(Integer subId, Integer appType,
-            String data) {
-        return mTelephonyManager.getIccSimChallengeResponse(subId, appType, data);
+    public String phoneGetIccSimChallengeResponseForSubscription(
+            @RpcParameter(name = "subId") Integer subId,
+            @RpcParameter(name = "appType") Integer appType,
+            @RpcParameter(name = "hexChallenge") String hexChallenge) {
+
+        String b64Data = BaseEncoding.base64().encode(BaseEncoding.base16().decode(hexChallenge));
+        String b64Result = mTelephonyManager.getIccSimChallengeResponse(subId, appType, b64Data);
+        return (b64Result != null)
+                ? BaseEncoding.base16().encode(BaseEncoding.base64().decode(b64Result)) : null;
     }
 
     @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
-                       "for default subscription ID, or null if unavailable")
+            "for default subscription ID, or null if unavailable")
     public String getSubscriberId() {
         return getSubscriberIdForSubscription(
-                   SubscriptionManager.getDefaultSubId());
+                SubscriptionManager.getDefaultSubId());
     }
 
     @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
