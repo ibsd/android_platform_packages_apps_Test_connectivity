@@ -843,8 +843,9 @@ public class PhoneFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Get the latest power consumption stats from the modem")
-    public void phoneGetModemActivityInfo() {
+    public ModemActivityInfo phoneGetModemActivityInfo() {
         ModemActivityInfo info = mTelephonyManager.getModemActivityInfo();
+        return info;
     }
 
     @Rpc(description = "Returns the MCC for specified subscription ID")
