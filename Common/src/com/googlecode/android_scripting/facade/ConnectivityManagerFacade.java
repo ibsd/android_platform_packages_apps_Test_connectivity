@@ -22,6 +22,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.ConnectivityManager.NetworkCallback;
+import android.net.ConnectivityManager.PacketKeepaliveCallback;
+import android.net.ConnectivityManager.PacketKeepalive;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.NetworkInfo;
 import android.provider.Settings.SettingNotFoundException;
 import android.os.Bundle;
@@ -32,6 +39,10 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
 
 /**
  * Access ConnectivityManager functions.
@@ -80,12 +91,72 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             }
         }
     }
-
+    class PacketKeepaliveReceiver extends PacketKeepaliveCallback {
+        @Override
+        public void onStarted() {
+            Log.d("PacketKeepaliveCallback on start!");
+        }
+        @Override
+        public void onStopped() {
+            Log.d("PacketKeepaliveCallback on stop!");
+        }
+        @Override
+        public void onError(int error) {
+            Log.d("PacketKeepaliveCallback on error! - code:" + error);
+        }
+    }
+    class NetworkCallback extends ConnectivityManager.NetworkCallback {
+        @Override
+        public void onPreCheck(Network network) {
+            Log.d("NetworkCallback onPreCheck");
+        }
+        @Override
+        public void onAvailable(Network network) {
+            Log.d("NetworkCallback onAvailable");
+        }
+        @Override
+        public void onLosing(Network network, int maxMsToLive) {
+            Log.d("NetworkCallback onLosing");
+        }
+        @Override
+        public void onLost(Network network) {
+            Log.d("NetworkCallback onLost");
+        }
+        @Override
+        public void onUnavailable() {
+            Log.d("NetworkCallback onUnavailable");
+        }
+        @Override
+        public void onCapabilitiesChanged(Network network,
+                NetworkCapabilities networkCapabilities) {
+            Log.d("NetworkCallback onCapabilitiesChanged. RSSI:" +
+                networkCapabilities.getSignalStrength());
+        }
+        @Override
+        public void onNetworkSuspended(Network network) {
+            Log.d("NetworkCallback onNetworkSuspended");
+        }
+        @Override
+        public void onLinkPropertiesChanged(Network network,
+                LinkProperties linkProperties) {
+            Log.d("NetworkCallback onLinkPropertiesChanged");
+        }
+        @Override
+        public void onNetworkResumed(Network network) {
+            Log.d("NetworkCallback onNetworkResumed");
+        }
+    }
     private final ConnectivityManager mManager;
     private final Service mService;
     private final Context mContext;
     private final ConnectivityReceiver mConnectivityReceiver;
     private final EventFacade mEventFacade;
+    private PacketKeepalive mPacketKeepalive;
+    private NetworkCallback mNetworkCallback;
+    private static HashMap<String, PacketKeepalive> mPacketKeepaliveMap =
+            new HashMap<String, PacketKeepalive>();
+    private static HashMap<String, NetworkCallback> mNetworkCallbackMap =
+            new HashMap<String, NetworkCallback>();
     private boolean mTrackingConnectivityStateChange;
 
     public ConnectivityManagerFacade(FacadeManager manager) {
@@ -104,6 +175,72 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             mTrackingConnectivityStateChange = true;
             mContext.registerReceiver(mConnectivityReceiver,
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+    @Rpc(description = "start natt keep alive")
+    public String startNattKeepalive(Integer intervalSeconds, String srcAddrString,
+            Integer srcPort, String dstAddrString) throws UnknownHostException {
+        try{
+            Network mNetwork = mManager.getActiveNetwork();
+            InetAddress srcAddr = InetAddress.getByName(srcAddrString);
+            InetAddress dstAddr = InetAddress.getByName(dstAddrString);
+            Log.d("startNattKeepalive srcAddr:" + srcAddr.getHostAddress());
+            Log.d("startNattKeepalive dstAddr:" + dstAddr.getHostAddress());
+            Log.d("startNattKeepalive srcPort:" + srcPort);
+            Log.d("startNattKeepalive intervalSeconds:" + intervalSeconds);
+            mPacketKeepalive = mManager.startNattKeepalive(mNetwork, (int)intervalSeconds,
+                    new PacketKeepaliveReceiver(), srcAddr, (int)srcPort, dstAddr);
+            if (mPacketKeepalive != null){
+                String key = mPacketKeepalive.toString();
+                mPacketKeepaliveMap.put(key, mPacketKeepalive);
+                return key;
+            } else {
+                Log.e("startNattKeepalive fail, startNattKeepalive return null");
+                return null;
+            }
+        } catch(UnknownHostException e) {
+            Log.e("startNattKeepalive UnknownHostException");
+            return null;
+        }
+    }
+
+    @Rpc(description = "stop natt keep alive")
+    public Boolean stopNattKeepalive(String key) {
+        mPacketKeepalive = mPacketKeepaliveMap.get(key);
+        if(mPacketKeepalive != null){
+            mPacketKeepaliveMap.remove(key);
+            mPacketKeepalive.stop();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Rpc(description = "Set Rssi Threshold Monitor")
+    public String setRssiThresholdMonitor(Integer rssi) {
+        Log.d("SL4A:setRssiThresholdMonitor rssi = " + rssi);
+        NetworkRequest.Builder builder = new NetworkRequest.Builder();
+        builder.setSignalStrength((int)rssi);
+        builder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        NetworkRequest networkRequest = builder.build();
+        mNetworkCallback = new NetworkCallback();
+        mManager.registerNetworkCallback(networkRequest, mNetworkCallback);
+        String key = mNetworkCallback.toString();
+        mNetworkCallbackMap.put(key, mNetworkCallback);
+        return key;
+    }
+
+    @Rpc(description = "Stop Rssi Threshold Monitor")
+    public Boolean stopRssiThresholdMonitor(String key) {
+        Log.d("SL4A:stopRssiThresholdMonitor key = " + key);
+        mNetworkCallback = mNetworkCallbackMap.get(key);
+        if (mNetworkCallback != null){
+            mNetworkCallbackMap.remove(key);
+            mManager.unregisterNetworkCallback(mNetworkCallback);
+            return true;
+        } else {
+            return false;
         }
     }
 
