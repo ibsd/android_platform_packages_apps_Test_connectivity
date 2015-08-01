@@ -34,10 +34,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.DhcpInfo;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
+import android.net.wifi.WifiChannel;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
@@ -302,7 +305,7 @@ public class WifiManagerFacade extends RpcReceiver {
             config.priority = j.getInt("priority");
         }
         if (j.has("apBand")) {
-        	config.apBand = j.getInt("apBand");
+            config.apBand = j.getInt("apBand");
         }
         if (j.has("preSharedKey")) {
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
@@ -545,6 +548,11 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.enableNetwork(netId, disableOthers);
     }
 
+    @Rpc(description = "Enable WiFi verbose logging.")
+    public void wifiEnableVerboseLogging(@RpcParameter(name = "level") Integer level) {
+        mWifi.enableVerboseLogging(level);
+    }
+
     @Rpc(description = "Connect to a wifi network that uses Enterprise authentication methods.")
     public void wifiEnterpriseConnect(@RpcParameter(name = "config") JSONObject config)
             throws JSONException, GeneralSecurityException {
@@ -561,6 +569,11 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Resets all WifiManager settings.")
+    public void wifiFactoryReset() {
+        mWifi.factoryReset();
+    }
+
     /**
      * Forget a wifi network with priority
      *
@@ -570,6 +583,21 @@ public class WifiManagerFacade extends RpcReceiver {
     public void wifiForgetNetwork(@RpcParameter(name = "wifiSSID") Integer newtorkId) {
         WifiActionListener listener = new WifiActionListener(mEventFacade, "ForgetNetwork");
         mWifi.forget(newtorkId, listener);
+    }
+
+    @Rpc(description = "Gets the Wi-Fi AP Configuration.")
+    public WifiConfiguration wifiGetApConfiguration() {
+        return mWifi.getWifiApConfiguration();
+    }
+
+    @Rpc(description = "Get a list of available channels for customized scan.")
+    public List<WifiChannel> wifiGetChannelList() {
+        return mWifi.getChannelList();
+    }
+
+    @Rpc(description = "Returns the file in which IP and proxy configuration data is stored.")
+    public String wifiGetConfigFile() {
+        return mWifi.getConfigFile();
     }
 
     @Rpc(description = "Return a list of all the configured wifi networks.")
@@ -587,19 +615,54 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getControllerActivityEnergyInfo(0);
     }
 
+    @Rpc(description = "Get the country code used by WiFi.")
+    public String wifiGetCountryCode() {
+        return mWifi.getCountryCode();
+    }
+
+    @Rpc(description = "Get the current network.")
+    public Network wifiGetCurrentNetwork() {
+        return mWifi.getCurrentNetwork();
+    }
+
+    @Rpc(description = "Get the info from last successful DHCP request.")
+    public DhcpInfo wifiGetDhcpInfo() {
+        return mWifi.getDhcpInfo();
+    }
+
+    @Rpc(description = "Get privileged configured networks.")
+    public List<WifiConfiguration> wifiGetPrivilegedConfiguredNetworks() {
+        return mWifi.getPrivilegedConfiguredNetworks();
+    }
+
     @Rpc(description = "Returns the list of access points found during the most recent Wifi scan.")
     public List<ScanResult> wifiGetScanResults() {
         return mWifi.getScanResults();
     }
 
-    @Rpc(description = "Gets the Wi-Fi AP Configuration.")
-    public WifiConfiguration wifiGetApConfiguration() {
-        return mWifi.getWifiApConfiguration();
+    @Rpc(description = "Get the current level of WiFi verbose logging.")
+    public Integer wifiGetVerboseLoggingLevel() {
+        return mWifi.getVerboseLoggingLevel();
+    }
+
+    @Rpc(description = "true if this adapter supports 5 GHz band.")
+    public Boolean wifiIs5GHzBandSupported() {
+        return mWifi.is5GHzBandSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports multiple simultaneous connections.")
+    public Boolean wifiIsAdditionalStaSupported() {
+        return mWifi.isAdditionalStaSupported();
     }
 
     @Rpc(description = "Return whether Wi-Fi AP is enabled or disabled.")
     public Boolean wifiIsApEnabled() {
         return mWifi.isWifiApEnabled();
+    }
+
+    @Rpc(description = "Check if the Batched Scan feature is supported..")
+    public Boolean wifiIsBatchedScanSupported() {
+        return mWifi.isBatchedScanSupported();
     }
 
     @Rpc(description = "Check if Device-to-AP RTT is supported.")
@@ -612,16 +675,56 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.isDeviceToDeviceRttSupported();
     }
 
+    @Rpc(description = "Check if the chipset supports dual frequency band (2.4 GHz and 5 GHz).")
+    public Boolean wifiIsDualBandSupported() {
+        return mWifi.isDualBandSupported();
+    }
+
     @Rpc(description = "Check if this adapter supports advanced power/performance counters.")
     public Boolean wifiIsEnhancedPowerReportingSupported() {
         return mWifi.isEnhancedPowerReportingSupported();
+    }
+
+    @Rpc(description = "Check if multicast is enabled.")
+    public Boolean wifiIsMulticastEnabled() {
+        return mWifi.isMulticastEnabled();
+    }
+
+    @Rpc(description = "true if this adapter supports Neighbour Awareness Network APIs.")
+    public Boolean wifiIsNanSupported() {
+        return mWifi.isNanSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports Off Channel Tunnel Directed Link Setup.")
+    public Boolean wifiIsOffChannelTdlsSupported() {
+        return mWifi.isOffChannelTdlsSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports WifiP2pManager (Wi-Fi Direct).")
+    public Boolean wifiIsP2pSupported() {
+        return mWifi.isP2pSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports passpoint.")
+    public Boolean wifiIsPasspointSupported() {
+        return mWifi.isPasspointSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports portable Wi-Fi hotspot.")
+    public Boolean wifiIsPortableHotspotSupported() {
+        return mWifi.isPortableHotspotSupported();
+    }
+
+    @Rpc(description = "true if this adapter supports offloaded connectivity scan.")
+    public Boolean wifiIsPreferredNetworkOffloadSupported() {
+        return mWifi.isPreferredNetworkOffloadSupported();
     }
 
     @Rpc(description = "Check if wifi scanner is supported on this device.")
     public Boolean wifiIsScannerSupported() {
         return mWifi.isWifiScannerSupported();
     }
-
+    
     @Rpc(description = "Check if tdls is supported on this device.")
     public Boolean wifiIsTdlsSupported() {
         return mWifi.isTdlsSupported();
@@ -643,6 +746,11 @@ public class WifiManagerFacade extends RpcReceiver {
             mLock.release();
             mLock = null;
         }
+    }
+
+    @Rpc(description = "Force a re-reading of batched scan results.")
+    public void wifiPollBatchedScan() {
+        mWifi.pollBatchedScan();
     }
 
     /**
@@ -705,6 +813,13 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Set the country code used by WiFi.")
+    public void wifiSetCountryCode(
+            @RpcParameter(name = "country") String country,
+            @RpcParameter(name = "persist") Boolean persist) {
+        mWifi.setCountryCode(country, persist);
+    }
+
     @Rpc(description = "Enable/disable tdls with a mac address.")
     public void wifiSetTdlsEnabledWithMacAddress(
             @RpcParameter(name = "remoteMacAddress") String remoteMacAddress,
@@ -718,6 +833,11 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiStartScan() {
         mService.registerReceiver(mScanResultsAvailableReceiver, mScanFilter);
         return mWifi.startScan();
+    }
+
+    @Rpc(description = "Start the driver and connect to network. This function will over-ride WifiLock and device idle status.")
+    public Boolean wifiStart() {
+        return mWifi.startWifi();
     }
 
     @Rpc(description = "Start Wi-fi Protected Setup.")
@@ -745,6 +865,11 @@ public class WifiManagerFacade extends RpcReceiver {
             mService.unregisterReceiver(mStateChangeReceiver);
             mTrackingWifiStateChange = false;
         }
+    }
+
+    @Rpc(description = "Disconnect from a network (if any) and stop the driver. This function will over-ride WifiLock and device idle status.")
+    public Boolean wifiStop() {
+        return mWifi.stopWifi();
     }
 
     @Rpc(description = "Toggle Wifi on and off.", returns = "True if Wifi is enabled.")
