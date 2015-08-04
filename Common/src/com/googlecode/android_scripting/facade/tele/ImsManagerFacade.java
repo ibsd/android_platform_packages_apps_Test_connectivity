@@ -63,6 +63,11 @@ public class ImsManagerFacade extends RpcReceiver {
         ImsManager.setEnhanced4gLteModeSetting(mContext, enable);
     }
 
+    @Rpc(description = "Check for VoLTE Provisioning.")
+    public boolean imsIsVolteProvisionedOnDevice() {
+        return mImsManager.isVolteProvisionedOnDevice(mContext);
+    }
+
     @Rpc(description = "Set Modem Provisioning for VoLTE")
     public void imsSetVolteProvisioning(
             @RpcParameter(name = "enable") Boolean enable)
