@@ -44,11 +44,14 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
+import android.net.DhcpInfo;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.RttManager.RttCapabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
+import android.net.wifi.WifiChannel;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
@@ -194,6 +197,9 @@ public class JsonBuilder {
         if (data instanceof NeighboringCellInfo) {
             return buildNeighboringCellInfo((NeighboringCellInfo) data);
         }
+        if (data instanceof Network) {
+            return buildNetwork((Network) data);
+        }
         if (data instanceof NetworkInfo) {
             return buildNetworkInfo((NetworkInfo) data);
         }
@@ -218,6 +224,9 @@ public class JsonBuilder {
         if (data instanceof SubscriptionInfo) {
             return buildSubscriptionInfoRecord((SubscriptionInfo) data);
         }
+        if (data instanceof DhcpInfo) {
+            return buildDhcpInfo((DhcpInfo) data);
+        }
         if (data instanceof DisplayMetrics) {
             return buildDisplayMetrics((DisplayMetrics) data);
         }
@@ -226,6 +235,9 @@ public class JsonBuilder {
         }
         if (data instanceof WifiActivityEnergyInfo) {
             return buildWifiActivityEnergyInfo((WifiActivityEnergyInfo) data);
+        }
+        if (data instanceof WifiChannel) {
+            return buildWifiChannel((WifiChannel) data);
         }
         if (data instanceof WifiConfiguration) {
             return buildWifiConfiguration((WifiConfiguration) data);
@@ -467,6 +479,17 @@ public class JsonBuilder {
         return result;
     }
 
+    private static JSONObject buildDhcpInfo(DhcpInfo data) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("ipAddress", data.ipAddress);
+        result.put("dns1", data.dns1);
+        result.put("dns2", data.dns2);
+        result.put("gateway", data.gateway);
+        result.put("serverAddress", data.serverAddress);
+        result.put("leaseDuration", data.leaseDuration);
+        return result;
+    }
+
     private static JSONObject buildJsonEvent(Event event) throws JSONException {
         JSONObject result = new JSONObject();
         result.put("name", event.getName());
@@ -574,19 +597,6 @@ public class JsonBuilder {
             scanResults.put(buildJsonScanResult(sr));
         }
         result.put("ScanResults", scanResults);
-        return result;
-    }
-
-    private static JSONObject buildWifiActivityEnergyInfo(
-            WifiActivityEnergyInfo data) throws JSONException {
-        JSONObject result = new JSONObject();
-        result.put("ControllerEnergyUsed", data.getControllerEnergyUsed());
-        result.put("ControllerIdleTimeMillis",
-                data.getControllerIdleTimeMillis());
-        result.put("ControllerRxTimeMillis", data.getControllerRxTimeMillis());
-        result.put("ControllerTxTimeMillis", data.getControllerTxTimeMillis());
-        result.put("StackState", data.getStackState());
-        result.put("TimeStamp", data.getTimeStamp());
         return result;
     }
 
@@ -744,6 +754,12 @@ public class JsonBuilder {
         return result;
     }
 
+    private static Object buildNetwork(Network data) throws JSONException {
+        JSONObject nw = new JSONObject();
+        nw.put("netId", data.netId);
+        return nw;
+    }
+
     private static Object buildNetworkInfo(NetworkInfo data)
             throws JSONException {
         JSONObject info = new JSONObject();
@@ -818,6 +834,28 @@ public class JsonBuilder {
         msg.put("originatingAddress", data.getOriginatingAddress());
         msg.put("messageBody", data.getMessageBody());
         return msg;
+    }
+
+    private static JSONObject buildWifiActivityEnergyInfo(
+            WifiActivityEnergyInfo data) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put("ControllerEnergyUsed", data.getControllerEnergyUsed());
+        result.put("ControllerIdleTimeMillis",
+                data.getControllerIdleTimeMillis());
+        result.put("ControllerRxTimeMillis", data.getControllerRxTimeMillis());
+        result.put("ControllerTxTimeMillis", data.getControllerTxTimeMillis());
+        result.put("StackState", data.getStackState());
+        result.put("TimeStamp", data.getTimeStamp());
+        return result;
+    }
+
+    private static Object buildWifiChannel(WifiChannel data) throws JSONException {
+        JSONObject channel = new JSONObject();
+        channel.put("channelNum", data.channelNum);
+        channel.put("freqMHz", data.freqMHz);
+        channel.put("isDFS", data.isDFS);
+        channel.put("isValid", data.isValid());
+        return channel;
     }
 
     private static Object buildWifiConfiguration(WifiConfiguration data)
