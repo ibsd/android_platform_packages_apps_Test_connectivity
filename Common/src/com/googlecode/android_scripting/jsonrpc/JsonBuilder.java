@@ -16,12 +16,14 @@
 
 package com.googlecode.android_scripting.jsonrpc;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -203,11 +205,17 @@ public class JsonBuilder {
         if (data instanceof NetworkInfo) {
             return buildNetworkInfo((NetworkInfo) data);
         }
+        if (data instanceof HttpURLConnection) {
+            return buildHttpURLConnection((HttpURLConnection) data);
+        }
         if (data instanceof InetSocketAddress) {
             return buildInetSocketAddress((InetSocketAddress) data);
         }
         if (data instanceof InetAddress) {
             return buildInetAddress((InetAddress) data);
+        }
+        if (data instanceof URL) {
+            return buildURL((URL) data);
         }
         if (data instanceof Point) {
             return buildPoint((Point) data);
@@ -541,7 +549,11 @@ public class JsonBuilder {
             throws JSONException {
         JSONObject result = new JSONObject();
         for (Entry<String, ?> entry : map.entrySet()) {
-            result.put(entry.getKey(), build(entry.getValue()));
+            String key = entry.getKey();
+            if (key == null) {
+                key = "";
+            }
+            result.put(key, build(entry.getValue()));
         }
         return result;
     }
@@ -754,6 +766,26 @@ public class JsonBuilder {
         return result;
     }
 
+    private static Object buildHttpURLConnection(HttpURLConnection data)
+            throws JSONException {
+        JSONObject con = new JSONObject();
+        try {
+            con.put("ResponseCode", data.getResponseCode());
+            con.put("ResponseMessage", data.getResponseMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return con;
+        }
+        con.put("ContentLength", data.getContentLength());
+        con.put("ContentEncoding", data.getContentEncoding());
+        con.put("ContentType", data.getContentType());
+        con.put("Date", data.getDate());
+        con.put("ReadTimeout", data.getReadTimeout());
+        con.put("HeaderFields", buildJsonMap(data.getHeaderFields()));
+        con.put("URL", buildURL(data.getURL()));
+        return con;
+    }
+
     private static Object buildNetwork(Network data) throws JSONException {
         JSONObject nw = new JSONObject();
         nw.put("netId", data.netId);
@@ -773,6 +805,16 @@ public class JsonBuilder {
         info.put("SubtypeName", data.getSubtypeName());
         info.put("State", data.getState().name().toString());
         return info;
+    }
+
+    private static Object buildURL(URL data) throws JSONException {
+        JSONObject url = new JSONObject();
+        url.put("Authority", data.getAuthority());
+        url.put("Host", data.getHost());
+        url.put("Path", data.getPath());
+        url.put("Port", data.getPort());
+        url.put("Protocol", data.getProtocol());
+        return url;
     }
 
     private static JSONObject buildPhoneAccount(PhoneAccount data)

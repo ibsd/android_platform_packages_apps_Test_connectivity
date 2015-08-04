@@ -18,8 +18,6 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-import android.app.Service;
-
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -32,7 +30,6 @@ import com.googlecode.android_scripting.rpc.RpcOptional;
  */
 public class HttpFacade extends RpcReceiver {
 
-    private final Service mService;
     private ServerSocket mServerSocket = null;
     private int mServerTimeout = -1;
     private HashMap<Integer, Socket> mSockets = null;
@@ -40,7 +37,6 @@ public class HttpFacade extends RpcReceiver {
 
     public HttpFacade(FacadeManager manager) throws IOException {
         super(manager);
-        mService = manager.getService();
         mSockets = new HashMap<Integer, Socket>();
     }
 
@@ -80,7 +76,7 @@ public class HttpFacade extends RpcReceiver {
 
     /**
      * Send an http request and get the response.
-     *
+     * 
      * @param url The url to send request to.
      * @return The HttpURLConnection object.
      * @throws IOException When request failed to go through with response code 200.
@@ -90,6 +86,7 @@ public class HttpFacade extends RpcReceiver {
         HttpURLConnection urlConnection = null;
         try {
             urlConnection = (HttpURLConnection) targetURL.openConnection();
+            urlConnection.connect();
         } catch (IOException e) {
             Log.e("Failed to open a connection to " + url);
             Log.e(e.toString());
@@ -98,14 +95,6 @@ public class HttpFacade extends RpcReceiver {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
-        }
-        int code = urlConnection.getResponseCode();
-        if (code != HttpURLConnection.HTTP_OK) {
-            Log.d("Http request did not return 200.");
-            Log.d("Response code: " + code);
-            String respMsg = urlConnection.getResponseMessage();
-            Log.d("Response message: " + respMsg);
-            throw new IOException("HTTP request did not return 200. " + respMsg);
         }
         return urlConnection;
     }
@@ -126,7 +115,6 @@ public class HttpFacade extends RpcReceiver {
     @Rpc(description = "Download a file from specified url.")
     public void httpDownloadFile(String url) throws IOException {
         HttpURLConnection urlConnection = httpRequest(url);
-
         String filename = null;
         String contentDisposition = urlConnection.getHeaderField("Content-Disposition");
         // Try to figure out the name of the file being downloaded.
@@ -152,24 +140,14 @@ public class HttpFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Make an http request and return the response message.")
-    public String httpPing(@RpcParameter(name = "url") String url) throws IOException {
+    public HttpURLConnection httpPing(@RpcParameter(name = "url") String url) throws IOException {
         try {
             HttpURLConnection urlConnection = null;
             urlConnection = httpRequest(url);
-            String resp = urlConnection.getResponseMessage();
-            Log.d("Fetched " + resp);
-            return resp;
+            return urlConnection;
         } catch (UnknownHostException e) {
             return null;
         }
-    }
-
-    @Rpc(description = "Make an http request and only return the length of the response content.")
-    public Integer httpRequestLength(@RpcParameter(name = "url") String url) throws IOException {
-        HttpURLConnection urlConnection = httpRequest(url);
-        int respSize = urlConnection.getContentLength();
-        Log.d("Fetched: " + respSize);
-        return respSize;
     }
 
     @Rpc(description = "Make an http request and return the response content as a string.")
