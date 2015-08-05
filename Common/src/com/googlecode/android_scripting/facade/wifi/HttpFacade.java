@@ -86,6 +86,9 @@ public class HttpFacade extends RpcReceiver {
         try {
             urlConnection = (HttpURLConnection) targetURL.openConnection();
             urlConnection.connect();
+            int respCode = urlConnection.getResponseCode();
+            String respMsg = urlConnection.getResponseMessage();
+            Log.d("Got response code: " + respCode + " and response msg: " + respMsg);
         } catch (IOException e) {
             Log.e("Failed to open a connection to " + url);
             Log.e(e.toString());
