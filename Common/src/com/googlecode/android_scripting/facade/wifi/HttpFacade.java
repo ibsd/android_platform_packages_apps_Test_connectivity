@@ -76,10 +76,9 @@ public class HttpFacade extends RpcReceiver {
 
     /**
      * Send an http request and get the response.
-     * 
+     *
      * @param url The url to send request to.
      * @return The HttpURLConnection object.
-     * @throws IOException When request failed to go through with response code 200.
      */
     private HttpURLConnection httpRequest(String url) throws IOException {
         URL targetURL = new URL(url);
@@ -90,7 +89,6 @@ public class HttpFacade extends RpcReceiver {
         } catch (IOException e) {
             Log.e("Failed to open a connection to " + url);
             Log.e(e.toString());
-            throw e;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();

@@ -541,6 +541,11 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.disconnect();
     }
 
+    @Rpc(description = "Enable/disable autojoin scan and switch network when connected.")
+    public Boolean wifiEnableAutoJoinWhenAssociated(@RpcParameter(name = "enable") Boolean enable) {
+        return mWifi.enableAutoJoinWhenAssociated(enable);
+    }
+
     @Rpc(description = "Enable a configured network. Initiate a connection if disableOthers is true",
             returns = "True if the operation succeeded.")
     public Boolean wifiEnableNetwork(@RpcParameter(name = "netId") Integer netId,
@@ -628,6 +633,16 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Get the info from last successful DHCP request.")
     public DhcpInfo wifiGetDhcpInfo() {
         return mWifi.getDhcpInfo();
+    }
+
+    @Rpc(description = "Get setting for Framework layer autojoin enable status.")
+    public Boolean wifiGetEnableAutoJoinWhenAssociated() {
+        return mWifi.getEnableAutoJoinWhenAssociated();
+    }
+
+    @Rpc(description = "Returns 1 if autojoin offload thru Wifi HAL layer is enabled, 0 otherwise.")
+    public Integer wifiGetHalBasedAutojoinOffload() {
+        return mWifi.getHalBasedAutojoinOffload();
     }
 
     @Rpc(description = "Get privileged configured networks.")
@@ -818,6 +833,12 @@ public class WifiManagerFacade extends RpcReceiver {
             @RpcParameter(name = "country") String country,
             @RpcParameter(name = "persist") Boolean persist) {
         mWifi.setCountryCode(country, persist);
+    }
+
+    @Rpc(description = "Enable/disable autojoin offload through Wifi HAL layer.")
+    public void wifiSetHalBasedAutojoinOffload(
+            @RpcParameter(name = "enable") Integer enable) {
+        mWifi.setHalBasedAutojoinOffload(enable);
     }
 
     @Rpc(description = "Enable/disable tdls with a mac address.")
