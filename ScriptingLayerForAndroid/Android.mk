@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_PACKAGE_NAME := sl4a
 LOCAL_MODULE_OWNER := google
+LOCAL_DEX_PREOPT := false
 
 LOCAL_CERTIFICATE := platform
 
