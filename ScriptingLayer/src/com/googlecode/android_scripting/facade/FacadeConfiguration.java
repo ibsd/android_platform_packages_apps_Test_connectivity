@@ -38,7 +38,8 @@ import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeAdvertiseFac
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothLeScanFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothMapFacade;
 import com.googlecode.android_scripting.facade.bluetooth.BluetoothRfcommFacade;
-import com.googlecode.android_scripting.facade.bluetooth.GattFacade;
+import com.googlecode.android_scripting.facade.bluetooth.GattClientFacade;
+import com.googlecode.android_scripting.facade.bluetooth.GattServerFacade;
 import com.googlecode.android_scripting.facade.media.AudioManagerFacade;
 import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
 import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
@@ -136,7 +137,8 @@ public class FacadeConfiguration {
         if (sSdkLevel >= 19) {
             sFacadeClassList.add(BluetoothLeScanFacade.class);
             sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
-            sFacadeClassList.add(GattFacade.class);
+            sFacadeClassList.add(GattClientFacade.class);
+            sFacadeClassList.add(GattServerFacade.class);
             sFacadeClassList.add(ConnectivityManagerFacade.class);
             sFacadeClassList.add(DisplayFacade.class);
             sFacadeClassList.add(TelecomManagerFacade.class);
