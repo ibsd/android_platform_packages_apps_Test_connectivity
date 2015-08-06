@@ -296,4 +296,28 @@ public class TelephonyConstants {
     public static final String EventMessageWaitingIndicatorChanged = "MessageWaitingIndicatorChanged";
     public static final String EventConnectivityChanged = "ConnectivityChanged";
 
+    /**
+     * Constant for Packet Keep Alive Call Back
+     * **/
+    public static final String  PacketKeepaliveCallBack = "PacketKeepliveCallBack";
+    public static final String  PacketKeepaliveCallBackStarted = "Started";
+    public static final String  PacketKeepaliveCallBackStopped = "Stopped";
+    public static final String  PacketKeepaliveCallBackError = "Error";
+    public static final String  PacketKeepaliveCallBackInvalid = "Invalid";
+
+    /**
+     * Constant for Network Call Back
+     * **/
+    public static final String  NetworkCallBack = "NetworkCallBack";
+    public static final String  NetworkCallBackPreCheck = "PreCheck";
+    public static final String  NetworkCallBackAvailable = "Available";
+    public static final String  NetworkCallBackLosing = "Losing";
+    public static final String  NetworkCallBackLost = "Lost";
+    public static final String  NetworkCallBackUnavailable = "Unavailable";
+    public static final String  NetworkCallBackCapabilitiesChanged = "CapabilitiesChanged";
+    public static final String  NetworkCallBackSuspended = "Suspended";
+    public static final String  NetworkCallBackResumed = "Resumed";
+    public static final String  NetworkCallBackLinkPropertiesChanged = "LinkPropertiesChanged";
+    public static final String  NetworkCallBackInvalid = "Invalid";
+    
 }
