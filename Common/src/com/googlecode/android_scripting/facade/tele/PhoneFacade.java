@@ -944,10 +944,15 @@ public class PhoneFacade extends RpcReceiver {
             @RpcParameter(name = "appType") Integer appType,
             @RpcParameter(name = "hexChallenge") String hexChallenge) {
 
-        String b64Data = BaseEncoding.base64().encode(BaseEncoding.base16().decode(hexChallenge));
-        String b64Result = mTelephonyManager.getIccSimChallengeResponse(subId, appType, b64Data);
-        return (b64Result != null)
-                ? BaseEncoding.base16().encode(BaseEncoding.base64().decode(b64Result)) : null;
+        try {
+            String b64Data = BaseEncoding.base64().encode(BaseEncoding.base16().decode(hexChallenge));
+            String b64Result = mTelephonyManager.getIccSimChallengeResponse(subId, appType, b64Data);
+            return (b64Result != null)
+                    ? BaseEncoding.base16().encode(BaseEncoding.base64().decode(b64Result)) : null;
+        } catch( Exception e) {
+            Log.e("Exception in phoneGetIccSimChallengeResponseForSubscription" + e.toString());
+            return null;
+        }
     }
 
     @Rpc(description = "Returns the unique subscriber ID (such as IMSI) " +
