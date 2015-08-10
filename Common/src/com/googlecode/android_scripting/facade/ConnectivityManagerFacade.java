@@ -410,7 +410,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Listen for connectivity changes")
-    public void connectivityStartTrackingConnectivityStateChange() {
+    public void startTrackingConnectivityStateChange() {
         if (!mTrackingConnectivityStateChange) {
             mTrackingConnectivityStateChange = true;
             mContext.registerReceiver(mConnectivityReceiver,
