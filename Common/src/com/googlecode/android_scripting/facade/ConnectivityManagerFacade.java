@@ -78,16 +78,15 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                     b.getInt(ConnectivityManager.EXTRA_NETWORK_TYPE,
                             ConnectivityManager.TYPE_NONE);
 
-            if(netType == ConnectivityManager.TYPE_NONE) {
+            if (netType == ConnectivityManager.TYPE_NONE) {
                 Log.i("ConnectivityReceiver received change to TYPE_NONE.");
                 return;
             }
 
             /*
-             * Technically there is a race condition here, but
-             * retrieving the NetworkInfo from the bundle is deprecated.
-             * See ConnectivityManager.EXTRA_NETWORK_INFO
-            */
+             * Technically there is a race condition here, but retrieving the NetworkInfo from the
+             * bundle is deprecated. See ConnectivityManager.EXTRA_NETWORK_INFO
+             */
             for (NetworkInfo info : mManager.getAllNetworkInfo()) {
                 if (info.getType() == netType) {
                     mEventFacade.postEvent(TelephonyConstants.EventConnectivityChanged, info);
@@ -410,7 +409,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Listen for connectivity changes")
-    public void startTrackingConnectivityStateChange() {
+    public void connectivityStartTrackingConnectivityStateChange() {
         if (!mTrackingConnectivityStateChange) {
             mTrackingConnectivityStateChange = true;
             mContext.registerReceiver(mConnectivityReceiver,
@@ -619,15 +618,15 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Stop listening for connectivity changes")
-    public void stopTrackingConnectivityStateChange() {
-        if(mTrackingConnectivityStateChange) {
+    public void connectivityStopTrackingConnectivityStateChange() {
+        if (mTrackingConnectivityStateChange) {
             mTrackingConnectivityStateChange = false;
             mContext.unregisterReceiver(mConnectivityReceiver);
         }
     }
 
     @Rpc(description = "Get the extra information about the network state provided by lower network layers.")
-    public String networkGetActiveConnectionExtraInfo() {
+    public String connectivityNetworkGetActiveConnectionExtraInfo() {
         NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
@@ -637,7 +636,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Return the subtype name of the current network, null if not connected")
-    public String networkGetActiveConnectionSubtypeName() {
+    public String connectivityNetworkGetActiveConnectionSubtypeName() {
         NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
@@ -647,7 +646,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Return a human-readable name describe the type of the network, e.g. WIFI")
-    public String networkGetActiveConnectionTypeName() {
+    public String connectivityNetworkGetActiveConnectionTypeName() {
         NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
@@ -657,12 +656,12 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "Get connection status information about all network types supported by the device.")
-    public NetworkInfo[] networkGetAllInfo() {
+    public NetworkInfo[] connectivityNetworkGetAllInfo() {
         return mManager.getAllNetworkInfo();
     }
 
     @Rpc(description = "Check whether the active network is connected to the Internet.")
-    public Boolean networkIsConnected() {
+    public Boolean connectivityNetworkIsConnected() {
         NetworkInfo current = mManager.getActiveNetworkInfo();
         if (current == null) {
             Log.d("No network is active at the moment.");
@@ -673,7 +672,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Checks the airplane mode setting.",
             returns = "True if airplane mode is enabled.")
-    public Boolean checkAirplaneMode() {
+    public Boolean connectivityCheckAirplaneMode() {
         try {
             return android.provider.Settings.System.getInt(mService.getContentResolver(),
                     android.provider.Settings.Global.AIRPLANE_MODE_ON) == AIRPLANE_MODE_ON;
@@ -684,15 +683,17 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Toggles airplane mode on and off.",
             returns = "True if airplane mode is enabled.")
-    public void toggleAirplaneMode(@RpcParameter(name = "enabled") @RpcOptional Boolean enabled) {
+    public void connectivityToggleAirplaneMode(@RpcParameter(name = "enabled")
+    @RpcOptional
+    Boolean enabled) {
         if (enabled == null) {
-            enabled = !checkAirplaneMode();
+            enabled = !connectivityCheckAirplaneMode();
         }
         mManager.setAirplaneMode(enabled);
     }
 
     @Override
     public void shutdown() {
-        stopTrackingConnectivityStateChange();
+        connectivityStopTrackingConnectivityStateChange();
     }
 }
