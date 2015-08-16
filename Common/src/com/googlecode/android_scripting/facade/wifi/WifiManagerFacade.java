@@ -739,7 +739,7 @@ public class WifiManagerFacade extends RpcReceiver {
     public Boolean wifiIsScannerSupported() {
         return mWifi.isWifiScannerSupported();
     }
-    
+
     @Rpc(description = "Check if tdls is supported on this device.")
     public Boolean wifiIsTdlsSupported() {
         return mWifi.isTdlsSupported();
@@ -819,7 +819,7 @@ public class WifiManagerFacade extends RpcReceiver {
                 config.SSID = ssid.substring(1, ssid.length() - 1);
             }
             String pwd = config.preSharedKey;
-            if (ssid != null) {
+            if (pwd != null) {
                 config.preSharedKey = pwd.substring(1, pwd.length() - 1);
             }
             return mWifi.setWifiApEnabled(config, enable);
