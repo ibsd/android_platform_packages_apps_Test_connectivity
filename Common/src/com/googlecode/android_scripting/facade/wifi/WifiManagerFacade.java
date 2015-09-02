@@ -205,18 +205,10 @@ public class WifiManagerFacade extends RpcReceiver {
                 // If network info is of type wifi, send wifi events.
                 if (nInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                     if (wInfo != null && nInfo.getDetailedState().equals(DetailedState.CONNECTED)) {
-                        Bundle msg = new Bundle();
-                        String ssid = wInfo.getSSID();
-                        if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"') {
-                            msg.putString("SSID", ssid.substring(1, ssid.length() - 1));
-                        } else {
-                            msg.putString("SSID", ssid);
-                        }
                         String bssid = wInfo.getBSSID();
-                        msg.putString("bssid", bssid);
                         if (bssid != null && !mCachedWifiInfo.equals(wInfo.toString())) {
                             Log.d("WifiNetworkConnected");
-                            mEventFacade.postEvent("WifiNetworkConnected", msg);
+                            mEventFacade.postEvent("WifiNetworkConnected", wInfo);
                         }
                         mCachedWifiInfo = wInfo.toString();
                     } else {
