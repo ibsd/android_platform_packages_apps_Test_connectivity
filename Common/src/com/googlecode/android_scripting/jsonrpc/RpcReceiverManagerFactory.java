@@ -19,7 +19,10 @@ package com.googlecode.android_scripting.jsonrpc;
 import java.util.Map;
 
 public interface RpcReceiverManagerFactory {
-  public RpcReceiverManager create(Integer UID);
 
-  public Map<Integer, RpcReceiverManager> getRpcReceiverManagers();
+  Map<Integer, RpcReceiverManager> getRpcReceiverManagers();
+
+  RpcReceiverManager getRpcReceiverManager(Integer UID);
+
+  boolean remove(Integer UID);
 }

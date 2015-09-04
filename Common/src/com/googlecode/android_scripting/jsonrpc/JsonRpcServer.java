@@ -66,20 +66,7 @@ public class JsonRpcServer extends SimpleServer {
     @Override
     protected void handleRPCConnection(Socket sock, Integer UID, BufferedReader reader,
             PrintWriter writer) throws Exception {
-        RpcReceiverManager receiverManager = null;
-        Map<Integer, RpcReceiverManager> mgrs = mRpcReceiverManagerFactory.getRpcReceiverManagers();
-        synchronized (mgrs) {
-            Log.d("UID " + UID);
-            Log.d("manager map keys: "
-                    + mRpcReceiverManagerFactory.getRpcReceiverManagers().keySet());
-            if (mgrs.containsKey(UID)) {
-                Log.d("Look up existing session");
-                receiverManager = mgrs.get(UID);
-            } else {
-                Log.d("Create a new session");
-                receiverManager = mRpcReceiverManagerFactory.create(UID);
-            }
-        }
+        RpcReceiverManager receiverManager =  mRpcReceiverManagerFactory.getRpcReceiverManager(UID);
         // boolean passedAuthentication = false;
         String data;
         while ((data = reader.readLine()) != null) {
@@ -108,7 +95,7 @@ public class JsonRpcServer extends SimpleServer {
                     writer.close();
                     sock.close();
                     shutdown();
-                    mgrs.remove(UID);
+                    mRpcReceiverManagerFactory.remove(UID);
                 }
                 return;
             }
