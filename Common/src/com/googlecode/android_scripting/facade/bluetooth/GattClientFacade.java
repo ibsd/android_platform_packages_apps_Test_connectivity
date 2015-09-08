@@ -818,7 +818,6 @@ public class GattClientFacade extends RpcReceiver {
                 Log.d("State Disconnecting from mac address "
                         + gatt.getDevice().getAddress() + " status " + status);
             }
-            mResults.putString("Type", "onConnectionStateChange");
             mResults.putInt("Status", status);
             mResults.putInt("State", newState);
             mEventFacade
@@ -832,7 +831,6 @@ public class GattClientFacade extends RpcReceiver {
             int idx = BluetoothGattDiscoveredServicesCount++;
             mBluetoothGattDiscoveredServicesList.put(idx, gatt.getServices());
             mResults.putInt("ServicesIndex", idx);
-            mResults.putString("Type", "onServicesDiscovered");
             mResults.putInt("Status", status);
             for (BluetoothGattService se: gatt.getServices()) {
                 System.out.println("SWAG: " + se.getUuid().toString());
@@ -847,7 +845,6 @@ public class GattClientFacade extends RpcReceiver {
                 BluetoothGattCharacteristic characteristic,
                 int status) {
             Log.d("gatt_connect change onCharacteristicRead " + mEventType + " " + index);
-            mResults.putString("Type", "onCharacteristicRead");
             mResults.putInt("Status", status);
             mResults.putString("CharacteristicUuid", characteristic.getUuid().toString());
             mEventFacade
@@ -859,7 +856,6 @@ public class GattClientFacade extends RpcReceiver {
         public void onCharacteristicWrite(BluetoothGatt gatt,
                 BluetoothGattCharacteristic characteristic, int status) {
             Log.d("gatt_connect change onCharacteristicWrite " + mEventType + " " + index);
-            mResults.putString("Type", "onCharacteristicWrite");
             mResults.putInt("Status", status);
             mResults.putString("CharacteristicUuid", characteristic.getUuid().toString());
             mEventFacade
@@ -872,7 +868,6 @@ public class GattClientFacade extends RpcReceiver {
                 BluetoothGattCharacteristic characteristic) {
             Log.d("gatt_connect change onCharacteristicChanged " + mEventType + " " + index);
             mResults.putInt("ID", index);
-            mResults.putString("Type", "onCharacteristicChanged");
             mResults.putString("CharacteristicUuid", characteristic.getUuid().toString());
             mEventFacade
                     .postEvent(mEventType + index + "onCharacteristicChanged", mResults.clone());
@@ -883,7 +878,6 @@ public class GattClientFacade extends RpcReceiver {
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor,
                 int status) {
             Log.d("gatt_connect change onServicesDiscovered " + mEventType + " " + index);
-            mResults.putString("Type", "onServicesDiscovered");
             mResults.putInt("Status", status);
             mResults.putString("DescriptorUuid", descriptor.getUuid().toString());
             mEventFacade
@@ -896,7 +890,6 @@ public class GattClientFacade extends RpcReceiver {
                 int status) {
             Log.d("gatt_connect change onDescriptorWrite " + mEventType + " " + index);
             mResults.putInt("ID", index);
-            mResults.putString("Type", "onDescriptorWrite");
             mResults.putInt("Status", status);
             mResults.putString("DescriptorUuid", descriptor.getUuid().toString());
             mEventFacade
@@ -908,7 +901,6 @@ public class GattClientFacade extends RpcReceiver {
         public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
             Log.d("gatt_connect change onReliableWriteCompleted " + mEventType + " "
                     + index);
-            mResults.putString("Type", "onReliableWriteCompleted");
             mResults.putInt("Status", status);
             mEventFacade
                     .postEvent(mEventType + index + "onReliableWriteCompleted", mResults.clone());
@@ -918,7 +910,6 @@ public class GattClientFacade extends RpcReceiver {
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
             Log.d("gatt_connect change onReadRemoteRssi " + mEventType + " " + index);
-            mResults.putString("Type", "onReadRemoteRssi");
             mResults.putInt("Status", status);
             mResults.putInt("Rssi", rssi);
             mEventFacade
@@ -929,7 +920,6 @@ public class GattClientFacade extends RpcReceiver {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
             Log.d("gatt_connect change onMtuChanged " + mEventType + " " + index);
-            mResults.putString("Type", "onConfigureMTU");
             mResults.putInt("Status", status);
             mResults.putInt("MTU", mtu);
             mEventFacade
