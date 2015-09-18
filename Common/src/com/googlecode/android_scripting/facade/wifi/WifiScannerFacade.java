@@ -87,18 +87,21 @@ public class WifiScannerFacade extends RpcReceiver {
         private final Bundle mResults;
         public int mIndex;
         protected String mEventType;
+        private long startScanElapsedRealTime;
 
-        public WifiActionListener(String type, int idx, Bundle resultBundle) {
+        public WifiActionListener(String type, int idx, Bundle resultBundle, long startScanERT) {
             this.mIndex = idx;
             this.mEventType = type;
             this.mResults = resultBundle;
+            this.startScanElapsedRealTime = startScanERT;
         }
 
         @Override
         public void onSuccess() {
             Log.d("onSuccess " + mEventType + " " + mIndex);
             mResults.putString("Type", "onSuccess");
-            mResults.putLong("Realtime", SystemClock.elapsedRealtime());
+            mResults.putInt("Index", mIndex);
+            mResults.putLong("ScanElapsedRealtime", startScanElapsedRealTime);
             mEventFacade.postEvent(mEventType + mIndex + "onSuccess", mResults.clone());
             mResults.clear();
         }
@@ -107,6 +110,7 @@ public class WifiScannerFacade extends RpcReceiver {
         public void onFailure(int reason, String description) {
             Log.d("onFailure " + mEventType + " " + mIndex);
             mResults.putString("Type", "onFailure");
+            mResults.putInt("Index", mIndex);
             mResults.putInt("Reason", reason);
             mResults.putString("Description", description);
             mEventFacade.postEvent(mEventType + mIndex + "onFailure", mResults.clone());
@@ -115,7 +119,8 @@ public class WifiScannerFacade extends RpcReceiver {
 
         public void reportResult(ScanResult[] results, String type) {
             Log.d("reportResult " + mEventType + " " + mIndex);
-            mResults.putLong("Timestamp", System.currentTimeMillis() / 1000);
+            mResults.putInt("Index", mIndex);
+            mResults.putLong("ResultElapsedRealtime", SystemClock.elapsedRealtime());
             mResults.putString("Type", type);
             mResults.putParcelableArray("Results", results);
             mEventFacade.postEvent(mEventType + mIndex + type, mResults.clone());
@@ -169,7 +174,8 @@ public class WifiScannerFacade extends RpcReceiver {
             mScanData = new Bundle();
             WifiScanListenerCnt += 1;
             mIndex = WifiScanListenerCnt;
-            mWAL = new WifiActionListener(mEventType, mIndex, mScanResults);
+            mWAL = new WifiActionListener(mEventType, mIndex, mScanResults,
+                SystemClock.elapsedRealtime());
         }
 
         @Override
@@ -203,7 +209,8 @@ public class WifiScannerFacade extends RpcReceiver {
         public void onResults(ScanData[] results) {
             Log.d("onResult WifiScanListener " + mIndex);
             wifiScannerDataList.put(mIndex, results);
-            mScanData.putLong("Timestamp", System.currentTimeMillis() / 1000);
+            mScanData.putInt("Index", mIndex);
+            mScanData.putLong("ResultElapsedRealtime", SystemClock.elapsedRealtime());
             mScanData.putString("Type", "onResults");
             mScanData.putParcelableArray("Results", results);
             mEventFacade.postEvent(mEventType + mIndex + "onResults", mScanData.clone());
@@ -238,7 +245,8 @@ public class WifiScannerFacade extends RpcReceiver {
             mResults = new Bundle();
             WifiChangeListenerCnt += 1;
             mIndex = WifiChangeListenerCnt;
-            mWAL = new WifiActionListener(mEventType, mIndex, mResults);
+            mWAL = new WifiActionListener(mEventType, mIndex, mResults,
+                SystemClock.elapsedRealtime());
         }
 
         @Override
@@ -295,7 +303,8 @@ public class WifiScannerFacade extends RpcReceiver {
             mResults = new Bundle();
             WifiBssidListenerCnt += 1;
             mIndex = WifiBssidListenerCnt;
-            mWAL = new WifiActionListener(mEventType, mIndex, mResults);
+            mWAL = new WifiActionListener(mEventType, mIndex, mResults,
+                SystemClock.elapsedRealtime());
         }
 
         @Override
