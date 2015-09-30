@@ -16,25 +16,6 @@
 
 package com.googlecode.android_scripting.facade.wifi;
 
-import android.app.Service;
-import android.content.Context;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiScanner;
-import android.net.wifi.WifiScanner.BssidInfo;
-import android.net.wifi.WifiScanner.ChannelSpec;
-import android.net.wifi.WifiScanner.ScanData;
-import android.net.wifi.WifiScanner.ScanSettings;
-import android.os.Bundle;
-import android.os.SystemClock;
-
-import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.MainThread;
-import com.googlecode.android_scripting.facade.EventFacade;
-import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
-import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcParameter;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +26,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.MainThread;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
+import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
+import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
+import com.googlecode.android_scripting.rpc.RpcParameter;
+
+import android.app.Service;
+import android.content.Context;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiScanner;
+import android.net.wifi.WifiScanner.BssidInfo;
+import android.net.wifi.WifiScanner.ChannelSpec;
+import android.net.wifi.WifiScanner.ScanData;
+import android.net.wifi.WifiScanner.ScanSettings;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.provider.Settings.Global;
+import android.provider.Settings.SettingNotFoundException;
 
 /**
  * WifiScanner functions.
@@ -175,7 +178,7 @@ public class WifiScannerFacade extends RpcReceiver {
             WifiScanListenerCnt += 1;
             mIndex = WifiScanListenerCnt;
             mWAL = new WifiActionListener(mEventType, mIndex, mScanResults,
-                SystemClock.elapsedRealtime());
+                    SystemClock.elapsedRealtime());
         }
 
         @Override
@@ -246,7 +249,7 @@ public class WifiScannerFacade extends RpcReceiver {
             WifiChangeListenerCnt += 1;
             mIndex = WifiChangeListenerCnt;
             mWAL = new WifiActionListener(mEventType, mIndex, mResults,
-                SystemClock.elapsedRealtime());
+                    SystemClock.elapsedRealtime());
         }
 
         @Override
@@ -304,7 +307,7 @@ public class WifiScannerFacade extends RpcReceiver {
             WifiBssidListenerCnt += 1;
             mIndex = WifiBssidListenerCnt;
             mWAL = new WifiActionListener(mEventType, mIndex, mResults,
-                SystemClock.elapsedRealtime());
+                    SystemClock.elapsedRealtime());
         }
 
         @Override
@@ -431,8 +434,9 @@ public class WifiScannerFacade extends RpcReceiver {
      * @throws JSONException
      */
     @Rpc(description = "Starts a WifiScanner single scan")
-    public Integer wifiScannerStartScan(@RpcParameter(name = "scanSettings") JSONObject scanSettings)
-            throws JSONException {
+    public Integer wifiScannerStartScan(
+            @RpcParameter(name = "scanSettings") JSONObject scanSettings)
+                    throws JSONException {
         ScanSettings ss = parseScanSettings(scanSettings);
         Log.d("startWifiScannerScan with " + ss.channels);
         WifiScanListener listener = genWifiScanListener();
@@ -461,7 +465,8 @@ public class WifiScannerFacade extends RpcReceiver {
 
     /** RPC Methods */
     @Rpc(description = "Returns the channels covered by the specified band number.")
-    public List<Integer> wifiScannerGetAvailableChannels(@RpcParameter(name = "band") Integer band) {
+    public List<Integer> wifiScannerGetAvailableChannels(
+            @RpcParameter(name = "band") Integer band) {
         return mScan.getAvailableChannels(band);
     }
 
@@ -486,8 +491,7 @@ public class WifiScannerFacade extends RpcReceiver {
      */
     @Rpc(description = "Stops tracking wifi changes")
     public void wifiScannerStopTrackingChange(
-            @RpcParameter(name = "listener") Integer listenerIndex
-            ) throws Exception {
+            @RpcParameter(name = "listener") Integer listenerIndex) throws Exception {
         if (!trackChangeListeners.containsKey(listenerIndex)) {
             throw new Exception("Wifi change tracking session " + listenerIndex
                     + " does not exist");
@@ -507,8 +511,8 @@ public class WifiScannerFacade extends RpcReceiver {
      */
     @Rpc(description = "Starts tracking changes of the specified bssids.")
     public Integer wifiScannerStartTrackingBssids(
-           @RpcParameter(name = "bssidInfos") JSONArray bssidInfos,
-           @RpcParameter(name = "apLostThreshold") Integer apLostThreshold) throws JSONException {
+            @RpcParameter(name = "bssidInfos") JSONArray bssidInfos,
+            @RpcParameter(name = "apLostThreshold") Integer apLostThreshold) throws JSONException {
         BssidInfo[] bssids = parseBssidInfo(bssidInfos);
         WifiBssidListener listener = genWifiBssidListener();
         mScan.startTrackingBssids(bssids, apLostThreshold, listener);
@@ -523,14 +527,39 @@ public class WifiScannerFacade extends RpcReceiver {
      */
     @Rpc(description = "Stops tracking changes in the APs on the list")
     public void wifiScannerStopTrackingBssids(
-            @RpcParameter(name = "listener") Integer listenerIndex
-            ) throws Exception {
+            @RpcParameter(name = "listener") Integer listenerIndex) throws Exception {
         if (!trackBssidListeners.containsKey(listenerIndex)) {
             throw new Exception("Bssid tracking session " + listenerIndex + " does not exist");
         }
         WifiBssidListener listener = trackBssidListeners.get(listenerIndex);
         mScan.stopTrackingBssids(listener);
         trackBssidListeners.remove(listenerIndex);
+    }
+
+    @Rpc(description = "Toggle the 'WiFi scan always available' option. If an input is given, the "
+            + "option is set to what the input boolean indicates.")
+    public void wifiScannerToggleAlwaysAvailable(
+            @RpcParameter(name = "alwaysAvailable") @RpcOptional Boolean alwaysAvailable)
+                    throws SettingNotFoundException {
+        int new_state = 0;
+        if (alwaysAvailable == null) {
+            int current_state = Global.getInt(mService.getContentResolver(),
+                    Global.WIFI_SCAN_ALWAYS_AVAILABLE);
+            new_state = current_state ^ 0x1;
+        } else {
+            new_state = alwaysAvailable ? 1 : 0;
+        }
+        Global.putInt(mService.getContentResolver(), Global.WIFI_SCAN_ALWAYS_AVAILABLE, new_state);
+    }
+
+    @Rpc(description = "Returns true if WiFi scan is always available, false otherwise.")
+    public Boolean wifiScannerIsAlwaysAvailable() throws SettingNotFoundException {
+        int current_state = Global.getInt(mService.getContentResolver(),
+                Global.WIFI_SCAN_ALWAYS_AVAILABLE);
+        if (current_state == 1) {
+            return true;
+        }
+        return false;
     }
 
     @Rpc(description = "Returns a list of mIndexes of existing listeners")
@@ -591,32 +620,32 @@ public class WifiScannerFacade extends RpcReceiver {
     public void shutdown() {
         try {
             if (!scanListeners.isEmpty()) {
-                Iterator<ConcurrentHashMap.Entry<Integer, WifiScanListener>> iter
-                               = scanListeners.entrySet().iterator();
+                Iterator<ConcurrentHashMap.Entry<Integer, WifiScanListener>> iter = scanListeners
+                        .entrySet().iterator();
                 while (iter.hasNext()) {
                     ConcurrentHashMap.Entry<Integer, WifiScanListener> entry = iter.next();
                     this.wifiScannerStopScan(entry.getKey());
                 }
             }
             if (!scanBackgroundListeners.isEmpty()) {
-                Iterator<ConcurrentHashMap.Entry<Integer, WifiScanListener>> iter
-                               = scanBackgroundListeners.entrySet().iterator();
+                Iterator<ConcurrentHashMap.Entry<Integer, WifiScanListener>> iter = scanBackgroundListeners
+                        .entrySet().iterator();
                 while (iter.hasNext()) {
                     ConcurrentHashMap.Entry<Integer, WifiScanListener> entry = iter.next();
                     this.wifiScannerStopBackgroundScan(entry.getKey());
                 }
             }
             if (!trackChangeListeners.isEmpty()) {
-                Iterator<ConcurrentHashMap.Entry<Integer, ChangeListener>> iter
-                                = trackChangeListeners.entrySet().iterator();
+                Iterator<ConcurrentHashMap.Entry<Integer, ChangeListener>> iter = trackChangeListeners
+                        .entrySet().iterator();
                 while (iter.hasNext()) {
                     ConcurrentHashMap.Entry<Integer, ChangeListener> entry = iter.next();
                     this.wifiScannerStopTrackingChange(entry.getKey());
                 }
             }
             if (!trackBssidListeners.isEmpty()) {
-                Iterator<ConcurrentHashMap.Entry<Integer, WifiBssidListener>> iter
-                                = trackBssidListeners.entrySet().iterator();
+                Iterator<ConcurrentHashMap.Entry<Integer, WifiBssidListener>> iter = trackBssidListeners
+                        .entrySet().iterator();
                 while (iter.hasNext()) {
                     ConcurrentHashMap.Entry<Integer, WifiBssidListener> entry = iter.next();
                     this.wifiScannerStopTrackingBssids(entry.getKey());
