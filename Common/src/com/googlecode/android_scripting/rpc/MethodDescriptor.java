@@ -18,11 +18,8 @@ package com.googlecode.android_scripting.rpc;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Parcelable;
 
 import com.googlecode.android_scripting.Analytics;
-import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.AndroidFacade;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
@@ -45,7 +42,7 @@ import org.json.JSONObject;
 
 /**
  * An adapter that wraps {@code Method}.
- *
+ * 
  * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public final class MethodDescriptor {
@@ -78,7 +75,7 @@ public final class MethodDescriptor {
   /**
    * Invokes the call that belongs to this object with the given parameters. Wraps the response
    * (possibly an exception) in a JSONObject.
-   *
+   * 
    * @param parameters
    *          {@code JSONArray} containing the parameters
    * @return result
@@ -107,37 +104,6 @@ public final class MethodDescriptor {
       }
     }
 
-    return invoke(manager, args);
-  }
-
-  /**
-   * Invokes the call that belongs to this object with the given parameters. Wraps the response
-   * (possibly an exception) in a JSONObject.
-   *
-   * @param parameters {@code Bundle} containing the parameters
-   * @return result
-   * @throws Throwable
-   */
-  public Object invoke(RpcReceiverManager manager, final Bundle parameters) throws Throwable {
-    final Annotation annotations[][] = getParameterAnnotations();
-    final Class<?>[] parameterTypes = getMethod().getParameterTypes();
-    final Object[] args = new Object[parameterTypes.length];
-
-    for (int i = 0; i < parameterTypes.length; i++) {
-      Class<?> parameterType = parameterTypes[i];
-      String parameterName = getName(annotations[i]);
-      if (i < parameterTypes.length) {
-        args[i] = convertParameter(parameters, parameterType, parameterName);
-      } else if (MethodDescriptor.hasDefaultValue(annotations[i])) {
-        args[i] = MethodDescriptor.getDefaultValue(parameterType, annotations[i]);
-      } else {
-        throw new RpcError("Argument " + (i + 1) + " is not present");
-      }
-    }
-    return invoke(manager, args);
-  }
-
-  private Object invoke(RpcReceiverManager manager, Object[] args) throws Throwable{
     Object result = null;
     try {
       result = manager.invoke(mClass, mMethod, args);
@@ -149,7 +115,7 @@ public final class MethodDescriptor {
 
   /**
    * Converts a parameter from JSON into a Java Object.
-   *
+   * 
    * @return TODO
    */
   // TODO(damonkohler): This signature is a bit weird (auto-refactored). The obvious alternative
@@ -203,38 +169,6 @@ public final class MethodDescriptor {
       throw new RpcError("Argument " + (index + 1) + " should be of type "
           + ((Class<?>) type).getSimpleName() + ".");
     }
-  }
-
-  private Object convertParameter(Bundle bundle, Class<?> type, String name) {
-    Object param = null;
-    if (type.isAssignableFrom(Boolean.class)) {
-      param = bundle.getBoolean(name, false);
-    }
-    if (type.isAssignableFrom(Boolean[].class)) {
-      param = bundle.getBooleanArray(name);
-    }
-    if (type.isAssignableFrom(String.class)) {
-      param = bundle.getString(name);
-    }
-    if (type.isAssignableFrom(String[].class)) {
-      param = bundle.getStringArray(name);
-    }
-    if (type.isAssignableFrom(Integer.class)) {
-      param = bundle.getInt(name, 0);
-    }
-    if (type.isAssignableFrom(Integer[].class)) {
-      param = bundle.getIntArray(name);
-    }
-    if (type.isAssignableFrom(Bundle.class)) {
-      param = bundle.getBundle(name);
-    }
-    if (type.isAssignableFrom(Parcelable.class)) {
-      param = bundle.getParcelable(name);
-    }
-    if (type.isAssignableFrom(Parcelable[].class)) {
-      param = bundle.getParcelableArray(name);
-    }
-    return param;
   }
 
   public static Object buildIntent(JSONObject jsonObject) throws JSONException {
@@ -293,7 +227,7 @@ public final class MethodDescriptor {
 
   /**
    * Returns a human-readable help text for this RPC, based on annotations in the source code.
-   *
+   * 
    * @return derived help string
    */
   public String getHelp() {
@@ -339,7 +273,7 @@ public final class MethodDescriptor {
 
   /**
    * Returns the help string for one particular parameter. This respects optional parameters.
-   *
+   * 
    * @param parameterType
    *          (generic) type of the parameter
    * @param annotations
@@ -371,7 +305,7 @@ public final class MethodDescriptor {
 
   /**
    * Appends the name of the given type to the {@link StringBuilder}.
-   *
+   * 
    * @param builder
    *          string builder to append to
    * @param type
@@ -398,10 +332,10 @@ public final class MethodDescriptor {
 
   /**
    * Returns parameter descriptors suitable for the RPC call text representation.
-   *
+   * 
    * <p>
    * Uses parameter value, default value or name, whatever is available first.
-   *
+   * 
    * @return an array of parameter descriptors
    */
   public ParameterDescriptor[] getParameterValues(String[] values) {
@@ -429,7 +363,7 @@ public final class MethodDescriptor {
 
   /**
    * Returns parameter hints.
-   *
+   * 
    * @return an array of parameter hints
    */
   public String[] getParameterHints() {
@@ -453,7 +387,7 @@ public final class MethodDescriptor {
 
   /**
    * Extracts the formal parameter name from an annotation.
-   *
+   * 
    * @param annotations
    *          the annotations of the parameter
    * @return the formal name of the parameter
@@ -469,7 +403,7 @@ public final class MethodDescriptor {
 
   /**
    * Extracts the parameter description from its annotations.
-   *
+   * 
    * @param annotations
    *          the annotations of the parameter
    * @return the description of the parameter
@@ -525,7 +459,7 @@ public final class MethodDescriptor {
 
   /**
    * Determines whether or not this parameter has default value.
-   *
+   * 
    * @param annotations
    *          annotations of the parameter
    */
@@ -540,7 +474,7 @@ public final class MethodDescriptor {
 
   /**
    * Returns whether the default value is specified for a specific parameter.
-   *
+   * 
    * @param annotations
    *          annotations of the parameter
    */
