@@ -401,7 +401,7 @@ public class WifiScannerFacade extends RpcReceiver {
      * @throws JSONException
      */
     @Rpc(description = "Get currently available scan results on appropriate listeners")
-    public Boolean getScanResults() throws JSONException {
+    public Boolean wifiScannerGetScanResults() throws JSONException {
         mScan.getScanResults();
         return true;
     }
@@ -573,34 +573,19 @@ public class WifiScannerFacade extends RpcReceiver {
      * @return the id of the change listener associated with this track
      * @throws Exception
      */
-    @Rpc(description = "Starts tracking wifi changes")
-    public Integer startTrackingChange(
-            @RpcParameter(name = "bssidInfos") String[] bssidInfos,
+    @Rpc(description = "Starts tracking wifi changes with track settings")
+    public Integer wifiScannerStartTrackingChangeWithSetting(
+            @RpcParameter(name = "trackSettings") JSONArray bssidSettings,
             @RpcParameter(name = "rssiSS") Integer rssiSS,
             @RpcParameter(name = "lostApSS") Integer lostApSS,
             @RpcParameter(name = "unchangedSS") Integer unchangedSS,
             @RpcParameter(name = "minApsBreachingThreshold") Integer minApsBreachingThreshold,
             @RpcParameter(name = "periodInMs") Integer periodInMs) throws Exception {
-        Log.d("starting change track");
-        BssidInfo[] mBssidInfos = new BssidInfo[bssidInfos.length];
-        for (int i = 0; i < bssidInfos.length; i++) {
-            Log.d("android_scripting " + bssidInfos[i]);
-            String[] tokens = bssidInfos[i].split(" ");
-            if (tokens.length != 3) {
-                throw new Exception("Invalid bssid info: " + bssidInfos[i]);
-
-            }
-            int rssiHI = Integer.parseInt(tokens[1]);
-            BssidInfo mBI = new BssidInfo();
-            mBI.bssid = tokens[0];
-            mBI.low = rssiHI - unchangedSS;
-            mBI.high = rssiHI + unchangedSS;
-            mBI.frequencyHint = Integer.parseInt(tokens[2]);
-            mBssidInfos[i] = mBI;
-        }
-        ChangeListener listener = genWifiChangeListener();
+        Log.d("starting change track with track settings");
+        BssidInfo[] bssids = parseBssidInfo(bssidSettings);
         mScan.configureWifiChange(rssiSS, lostApSS, unchangedSS, minApsBreachingThreshold,
-                periodInMs, mBssidInfos);
+              periodInMs, bssids);
+        ChangeListener listener = genWifiChangeListener();
         mScan.startTrackingWifiChange(listener);
         return listener.mIndex;
     }
