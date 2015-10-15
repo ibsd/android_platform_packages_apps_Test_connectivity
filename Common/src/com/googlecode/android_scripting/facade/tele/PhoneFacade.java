@@ -227,7 +227,11 @@ public class PhoneFacade extends RpcReceiver {
     public boolean phoneSetPreferredNetworkTypeForSubscription(String mode,
                                @RpcParameter(name = "subId") Integer subId) {
         int networkType;
-        int phoneType = mTelephonyManager.getPhoneType();
+        //FIXME: b/24954524
+        //      We cannot rely on the phone type being valid for non-voice devices
+        //      Worse, the phone type can switch, making this function unpredictable.
+        //      We need to change the way this function operates or remove it.
+        int phoneType = mTelephonyManager.getCurrentPhoneType(subId);
         if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
             switch (mode.toUpperCase()) {
                 case TelephonyConstants.RAT_4G:
@@ -236,7 +240,7 @@ public class PhoneFacade extends RpcReceiver {
                     break;
                 case TelephonyConstants.RAT_3G:
                 case TelephonyConstants.RAT_WCDMA:
-                    networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
+                    networkType = RILConstants.NETWORK_MODE_GSM_UMTS;
                     break;
                 case TelephonyConstants.RAT_2G:
                 case TelephonyConstants.RAT_GSM:
@@ -308,38 +312,24 @@ public class PhoneFacade extends RpcReceiver {
     public String phoneGetPreferredNetworkTypeForSubscription(
             @RpcParameter(name = "subId") Integer subId) {
         int mode = mTelephonyManager.getPreferredNetworkType(subId);
-        int phoneType = mTelephonyManager.getPhoneType();
-        if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            switch (mode) {
-                case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
-                    return TelephonyConstants.RAT_LTE;
-                case RILConstants.NETWORK_MODE_WCDMA_PREF:
-                    return TelephonyConstants.RAT_WCDMA;
-                case RILConstants.NETWORK_MODE_GSM_ONLY:
-                    return TelephonyConstants.RAT_GSM;
-                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                    return TelephonyConstants.RAT_GLOBAL;
-                default:
-                    Log.d("Unknown mode in phone type GSM: " + mode);
-                    return TelephonyConstants.RAT_UNKNOWN;
-            }
-        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
-            switch (mode) {
-                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-                    return TelephonyConstants.RAT_LTE;
-                case RILConstants.NETWORK_MODE_CDMA:
-                    return TelephonyConstants.RAT_EVDO;
-                case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
-                    return TelephonyConstants.RAT_1XRTT;
-                case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                    return TelephonyConstants.RAT_GLOBAL;
-                default:
-                    Log.d("Unknown mode in phone type CDMA: " + mode);
-                    return TelephonyConstants.RAT_UNKNOWN;
-            }
-        } else {
-            Log.d("Unknown phone type: " + phoneType);
-            return null;
+        switch (mode) {
+            case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
+            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
+                return TelephonyConstants.RAT_LTE;
+            case RILConstants.NETWORK_MODE_WCDMA_PREF:
+            case RILConstants.NETWORK_MODE_GSM_UMTS:
+                return TelephonyConstants.RAT_WCDMA;
+            case RILConstants.NETWORK_MODE_GSM_ONLY:
+                return TelephonyConstants.RAT_GSM;
+            case RILConstants.NETWORK_MODE_CDMA:
+                return TelephonyConstants.RAT_EVDO;
+            case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
+                return TelephonyConstants.RAT_1XRTT;
+            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                return TelephonyConstants.RAT_GLOBAL;
+            default:
+                Log.d("Unknown mode: " + mode);
+                return TelephonyConstants.RAT_UNKNOWN;
         }
     }
 
