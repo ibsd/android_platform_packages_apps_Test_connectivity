@@ -587,11 +587,6 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.getWifiApConfiguration();
     }
 
-    @Rpc(description = "Get a list of available channels for customized scan.")
-    public List<WifiChannel> wifiGetChannelList() {
-        return mWifi.getChannelList();
-    }
-
     @Rpc(description = "Returns the file in which IP and proxy configuration data is stored.")
     public String wifiGetConfigFile() {
         return mWifi.getConfigFile();
@@ -665,11 +660,6 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Return whether Wi-Fi AP is enabled or disabled.")
     public Boolean wifiIsApEnabled() {
         return mWifi.isWifiApEnabled();
-    }
-
-    @Rpc(description = "Check if the Batched Scan feature is supported..")
-    public Boolean wifiIsBatchedScanSupported() {
-        return mWifi.isBatchedScanSupported();
     }
 
     @Rpc(description = "Check if Device-to-AP RTT is supported.")
@@ -753,11 +743,6 @@ public class WifiManagerFacade extends RpcReceiver {
             mLock.release();
             mLock = null;
         }
-    }
-
-    @Rpc(description = "Force a re-reading of batched scan results.")
-    public void wifiPollBatchedScan() {
-        mWifi.pollBatchedScan();
     }
 
     /**
@@ -848,11 +833,6 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.startScan();
     }
 
-    @Rpc(description = "Start the driver and connect to network. This function will over-ride WifiLock and device idle status.")
-    public Boolean wifiStart() {
-        return mWifi.startWifi();
-    }
-
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
             @RpcParameter(name = "config",
@@ -878,11 +858,6 @@ public class WifiManagerFacade extends RpcReceiver {
             mService.unregisterReceiver(mStateChangeReceiver);
             mTrackingWifiStateChange = false;
         }
-    }
-
-    @Rpc(description = "Disconnect from a network (if any) and stop the driver. This function will over-ride WifiLock and device idle status.")
-    public Boolean wifiStop() {
-        return mWifi.stopWifi();
     }
 
     @Rpc(description = "Toggle Wifi on and off.", returns = "True if Wifi is enabled.")
