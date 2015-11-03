@@ -186,6 +186,11 @@
                 <action android:name="android.telecom.InCallService"/>
             </intent-filter>
         </service>
+        <service android:name=".service.FacadeService" android:enabled="true" android:exported="true" >
+            <intent-filter>
+                <action android:name="com.googlecode.android_scripting.service.FacadeService.ACTION_BIND" />
+            </intent-filter>
+        </service>
         <activity android:name=".activity.InterpreterManager" android:launchMode="singleTask" android:configChanges="keyboardHidden|orientation" />
         <activity android:name=".activity.LogcatViewer" android:launchMode="singleTask" android:configChanges="keyboardHidden|orientation" />
         <activity android:name=".activity.ScriptsLiveFolder" android:label="Scripts" android:icon="@drawable/live_folder" android:configChanges="keyboardHidden|orientation">
