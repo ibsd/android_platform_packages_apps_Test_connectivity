@@ -319,5 +319,32 @@ public class TelephonyConstants {
     public static final String  NetworkCallBackResumed = "Resumed";
     public static final String  NetworkCallBackLinkPropertiesChanged = "LinkPropertiesChanged";
     public static final String  NetworkCallBackInvalid = "Invalid";
-    
+
+    /**
+     * Constant for Network Preference
+     * **/
+    public static final String  NetworkModeWcdmaPref = "NetworkModeWcdmaPref";
+    public static final String  NetworkModeGsmOnly = "NetworkModeGsmOnly";
+    public static final String  NetworkModeWcdmaOnly = "NetworkModeWcdmaOnly";
+    public static final String  NetworkModeGsmUmts = "NetworkModeGsmUmts";
+    public static final String  NetworkModeCdma = "NetworkModeCdma";
+    public static final String  NetworkModeCdmaNoEvdo = "NetworkModeCdmaNoEvdo";
+    public static final String  NetworkModeEvdoNoCdma = "NetworkModeEvdoNoCdma";
+    public static final String  NetworkModeGlobal = "NetworkModeGlobal";
+    public static final String  NetworkModeLteCdmaEvdo = "NetworkModeLteCdmaEvdo";
+    public static final String  NetworkModeLteGsmWcdma = "NetworkModeLteGsmWcdma";
+    public static final String  NetworkModeLteCdmaEvdoGsmWcdma = "NetworkModeLteCdmaEvdoGsmWcdma";
+    public static final String  NetworkModeLteOnly = "NetworkModeLteOnly";
+    public static final String  NetworkModeLteWcdma = "NetworkModeLteWcdma";
+    public static final String  NetworkModeTdscdmaOnly = "NetworkModeTdscdmaOnly";
+    public static final String  NetworkModeTdscdmaWcdma = "NetworkModeTdscdmaWcdma";
+    public static final String  NetworkModeLteTdscdma = "NetworkModeLteTdscdma";
+    public static final String  NetworkModeTdsdmaGsm = "NetworkModeTdsdmaGsm";
+    public static final String  NetworkModeLteTdscdmaGsm = "NetworkModeLteTdscdmaGsm";
+    public static final String  NetworkModeTdscdmaGsmWcdma = "NetworkModeTdscdmaGsmWcdma";
+    public static final String  NetworkModeLteTdscdmaWcdma = "NetworkModeLteTdscdmaWcdma";
+    public static final String  NetworkModeLteTdscdmaGsmWcdma = "NetworkModeLteTdscdmaGsmWcdma";
+    public static final String  NetworkModeTdscdmaCdmaEvdoGsmWcdma = "NetworkModeTdscdmaCdmaEvdoGsmWcdma";
+    public static final String  NetworkModeLteTdscdmaCdmaEvdoGsmWcdma = "NetworkModeLteTdscdmaCdmaEvdoGsmWcdma";
+    public static final String  NetworkModeInvalid = "Invalid";
 }

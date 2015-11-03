@@ -1,5 +1,5 @@
 package com.googlecode.android_scripting.facade.tele;
-
+import com.android.internal.telephony.RILConstants;
 import com.googlecode.android_scripting.Log;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
@@ -8,7 +8,114 @@ import android.telephony.VoLteServiceState;
 /**
  * Telephony utility functions
  */
-public class TelephonyUtils {    
+public class TelephonyUtils {
+
+    public static int getNetworkModeIntfromString(String networkMode) {
+        switch (networkMode) {
+            case TelephonyConstants.NetworkModeWcdmaPref:
+                return RILConstants.NETWORK_MODE_WCDMA_PREF;
+            case TelephonyConstants.NetworkModeGsmOnly:
+                return RILConstants.NETWORK_MODE_GSM_ONLY;
+            case TelephonyConstants.NetworkModeWcdmaOnly:
+                return RILConstants.NETWORK_MODE_WCDMA_ONLY;
+            case TelephonyConstants.NetworkModeGsmUmts:
+                return RILConstants.NETWORK_MODE_GSM_UMTS;
+            case TelephonyConstants.NetworkModeCdma:
+                return RILConstants.NETWORK_MODE_CDMA;
+            case TelephonyConstants.NetworkModeCdmaNoEvdo:
+                return RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
+            case TelephonyConstants.NetworkModeEvdoNoCdma:
+                return RILConstants.NETWORK_MODE_EVDO_NO_CDMA;
+            case TelephonyConstants.NetworkModeGlobal:
+                return RILConstants.NETWORK_MODE_GLOBAL;
+            case TelephonyConstants.NetworkModeLteCdmaEvdo:
+                return RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
+            case TelephonyConstants.NetworkModeLteGsmWcdma:
+                return RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
+            case TelephonyConstants.NetworkModeLteCdmaEvdoGsmWcdma:
+                return RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+            case TelephonyConstants.NetworkModeLteOnly:
+                return RILConstants.NETWORK_MODE_LTE_ONLY;
+            case TelephonyConstants.NetworkModeLteWcdma:
+                return RILConstants.NETWORK_MODE_LTE_WCDMA;
+            case TelephonyConstants.NetworkModeTdscdmaOnly:
+                return RILConstants.NETWORK_MODE_TDSCDMA_ONLY;
+            case TelephonyConstants.NetworkModeTdscdmaWcdma:
+                return RILConstants.NETWORK_MODE_TDSCDMA_WCDMA;
+            case TelephonyConstants.NetworkModeLteTdscdma:
+                return RILConstants.NETWORK_MODE_LTE_TDSCDMA;
+            case TelephonyConstants.NetworkModeTdsdmaGsm:
+                return RILConstants.NETWORK_MODE_TDSCDMA_GSM;
+            case TelephonyConstants.NetworkModeLteTdscdmaGsm:
+                return RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM;
+            case TelephonyConstants.NetworkModeTdscdmaGsmWcdma:
+                return RILConstants.NETWORK_MODE_TDSCDMA_GSM_WCDMA;
+            case TelephonyConstants.NetworkModeLteTdscdmaWcdma:
+                return RILConstants.NETWORK_MODE_LTE_TDSCDMA_WCDMA;
+            case TelephonyConstants.NetworkModeLteTdscdmaGsmWcdma:
+                return RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA;
+            case TelephonyConstants.NetworkModeTdscdmaCdmaEvdoGsmWcdma:
+                return RILConstants.NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA;
+            case TelephonyConstants.NetworkModeLteTdscdmaCdmaEvdoGsmWcdma:
+                return RILConstants.NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA;
+        }
+        Log.d("getNetworkModeIntfromString error. String: " + networkMode);
+        return RILConstants.RIL_ERRNO_INVALID_RESPONSE;
+    }
+
+    public static String getNetworkModeStringfromInt(int networkMode) {
+        switch (networkMode) {
+            case RILConstants.NETWORK_MODE_WCDMA_PREF:
+                return TelephonyConstants.NetworkModeWcdmaPref;
+            case RILConstants.NETWORK_MODE_GSM_ONLY:
+                return TelephonyConstants.NetworkModeGsmOnly;
+            case RILConstants.NETWORK_MODE_WCDMA_ONLY:
+                return TelephonyConstants.NetworkModeWcdmaOnly;
+            case RILConstants.NETWORK_MODE_GSM_UMTS:
+                return TelephonyConstants.NetworkModeGsmUmts;
+            case RILConstants.NETWORK_MODE_CDMA:
+                return TelephonyConstants.NetworkModeCdma;
+            case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
+                return TelephonyConstants.NetworkModeCdmaNoEvdo;
+            case RILConstants.NETWORK_MODE_EVDO_NO_CDMA:
+                return TelephonyConstants.NetworkModeEvdoNoCdma;
+            case RILConstants.NETWORK_MODE_GLOBAL:
+                return TelephonyConstants.NetworkModeGlobal;
+            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
+                return TelephonyConstants.NetworkModeLteCdmaEvdo;
+            case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeLteGsmWcdma;
+            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeLteCdmaEvdoGsmWcdma;
+            case RILConstants.NETWORK_MODE_LTE_ONLY:
+                return TelephonyConstants.NetworkModeLteOnly;
+            case RILConstants.NETWORK_MODE_LTE_WCDMA:
+                return TelephonyConstants.NetworkModeLteWcdma;
+            case RILConstants.NETWORK_MODE_TDSCDMA_ONLY:
+                return TelephonyConstants.NetworkModeTdscdmaOnly;
+            case RILConstants.NETWORK_MODE_TDSCDMA_WCDMA:
+                return TelephonyConstants.NetworkModeTdscdmaWcdma;
+            case RILConstants.NETWORK_MODE_LTE_TDSCDMA:
+                return TelephonyConstants.NetworkModeLteTdscdma;
+            case RILConstants.NETWORK_MODE_TDSCDMA_GSM:
+                return TelephonyConstants.NetworkModeTdsdmaGsm;
+            case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM:
+                return TelephonyConstants.NetworkModeLteTdscdmaGsm;
+            case RILConstants.NETWORK_MODE_TDSCDMA_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeTdscdmaGsmWcdma;
+            case RILConstants.NETWORK_MODE_LTE_TDSCDMA_WCDMA:
+                return TelephonyConstants.NetworkModeLteTdscdmaWcdma;
+            case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeLteTdscdmaGsmWcdma;
+            case RILConstants.NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeTdscdmaCdmaEvdoGsmWcdma;
+            case RILConstants.NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA:
+                return TelephonyConstants.NetworkModeLteTdscdmaCdmaEvdoGsmWcdma;
+        }
+        Log.d("getNetworkModeIntfromString error. Int: " + networkMode);
+        return TelephonyConstants.NetworkModeInvalid;
+    }
+
     public static String getNetworkTypeString(int type) {
         switch(type) {
             case TelephonyManager.NETWORK_TYPE_GPRS:

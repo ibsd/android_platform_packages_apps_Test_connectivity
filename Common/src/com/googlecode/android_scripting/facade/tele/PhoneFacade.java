@@ -41,7 +41,6 @@ import android.util.Base64;
 import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.RILConstants;
 import com.android.internal.telephony.TelephonyProperties;
-
 import com.google.common.io.BaseEncoding;
 
 import android.content.ContentValues;
@@ -152,6 +151,66 @@ public class PhoneFacade extends RpcReceiver {
                 return null;
             }
         });
+    }
+
+    @Rpc(description = "Set network preference.")
+    public boolean phoneSetPreferredNetworkTypes(
+        @RpcParameter(name = "nwPreference") String nwPreference) {
+        return phoneSetPreferredNetworkTypesForSubscription(nwPreference,
+                SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Set network preference for subscription.")
+    public boolean phoneSetPreferredNetworkTypesForSubscription(
+            @RpcParameter(name = "nwPreference") String nwPreference,
+            @RpcParameter(name = "subId") Integer subId) {
+        int networkPreferenceInt = TelephonyUtils.getNetworkModeIntfromString(
+            nwPreference);
+        if (RILConstants.RIL_ERRNO_INVALID_RESPONSE != networkPreferenceInt) {
+            return mTelephonyManager.setPreferredNetworkType(
+                subId, networkPreferenceInt);
+        } else {
+            return false;
+        }
+    }
+
+    @Rpc(description = "Get network preference.")
+    public String phoneGetPreferredNetworkTypes() {
+        return phoneGetPreferredNetworkTypesForSubscription(
+                SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Get network preference for subscription.")
+    public String phoneGetPreferredNetworkTypesForSubscription(
+            @RpcParameter(name = "subId") Integer subId) {
+        int networkPreferenceInt = mTelephonyManager.getPreferredNetworkType(subId);
+        return TelephonyUtils.getNetworkModeStringfromInt(networkPreferenceInt);
+    }
+
+    @Rpc(description = "Get current voice network type")
+    public String phoneGetCurrentVoiceNetworkType() {
+        return phoneGetCurrentVoiceNetworkTypeForSubscription(
+                SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Get current voice network type for subscription")
+    public String phoneGetCurrentVoiceNetworkTypeForSubscription(
+            @RpcParameter(name = "subId") Integer subId) {
+        return TelephonyUtils.getNetworkTypeString(
+            mTelephonyManager.getVoiceNetworkType(subId));
+    }
+
+    @Rpc(description = "Get current data network type")
+    public String phoneGetCurrentDataNetworkType() {
+        return phoneGetCurrentDataNetworkTypeForSubscription(
+                SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Get current data network type for subscription")
+    public String phoneGetCurrentDataNetworkTypeForSubscription(
+            @RpcParameter(name = "subId") Integer subId) {
+        return TelephonyUtils.getNetworkTypeString(
+            mTelephonyManager.getDataNetworkType(subId));
     }
 
     @Rpc(description = "Set preferred network setting " +
