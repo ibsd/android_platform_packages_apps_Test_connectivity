@@ -40,7 +40,7 @@ APP_NAME=sl4a
 APP_PACKAGE_NAME=com.googlecode.android_scripting
 
 BRANCH_ROOT=${PWD}/../../../../..
-SL4A_ROOT=${BRANCH_ROOT}/vendor/google_testing/comms/Tools/sl4a
+SL4A_ROOT=${BRANCH_ROOT}/packages/apps/Test/connectivity/sl4a
 SHARED_LIB_JAR_ROOT=${BRANCH_ROOT}/out/target/common/obj/JAVA_LIBRARIES
 APP_JAR_ROOT=${BRANCH_ROOT}/out/target/common/obj/APPS
 APK_ROOT=${BRANCH_ROOT}/out/target/product/${TP}/system/priv-app/sl4a
