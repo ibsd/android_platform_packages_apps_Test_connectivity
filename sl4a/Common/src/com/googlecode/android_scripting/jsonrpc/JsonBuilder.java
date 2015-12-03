@@ -992,7 +992,7 @@ public class JsonBuilder {
     }
 
     private static JSONObject buildUri(Uri uri) throws JSONException {
-        return new JSONObject().put("Uri", build(uri.toString()));
+        return new JSONObject().put("Uri", build((uri != null) ? uri.toString() : ""));
     }
 
     private static JSONObject buildCallDetails(Call.Details details) throws JSONException {
