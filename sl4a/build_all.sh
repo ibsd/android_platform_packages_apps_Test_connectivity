@@ -30,11 +30,11 @@ declare -a lib_list=("Utils" "Common" "InterpreterForAndroid" "ScriptingLayer" "
 
 declare -a test_list=("Utils" "Common")
 
-IFS='_' read -a array <<< "${TARGET_PRODUCT}"
-export TP=${array[0]}
-if [[ ${#array[@]} -eq 2 ]]; then
-  export TP=${array[1]}
-fi
+#ensure that user has exported a lunch target
+[ -z "${TARGET_PRODUCT}" ] && echo "Please choose a lunch target prior to running!" && exit 1
+
+#If target is aosp_ then cut the prefix for build directory
+export TP=$(echo ${TARGET_PRODUCT} | sed "s/aosp_//")
 
 APP_NAME=sl4a
 APP_PACKAGE_NAME=com.googlecode.android_scripting
