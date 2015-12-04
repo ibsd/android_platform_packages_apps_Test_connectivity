@@ -76,13 +76,13 @@ for i in "${lib_list[@]}"
 do
   echo -e "${lb}+++++++ Building ${i} +++++++${NC}"
   cd $SL4A_ROOT/"${i}"
-  exec mm -B "building ${i}"
+  exec mm -j8 -B "building ${i}"
   echo
 done
 
 echo -e "${lb}+++++++ Building ${APP_NAME}.apk +++++++${NC}"
 cd ${SL4A_PROJ_DIR}
-exec mm -B "building ${APP_NAME}.apk"
+exec mm -j8 -B "building ${APP_NAME}.apk"
 echo
 
 }
