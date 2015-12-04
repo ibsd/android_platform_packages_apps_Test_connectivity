@@ -20,12 +20,19 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.EventFacade;
+import com.googlecode.android_scripting.facade.FacadeManager;
+import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
+import com.googlecode.android_scripting.rpc.Rpc;
+import com.googlecode.android_scripting.rpc.RpcOptional;
+import com.googlecode.android_scripting.rpc.RpcParameter;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -40,7 +47,6 @@ import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiActivityEnergyInfo;
-import android.net.wifi.WifiChannel;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
@@ -53,15 +59,6 @@ import android.os.Bundle;
 import android.provider.Settings.Global;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Base64;
-
-import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.facade.EventFacade;
-import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
-import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcDefault;
-import com.googlecode.android_scripting.rpc.RpcOptional;
-import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * WifiManager functions.
@@ -306,6 +303,8 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("wepKeys")) {
             // Looks like we only support static WEP.
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
+            config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
             JSONArray keys = j.getJSONArray("wepKeys");
             String[] wepKeys = new String[keys.length()];
             for (int i = 0; i < keys.length(); i++) {
@@ -487,7 +486,7 @@ public class WifiManagerFacade extends RpcReceiver {
             @RpcParameter(name = "uriString") String uriString,
             @RpcParameter(name = "mimeType") String mimeType,
             String dataString)
-            throws JSONException {
+                    throws JSONException {
         byte[] data = base64StrToBytes(dataString);
         return mWifi.buildWifiConfig(uriString, mimeType, data);
     }
@@ -512,8 +511,7 @@ public class WifiManagerFacade extends RpcReceiver {
      * @throws ConnectException
      * @throws JSONException
      */
-    @Rpc(description = "Connects a wifi network by ssid",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Connects a wifi network by ssid", returns = "True if the operation succeeded.")
     public Boolean wifiConnect(@RpcParameter(name = "config") JSONObject config)
             throws ConnectException, JSONException {
         WifiConfiguration wifiConfig = genWifiConfig(config);
@@ -527,8 +525,7 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.reconnect();
     }
 
-    @Rpc(description = "Disconnects from the currently active access point.",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Disconnects from the currently active access point.", returns = "True if the operation succeeded.")
     public Boolean wifiDisconnect() {
         return mWifi.disconnect();
     }
@@ -538,8 +535,7 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.enableAutoJoinWhenAssociated(enable);
     }
 
-    @Rpc(description = "Enable a configured network. Initiate a connection if disableOthers is true",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Enable a configured network. Initiate a connection if disableOthers is true", returns = "True if the operation succeeded.")
     public Boolean wifiEnableNetwork(@RpcParameter(name = "netId") Integer netId,
             @RpcParameter(name = "disableOthers") Boolean disableOthers) {
         return mWifi.enableNetwork(netId, disableOthers);
@@ -760,20 +756,17 @@ public class WifiManagerFacade extends RpcReceiver {
         mWifi.connect(wifiConfig, listener);
     }
 
-    @Rpc(description = "Reassociates with the currently active access point.",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Reassociates with the currently active access point.", returns = "True if the operation succeeded.")
     public Boolean wifiReassociate() {
         return mWifi.reassociate();
     }
 
-    @Rpc(description = "Reconnects to the currently active access point.",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Reconnects to the currently active access point.", returns = "True if the operation succeeded.")
     public Boolean wifiReconnect() {
         return mWifi.reconnect();
     }
 
-    @Rpc(description = "Remove a configured network.",
-            returns = "True if the operation succeeded.")
+    @Rpc(description = "Remove a configured network.", returns = "True if the operation succeeded.")
     public Boolean wifiRemoveNetwork(@RpcParameter(name = "netId") Integer netId) {
         return mWifi.removeNetwork(netId);
     }
@@ -781,8 +774,7 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Start/stop wifi soft AP.")
     public Boolean wifiSetApEnabled(
             @RpcParameter(name = "enable") Boolean enable,
-            @RpcParameter(name = "configJson")
-            JSONObject configJson) throws JSONException {
+            @RpcParameter(name = "configJson") JSONObject configJson) throws JSONException {
         int wifiState = mWifi.getWifiState();
         if (enable) {
             if ((wifiState == WifiManager.WIFI_STATE_ENABLING) ||
@@ -821,13 +813,11 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Enable/disable tdls with a mac address.")
     public void wifiSetTdlsEnabledWithMacAddress(
             @RpcParameter(name = "remoteMacAddress") String remoteMacAddress,
-            @RpcParameter(name = "enable") Boolean enable
-            ) {
+            @RpcParameter(name = "enable") Boolean enable) {
         mWifi.setTdlsEnabledWithMacAddress(remoteMacAddress, enable);
     }
 
-    @Rpc(description = "Starts a scan for Wifi access points.",
-            returns = "True if the scan was initiated successfully.")
+    @Rpc(description = "Starts a scan for Wifi access points.", returns = "True if the scan was initiated successfully.")
     public Boolean wifiStartScan() {
         mService.registerReceiver(mScanResultsAvailableReceiver, mScanFilter);
         return mWifi.startScan();
@@ -835,9 +825,8 @@ public class WifiManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Start Wi-fi Protected Setup.")
     public void wifiStartWps(
-            @RpcParameter(name = "config",
-                    description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
-            throws JSONException {
+            @RpcParameter(name = "config", description = "A json string with fields \"setup\", \"BSSID\", and \"pin\"") String config)
+                    throws JSONException {
         WpsInfo info = parseWpsInfo(config);
         WifiWpsCallback listener = new WifiWpsCallback();
         Log.d("Starting wps with: " + info);
@@ -869,11 +858,10 @@ public class WifiManagerFacade extends RpcReceiver {
         return enabled;
     }
 
-    @Rpc(description = "Toggle Wifi scan always available on and off.",
-            returns = "True if Wifi scan is always available.")
+    @Rpc(description = "Toggle Wifi scan always available on and off.", returns = "True if Wifi scan is always available.")
     public Boolean wifiToggleScanAlwaysAvailable(
             @RpcParameter(name = "enabled") @RpcOptional Boolean enabled)
-            throws SettingNotFoundException {
+                    throws SettingNotFoundException {
         ContentResolver cr = mService.getContentResolver();
         int isSet = 0;
         if (enabled == null) {
