@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -95,8 +95,8 @@ import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
 //FIXME: Refactor classes, constants and conversions out of here
-import com.googlecode.android_scripting.facade.tele.InCallServiceImpl;
-import com.googlecode.android_scripting.facade.tele.TelephonyUtils;
+import com.googlecode.android_scripting.facade.telephony.InCallServiceImpl;
+import com.googlecode.android_scripting.facade.telephony.TelephonyUtils;
 
 public class JsonBuilder {
 

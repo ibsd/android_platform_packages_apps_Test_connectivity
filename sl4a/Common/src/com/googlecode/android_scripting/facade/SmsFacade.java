@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -65,7 +65,7 @@ import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
-import com.googlecode.android_scripting.facade.tele.TelephonyConstants;
+import com.googlecode.android_scripting.facade.telephony.TelephonyConstants;
 
 //FIXME: Change the build order to use constants defined in here
 //import com.googlecode.android_scripting.provider.TelephonyTestProvider;

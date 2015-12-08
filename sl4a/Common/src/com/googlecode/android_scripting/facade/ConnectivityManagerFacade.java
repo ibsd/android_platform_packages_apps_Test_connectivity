@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,7 +34,7 @@ import android.provider.Settings.SettingNotFoundException;
 import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
-import com.googlecode.android_scripting.facade.tele.TelephonyConstants;
+import com.googlecode.android_scripting.facade.telephony.TelephonyConstants;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade.tele;
+package com.googlecode.android_scripting.facade.telephony;
 
 import android.app.Activity;
 import android.app.Service;
@@ -49,15 +49,15 @@ import android.os.SystemProperties;
 import com.googlecode.android_scripting.facade.AndroidFacade;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .CallStateChangeListener;
-import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .DataConnectionRealTimeInfoChangeListener;
-import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .DataConnectionStateChangeListener;
-import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .ServiceStateChangeListener;
-import com.googlecode.android_scripting.facade.tele.TelephonyStateListeners
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .VoiceMailStateChangeListener;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;

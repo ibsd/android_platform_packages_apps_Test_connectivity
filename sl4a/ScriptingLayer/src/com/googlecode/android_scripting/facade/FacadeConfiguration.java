@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -45,11 +45,11 @@ import com.googlecode.android_scripting.facade.media.MediaPlayerFacade;
 import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
 import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
-import com.googlecode.android_scripting.facade.tele.ImsManagerFacade;
-import com.googlecode.android_scripting.facade.tele.PhoneFacade;
-import com.googlecode.android_scripting.facade.tele.TelecomManagerFacade;
-import com.googlecode.android_scripting.facade.tele.SubscriptionManagerFacade;
-import com.googlecode.android_scripting.facade.tele.TelecomCallFacade;
+import com.googlecode.android_scripting.facade.telephony.ImsManagerFacade;
+import com.googlecode.android_scripting.facade.telephony.PhoneFacade;
+import com.googlecode.android_scripting.facade.telephony.TelecomManagerFacade;
+import com.googlecode.android_scripting.facade.telephony.SubscriptionManagerFacade;
+import com.googlecode.android_scripting.facade.telephony.TelecomCallFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.facade.wifi.HttpFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiManagerFacade;
