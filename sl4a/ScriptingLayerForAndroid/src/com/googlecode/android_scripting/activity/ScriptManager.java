@@ -45,7 +45,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.googlecode.android_scripting.ActivityFlinger;
-import com.googlecode.android_scripting.Analytics;
 import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.FileUtils;
@@ -55,7 +54,6 @@ import com.googlecode.android_scripting.R;
 import com.googlecode.android_scripting.ScriptListAdapter;
 import com.googlecode.android_scripting.ScriptStorageAdapter;
 import com.googlecode.android_scripting.dialog.Help;
-import com.googlecode.android_scripting.dialog.UsageTrackingConfirmation;
 import com.googlecode.android_scripting.facade.FacadeConfiguration;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
@@ -151,8 +149,6 @@ public class ScriptManager extends ListActivity {
     ActivityFlinger.attachView(getWindow().getDecorView(), this);
     startService(IntentBuilders.buildTriggerServiceIntent());
     handleIntent(getIntent());
-    UsageTrackingConfirmation.show(this);
-    Analytics.trackActivity(this);
   }
 
   @Override
