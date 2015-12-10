@@ -17,8 +17,10 @@
 */
 -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.googlecode.android_scripting" android:installLocation="auto" android:versionCode="603" android:versionName="6x03"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.googlecode.android_scripting"
     android:sharedUserId="android.uid.system">
+
     <permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
         android:protectionLevel="signature" />
     <permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
@@ -66,8 +68,6 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.DEVICE_POWER" />
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
@@ -83,7 +83,6 @@
     <uses-permission android:name="com.android.certinstaller.INSTALL_AS_USER" />
     <uses-permission android:name="android.permission.CLEAR_APP_USER_DATA" />
     <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
-    <uses-permission android:name="android.permission.WRITE_APN_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_CHECKIN_PROPERTIES" />
     <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
     <uses-permission android:name="android.permission.WRITE_USER_DICTIONARY" />
@@ -91,13 +90,10 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <uses-permission android:name="android.permission.BATTERY_STATS" />
     <uses-permission android:name="android.permission.MOVE_PACKAGE" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
     <uses-permission android:name="android.permission.BACKUP" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.READ_SYNC_STATS" />
-    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
-    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.STATUS_BAR" />
     <uses-permission android:name="android.permission.MANAGE_USB" />
     <uses-permission android:name="android.permission.SET_POINTER_SPEED" />
@@ -117,7 +113,6 @@
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
     <uses-permission android:name="android.permission.RECEIVE_EMERGENCY_BROADCAST"/>
-    <uses-sdk android:targetSdkVersion="10" android:minSdkVersion="3" />
     <application android:icon="@drawable/sl4a_logo_48" android:label="@string/application_title" android:name=".Sl4aApplication">
         <activity android:name=".activity.ScriptManager" android:configChanges="keyboardHidden|orientation" android:windowSoftInputMode="adjustResize" android:launchMode="singleTop">
             <intent-filter>

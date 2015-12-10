@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
 
@@ -63,7 +64,7 @@ public abstract class RpcReceiverManager {
 
         Constructor<? extends RpcReceiver> constructor;
         try {
-            constructor = clazz.getConstructor(getClass());
+            constructor = clazz.getConstructor(FacadeManager.class);
             object = constructor.newInstance(this);
             mReceivers.put(clazz, object);
         } catch (Exception e) {
