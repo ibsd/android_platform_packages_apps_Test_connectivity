@@ -823,8 +823,9 @@ public class JsonBuilder {
         acct.put("Address", data.getAddress().toSafeString());
         acct.put("SubscriptionAddress", data.getSubscriptionAddress()
                 .toSafeString());
-        acct.put("Label", data.getLabel().toString());
-        acct.put("ShortDescription", data.getShortDescription().toString());
+        acct.put("Label", ((data.getLabel() != null) ? data.getLabel().toString() : ""));
+        acct.put("ShortDescription", ((data.getShortDescription() != null) ? data
+                .getShortDescription().toString() : ""));
         return acct;
     }
 
@@ -1015,7 +1016,8 @@ public class JsonBuilder {
                 build(InCallServiceImpl.getCallPropertiesString(details.getCallProperties())));
 
         // TODO Parse fields in Disconnect Cause
-        callDetails.put("DisconnectCause", build(details.getDisconnectCause().toString()));
+        callDetails.put("DisconnectCause", build((details.getDisconnectCause() != null) ? details
+                .getDisconnectCause().toString() : ""));
         callDetails.put("ConnectTimeMillis", build(details.getConnectTimeMillis()));
 
         // TODO: GatewayInfo
