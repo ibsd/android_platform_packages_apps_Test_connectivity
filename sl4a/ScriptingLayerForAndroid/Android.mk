@@ -35,7 +35,7 @@ LOCAL_AAPT_FLAGS := --auto-add-overlay
 LOCAL_MULTILIB := both
 
 # Builds on the Data Partition
-#LOCAL_MODULE_PATH := $(TARGET_OUT_DATA_APPS)
+LOCAL_MODULE_PATH := $(TARGET_OUT_DATA_APPS)
 
 LOCAL_STATIC_JAVA_LIBRARIES := guava android-common locale_platform android-support-v4
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common
