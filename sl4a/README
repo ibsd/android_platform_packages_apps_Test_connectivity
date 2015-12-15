@@ -15,21 +15,21 @@ Due to its inclusion in AOSP as a privileged app, building SL4A requires a syste
 
 For the initial build of Android:
 
-1) cd <android-source-root>
+1) cd <ANDROID_SOURCE_ROOT>
 2) source build/envsetup.sh
-3) lunch <target>
+3) lunch <TARGET>
 4) make [-j15]
 
 Then Build SL4A:
 
-1) cd <android-source-root>/packages/apps/Test/connectivity/sl4a
+1) cd <ANDROID_SOURCE_ROOT>/packages/apps/Test/connectivity/sl4a
 2) mm [-j15]
 
 ===========================
 Install Instructions
 ===========================
 
-1) adb install -r <android-source-root>/out/target/product/<target>/data/app/sl4a/sl4a.apk
+1) adb install -r <ANDROID_SOURCE_ROOT>/out/target/product/<TARGET>/data/app/sl4a/sl4a.apk
 
 ===========================
 Run Instructions
