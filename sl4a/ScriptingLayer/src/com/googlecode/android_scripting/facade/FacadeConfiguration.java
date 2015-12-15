@@ -46,10 +46,11 @@ import com.googlecode.android_scripting.facade.media.MediaRecorderFacade;
 import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.telephony.ImsManagerFacade;
-import com.googlecode.android_scripting.facade.telephony.PhoneFacade;
+import com.googlecode.android_scripting.facade.telephony.TelephonyManagerFacade;
 import com.googlecode.android_scripting.facade.telephony.TelecomManagerFacade;
 import com.googlecode.android_scripting.facade.telephony.SubscriptionManagerFacade;
 import com.googlecode.android_scripting.facade.telephony.TelecomCallFacade;
+import com.googlecode.android_scripting.facade.telephony.CarrierConfigFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.facade.wifi.HttpFacade;
 import com.googlecode.android_scripting.facade.wifi.WifiManagerFacade;
@@ -89,7 +90,7 @@ public class FacadeConfiguration {
         sFacadeClassList.add(EventFacade.class);
         sFacadeClassList.add(ImsManagerFacade.class);
         sFacadeClassList.add(LocationFacade.class);
-        sFacadeClassList.add(PhoneFacade.class);
+        sFacadeClassList.add(TelephonyManagerFacade.class);
         sFacadeClassList.add(PreferencesFacade.class);
         sFacadeClassList.add(MediaPlayerFacade.class);
         sFacadeClassList.add(MediaRecorderFacade.class);
@@ -146,6 +147,7 @@ public class FacadeConfiguration {
             sFacadeClassList.add(WifiScannerFacade.class);
             sFacadeClassList.add(SubscriptionManagerFacade.class);
             sFacadeClassList.add(TelecomCallFacade.class);
+            sFacadeClassList.add(CarrierConfigFacade.class);
 
         }
 
