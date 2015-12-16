@@ -31,12 +31,13 @@ public class CustomizeWindow {
   }
 
   public static void requestCustomTitle(Activity activity, String title, int contentViewLayoutResId) {
-    activity.requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-    activity.setContentView(contentViewLayoutResId);
-    activity.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
-    ((TextView) activity.findViewById(R.id.left_text)).setText(title);
-    ((TextView) activity.findViewById(R.id.right_text)).setText("SL4A r"
-        + Version.getVersion(activity));
+    //b/26218264
+    //activity.requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+    //activity.setContentView(contentViewLayoutResId);
+    //activity.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
+    //((TextView) activity.findViewById(R.id.left_text)).setText(title);
+    //((TextView) activity.findViewById(R.id.right_text)).setText("SL4A r"
+    //    + Version.getVersion(activity));
   }
 
   public static void toggleProgressBarVisibility(Activity activity, boolean on) {
