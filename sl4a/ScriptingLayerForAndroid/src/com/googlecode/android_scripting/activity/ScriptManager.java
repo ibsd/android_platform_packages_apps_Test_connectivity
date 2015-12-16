@@ -182,7 +182,7 @@ public class ScriptManager extends ListActivity {
       }
     }
 
-    if (mScripts.size() == 0) {
+    if ((mScripts.size() == 0) && findViewById(android.R.id.empty) != null) {
       ((TextView) findViewById(android.R.id.empty)).setText("No matches found.");
     }
 
@@ -263,7 +263,7 @@ public class ScriptManager extends ListActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (!mInSearchResultMode) {
+    if (!mInSearchResultMode && findViewById(android.R.id.empty) != null) {
       ((TextView) findViewById(android.R.id.empty)).setText(R.string.no_scripts_message);
     }
     updateAndFilterScriptList(mQuery);
