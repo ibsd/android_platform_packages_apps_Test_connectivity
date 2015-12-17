@@ -385,7 +385,10 @@ public class AndroidFacade extends RpcReceiver {
 
   private Intent buildIntent(String action, String uri, String type, JSONObject extras,
       String packagename, String classname, JSONArray categories) throws JSONException {
-    Intent intent = new Intent(action);
+    Intent intent = new Intent();
+    if (action != null) {
+      intent.setAction(action);
+    }
     intent.setDataAndType(uri != null ? Uri.parse(uri) : null, type);
     if (packagename != null && classname != null) {
       intent.setComponent(new ComponentName(packagename, classname));
@@ -670,6 +673,24 @@ public class AndroidFacade extends RpcReceiver {
     }
   }
 
+  @Rpc(description = "Starts a service.")
+  public void startService(
+      @RpcParameter(name = "uri")
+      @RpcOptional String uri,
+      @RpcParameter(name = "extras", description = "a Map of extras to add to the Intent")
+      @RpcOptional JSONObject extras,
+      @RpcParameter(name = "packagename",
+                    description = "name of package. If used, requires classname to be useful")
+      @RpcOptional String packagename,
+      @RpcParameter(name = "classname",
+                    description = "name of class. If used, requires packagename to be useful")
+      @RpcOptional String classname
+      ) throws Exception {
+    final Intent intent = buildIntent(null /* action */, uri, null /* type */, extras, packagename,
+                                      classname, null /* categories */);
+    mService.startService(intent);
+  }
+
   @Rpc(description = "Create an Intent.", returns = "An object representing an Intent")
   public Intent makeIntent(
       @RpcParameter(name = "action")
@@ -718,6 +739,15 @@ public class AndroidFacade extends RpcReceiver {
       Intent intent
       ) throws Exception {
     mService.sendBroadcast(intent);
+  }
+
+  @Rpc(description = "Start Service using Intent")
+  public void startServiceIntent(
+      @RpcParameter(name = "intent",
+                    description = "Intent in the format as returned from makeIntent")
+      Intent intent
+      ) throws Exception {
+    mService.startService(intent);
   }
 
   @Rpc(description = "Vibrates the phone or a specified duration in milliseconds.")
