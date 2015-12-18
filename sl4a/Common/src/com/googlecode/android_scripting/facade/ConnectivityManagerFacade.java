@@ -692,6 +692,12 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         mManager.setAirplaneMode(enabled);
     }
 
+    @Rpc(description = "Check if tethering supported or not.",
+            returns = "True if tethering is supported.")
+    public boolean connectivityIsTetheringSupported() {
+        return mManager.isTetheringSupported();
+    }
+
     @Override
     public void shutdown() {
         connectivityStopTrackingConnectivityStateChange();
