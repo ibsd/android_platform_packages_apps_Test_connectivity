@@ -62,6 +62,8 @@ public class CarrierConfigFacade extends RpcReceiver {
         public static final int USB_TETHERING       = 1;
         public static final int BLUETOOTH_TETHERING = 2;
         */
+        // TODO: b/26273844 need to use android.settingslib.TetherUtil to
+        // replace those private defines.
         final int INVALID             = -1;
         final int WIFI_TETHERING      = 0;
         final int USB_TETHERING       = 1;

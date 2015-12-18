@@ -48,7 +48,6 @@ public class TelecomCallFacade extends RpcReceiver {
         super(manager);
         mService = manager.getService();
 
-        // TODO: Is there a better way to do this?
         InCallServiceImpl.setEventFacade(
                 manager.getReceiver(EventFacade.class));
     }

@@ -281,7 +281,8 @@ public class InCallServiceImpl extends InCallService {
 
             if ((mEvents & EVENT_VIDEO_CALL_CHANGED)
                     == EVENT_VIDEO_CALL_CHANGED) {
-                // FIXME: Need to determine what to return; probably not the whole video call
+                // TODO: b/26273778 Need to determine what to return;
+                // probably not the whole video call
                 servicePostEvent(TelephonyConstants.EventTelecomCallVideoCallChanged,
                         new CallEvent<String>(mCallId, videoCall.toString()));
             }
@@ -499,7 +500,7 @@ public class InCallServiceImpl extends InCallService {
 
         public void updateVideoCall(VideoCall videoCall, VideoCallCallback videoCallCallback) {
             if (videoCall == null && videoCallCallback != null) {
-                // nastygram
+                Log.d("UpdateVideoCall: videoCall and videoCallCallback are null.");
                 return;
             }
             mVideoCall = videoCall;
@@ -508,8 +509,9 @@ public class InCallServiceImpl extends InCallService {
     }
 
     /*
-     * FIXME: Refactor so that these are instance members of the incallservice Then we can perform
-     * null checks using the design pattern of the "manager" classes
+     * TODO: b/26272583 Refactor so that these are instance members of the
+     * incallservice. Then we can perform null checks using the design pattern
+     * of the "manager" classes.
      */
 
     private static EventFacade mEventFacade = null;
@@ -565,8 +567,6 @@ public class InCallServiceImpl extends InCallService {
         Log.d("onCallRemoved: " + call.toString());
         String id = getCallId(call);
         Log.d("Removing " + id);
-
-        // TODO: Should we remove the listener from the call?
 
         mCallContainerMap.remove(id);
 
@@ -661,7 +661,7 @@ public class InCallServiceImpl extends InCallService {
     public static void callDisconnect(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("callDisconnect: callId is null");
             return;
         }
 
@@ -671,7 +671,7 @@ public class InCallServiceImpl extends InCallService {
     public static void holdCall(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("holdCall: callId is null");
             return;
         }
         c.hold();
@@ -680,7 +680,7 @@ public class InCallServiceImpl extends InCallService {
     public static void mergeCallsInConference(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("mergeCallsInConference: callId is null");
             return;
         }
         c.mergeConference();
@@ -689,7 +689,7 @@ public class InCallServiceImpl extends InCallService {
     public static void splitCallFromConf(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("splitCallFromConf: callId is null");
             return;
         }
         c.splitFromConference();
@@ -698,7 +698,7 @@ public class InCallServiceImpl extends InCallService {
     public static void unholdCall(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("unholdCall: callId is null");
             return;
         }
         c.unhold();
@@ -709,7 +709,7 @@ public class InCallServiceImpl extends InCallService {
         Call callTwo = getCallById(callIdTwo);
 
         if (callOne == null || callTwo == null) {
-            // TODO: Print a nastygram
+            Log.d("joinCallsInConf: callOne or CallTwo is null");
             return;
         }
 
@@ -767,13 +767,13 @@ public class InCallServiceImpl extends InCallService {
     public static void overrideProximitySensor(Boolean screenOn) {
         InCallServiceImpl svc = getService();
         if (svc == null) {
-            // TODO: Print a nastygram
+            Log.d("overrideProximitySensor: InCallServiceImpl is null.");
             return;
         }
 
         Phone phone = svc.getPhone();
         if (phone == null) {
-            // TODO: Print a nastygram
+            Log.d("overrideProximitySensor: phone is null.");
             return;
         }
 
@@ -796,7 +796,7 @@ public class InCallServiceImpl extends InCallService {
         InCallServiceImpl svc = getService();
 
         if (svc == null) {
-            // TODO: Print a nastygram
+            Log.d("serviceSetAudioRoute: InCallServiceImpl is null.");
             return;
         }
 
@@ -816,14 +816,14 @@ public class InCallServiceImpl extends InCallService {
         CallCallback cl = getCallCallbackById(callId);
 
         if (cl == null) {
-            // TODO: Print a nastygram
+            Log.d("callStartListeningForEvent: CallCallback is null.");
             return;
         }
 
         int event = getCallCallbackEvent(strEvent);
 
         if (event == CallCallback.EVENT_INVALID) {
-            // TODO: Print a nastygram
+            Log.d("callStartListeningForEvent: event is invalid.");
             return;
         }
 
@@ -834,14 +834,14 @@ public class InCallServiceImpl extends InCallService {
         CallCallback cl = getCallCallbackById(callId);
 
         if (cl == null) {
-            // TODO: Print a nastygram
+            Log.d("callStopListeningForEvent: CallCallback is null.");
             return;
         }
 
         int event = getCallCallbackEvent(strEvent);
 
         if (event == CallCallback.EVENT_INVALID) {
-            // TODO: Print a nastygram
+            Log.d("callStopListeningForEvent: event is invalid.");
             return;
         }
 
@@ -870,14 +870,14 @@ public class InCallServiceImpl extends InCallService {
         VideoCallCallback cl = getVideoCallListenerById(callId);
 
         if (cl == null) {
-            // TODO: Print a nastygram
+            Log.d("videoCallStopListeningForEvent: CallCallback is null.");
             return;
         }
 
         int event = getVideoCallCallbackEvent(strEvent);
 
         if (event == VideoCallCallback.EVENT_INVALID) {
-            // TODO: Print a nastygram
+            Log.d("getVideoCallCallbackEvent: event is invalid.");
             return;
         }
 
@@ -890,7 +890,7 @@ public class InCallServiceImpl extends InCallService {
         int state = CallCallback.STATE_INVALID;
 
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("videoCallGetState: call is null.");
         }
         else {
             state = c.getDetails().getVideoState();
@@ -951,13 +951,13 @@ public class InCallServiceImpl extends InCallService {
         Call c = getCallById(callId);
 
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("callAnswer: call is null.");
         }
 
         int state = getVideoCallState(videoState);
 
         if (state == CallCallback.STATE_INVALID) {
-            // TODO: Print a nastygram
+            Log.d("callAnswer: video state is invalid.");
             state = VideoProfile.STATE_AUDIO_ONLY;
         }
 
@@ -968,7 +968,7 @@ public class InCallServiceImpl extends InCallService {
         Call c = getCallById(callId);
 
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("callReject: call is null.");
         }
 
         c.reject((message != null) ? true : false, message);
@@ -978,7 +978,7 @@ public class InCallServiceImpl extends InCallService {
         Call c = getCallById(callId);
 
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("getCallParent: call is null.");
             return null;
         }
         Call callParent = c.getParent();
@@ -989,7 +989,7 @@ public class InCallServiceImpl extends InCallService {
         Call c = getCallById(callId);
 
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("getCallChildren: call is null.");
             return null;
         }
         List<String> childrenList = new ArrayList<String>();
@@ -1003,7 +1003,7 @@ public class InCallServiceImpl extends InCallService {
     public static void swapCallsInConference(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("swapCallsInConference: call is null.");
             return;
         }
         c.swapConference();
@@ -1012,7 +1012,7 @@ public class InCallServiceImpl extends InCallService {
     public static void callPlayDtmfTone(String callId, char digit) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("callPlayDtmfTone: call is null.");
             return;
         }
         c.playDtmfTone(digit);
@@ -1021,7 +1021,7 @@ public class InCallServiceImpl extends InCallService {
     public static void callStopDtmfTone(String callId) {
         Call c = getCallById(callId);
         if (c == null) {
-            // TODO: Print a nastygram
+            Log.d("callStopDtmfTone: call is null.");
             return;
         }
         c.stopDtmfTone();
@@ -1058,7 +1058,7 @@ public class InCallServiceImpl extends InCallService {
                 return TelephonyConstants.VT_STATE_BIDIRECTIONAL_PAUSED;
             default:
         }
-        // probably need to wtf here
+        Log.d("getVideoCallStateString: state is invalid.");
         return TelephonyConstants.VT_STATE_STATE_INVALID;
     }
 
@@ -1081,7 +1081,7 @@ public class InCallServiceImpl extends InCallService {
 
             default:
         }
-        // probably need to wtf here
+        Log.d("getVideoCallState: state is invalid.");
         return CallCallback.STATE_INVALID;
     }
 
@@ -1100,7 +1100,7 @@ public class InCallServiceImpl extends InCallService {
                 return VideoProfile.QUALITY_DEFAULT;
             default:
         }
-        // probably need to wtf here
+        Log.d("getVideoCallQuality: quality is invalid.");
         return QUALITY_INVALID;
     }
 
@@ -1118,7 +1118,7 @@ public class InCallServiceImpl extends InCallService {
                 return TelephonyConstants.VT_VIDEO_QUALITY_DEFAULT;
             default:
         }
-        // probably need to wtf here
+        Log.d("getVideoCallQualityString: quality is invalid.");
         return TelephonyConstants.VT_VIDEO_QUALITY_INVALID;
     }
 
@@ -1144,7 +1144,7 @@ public class InCallServiceImpl extends InCallService {
             case "EVENT_CONFERENCABLE_CALLS_CHANGED":
                 return CallCallback.EVENT_CONFERENCABLE_CALLS_CHANGED;
         }
-        // probably need to wtf here
+        Log.d("getCallCallbackEvent: event is invalid.");
         return CallCallback.EVENT_INVALID;
     }
 
@@ -1170,7 +1170,7 @@ public class InCallServiceImpl extends InCallService {
             case CallCallback.EVENT_CONFERENCABLE_CALLS_CHANGED:
                 return "EVENT_CONFERENCABLE_CALLS_CHANGED";
         }
-        // probably need to wtf here
+        Log.d("getCallCallbackEventString: event is invalid.");
         return "EVENT_INVALID";
     }
 
@@ -1192,7 +1192,7 @@ public class InCallServiceImpl extends InCallService {
             case TelephonyConstants.EventCameraCapabilitiesChanged:
                 return VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED;
         }
-        // probably need to wtf here
+        Log.d("getVideoCallCallbackEvent: event is invalid.");
         return CallCallback.EVENT_INVALID;
     }
 
@@ -1214,7 +1214,7 @@ public class InCallServiceImpl extends InCallService {
             case VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED:
                 return TelephonyConstants.EventCameraCapabilitiesChanged;
         }
-        // probably need to wtf here
+        Log.d("getVideoCallListenerEventString: event is invalid.");
         return TelephonyConstants.EventInvalid;
     }
 
@@ -1377,7 +1377,6 @@ public class InCallServiceImpl extends InCallService {
             case Call.Details.PROPERTY_HIGH_DEF_AUDIO:
                 return TelephonyConstants.CALL_PROPERTY_HIGH_DEF_AUDIO;
             default:
-                // FIXME define PROPERTY_UNKNOWN somewhere
                 return TelephonyConstants.CALL_PROPERTY_UNKNOWN;
         }
     }
