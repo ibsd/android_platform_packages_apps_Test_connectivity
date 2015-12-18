@@ -213,80 +213,9 @@ public class TelephonyManagerFacade extends RpcReceiver {
             mTelephonyManager.getDataNetworkType(subId));
     }
 
-    @Rpc(description = "Set preferred network setting " +
-                       "for default subscription ID")
-    public boolean telephonySetPreferredNetworkType(String mode) {
-        return telephonySetPreferredNetworkTypeForSubscription(mode,
-                                SubscriptionManager.getDefaultSubId());
-    }
-
     @Rpc(description = "Get if phone have voice capability")
     public boolean telephonyIsVoiceCapable() {
         return mTelephonyManager.isVoiceCapable();
-    }
-
-    @Rpc(description = "Set preferred network setting " +
-                       "for specified subscription ID")
-    public boolean telephonySetPreferredNetworkTypeForSubscription(String mode,
-                               @RpcParameter(name = "subId") Integer subId) {
-        int networkType;
-        //FIXME: b/24954524
-        //      We cannot rely on the phone type being valid for non-voice devices
-        //      Worse, the phone type can switch, making this function unpredictable.
-        //      We need to change the way this function operates or remove it.
-        int phoneType = mTelephonyManager.getCurrentPhoneType(subId);
-        if (phoneType == TelephonyManager.PHONE_TYPE_GSM) {
-            switch (mode.toUpperCase()) {
-                case TelephonyConstants.RAT_4G:
-                case TelephonyConstants.RAT_LTE:
-                    networkType = RILConstants.NETWORK_MODE_LTE_GSM_WCDMA;
-                    break;
-                case TelephonyConstants.RAT_3G:
-                case TelephonyConstants.RAT_WCDMA:
-                    networkType = RILConstants.NETWORK_MODE_GSM_UMTS;
-                    break;
-                case TelephonyConstants.RAT_2G:
-                case TelephonyConstants.RAT_GSM:
-                    networkType = RILConstants.NETWORK_MODE_GSM_ONLY;
-                    break;
-                case TelephonyConstants.RAT_GLOBAL:
-                    networkType =
-                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-                    break;
-                default:
-                    Log.d("SL4A SetPreferredNetworkType False GSM");
-                    return false;
-            }
-        } else if (phoneType == TelephonyManager.PHONE_TYPE_CDMA) {
-            switch (mode.toUpperCase()) {
-                case TelephonyConstants.RAT_4G:
-                case TelephonyConstants.RAT_LTE:
-                    networkType = RILConstants.NETWORK_MODE_LTE_CDMA_EVDO;
-                    break;
-                case TelephonyConstants.RAT_3G:
-                case TelephonyConstants.RAT_EVDO:
-                    networkType = RILConstants.NETWORK_MODE_CDMA;
-                    break;
-                case TelephonyConstants.RAT_2G:
-                case TelephonyConstants.RAT_1XRTT:
-                    networkType = RILConstants.NETWORK_MODE_CDMA_NO_EVDO;
-                    break;
-                case TelephonyConstants.RAT_GLOBAL:
-                    networkType =
-                            RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
-                    break;
-                default:
-                    Log.d("SL4A SetPreferredNetworkType False CDMA");
-                    return false;
-            }
-        } else {
-            Log.d("SL4A SetPreferredNetworkType False type:" + phoneType);
-            return false;
-        }
-        Log.v("SL4A: Setting the preferred network setting of subId: "
-                + subId +"to:" + networkType);
-        mTelephonyManager.setPreferredNetworkType(subId, networkType);
-        return true;
     }
 
     @Rpc(description = "Get preferred network setting for " +
@@ -301,39 +230,6 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public int telephonyGetPreferredNetworkTypeIntegerForSubscription(
                @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.getPreferredNetworkType(subId);
-    }
-
-    @Rpc(description = "Get preferred network setting for " +
-                       "default subscription ID.Return value is String.")
-    public String telephonyGetPreferredNetworkType() {
-        return telephonyGetPreferredNetworkTypeForSubscription(
-                                       SubscriptionManager.getDefaultSubId());
-    }
-
-    @Rpc(description = "Get preferred network setting for " +
-                       "specified subscription ID.Return value is String.")
-    public String telephonyGetPreferredNetworkTypeForSubscription(
-            @RpcParameter(name = "subId") Integer subId) {
-        int mode = mTelephonyManager.getPreferredNetworkType(subId);
-        switch (mode) {
-            case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
-            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-                return TelephonyConstants.RAT_LTE;
-            case RILConstants.NETWORK_MODE_WCDMA_PREF:
-            case RILConstants.NETWORK_MODE_GSM_UMTS:
-                return TelephonyConstants.RAT_WCDMA;
-            case RILConstants.NETWORK_MODE_GSM_ONLY:
-                return TelephonyConstants.RAT_GSM;
-            case RILConstants.NETWORK_MODE_CDMA:
-                return TelephonyConstants.RAT_EVDO;
-            case RILConstants.NETWORK_MODE_CDMA_NO_EVDO:
-                return TelephonyConstants.RAT_1XRTT;
-            case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-                return TelephonyConstants.RAT_GLOBAL;
-            default:
-                Log.d("Unknown mode: " + mode);
-                return TelephonyConstants.RAT_UNKNOWN;
-        }
     }
 
     @Rpc(description = "Starts tracking call state change" +
@@ -963,7 +859,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
                        @RpcParameter(name = "type") @RpcOptional @RpcDefault("")
                        final String type,
                        @RpcParameter(name = "subId") @RpcOptional Integer subId) {
-        //TODO Need to find out how to set APN for specific subId
+        //TODO: b/26273471 Need to find out how to set APN for specific subId
         Uri uri;
         Cursor cursor;
 
@@ -1035,7 +931,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public int telephonyGetNumberOfAPNs(
                @RpcParameter(name = "subId")
                @RpcOptional Integer subId) {
-        //TODO Need to find out how to get Number of APNs for specific subId
+        //TODO: b/26273471 Need to find out how to get Number of APNs for specific subId
         int result = 0;
         String where = "numeric=\"" + android.os.SystemProperties.get(
                         TelephonyProperties.PROPERTY_ICC_OPERATOR_NUMERIC, "") + "\"";
@@ -1056,7 +952,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public String telephonyGetSelectedAPN(
                   @RpcParameter(name = "subId")
                   @RpcOptional Integer subId) {
-        //TODO Need to find out how to get selected APN for specific subId
+        //TODO: b/26273471 Need to find out how to get selected APN for specific subId
         String key = null;
         int ID_INDEX = 0;
         final String PREFERRED_APN_URI = "content://telephony/carriers/preferapn";
@@ -1137,8 +1033,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Returns the service state for default subscription ID")
     public String telephonyGetServiceState() {
-        // TODO
-        // No framework API available
+        //TODO: b/26273807 need to have framework API to get service state.
         return telephonyGetServiceStateForSubscription(
                                  SubscriptionManager.getDefaultSubId());
     }
@@ -1146,8 +1041,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns the service state for specified subscription ID")
     public String telephonyGetServiceStateForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        // TODO
-        // No framework API available
+        //TODO: b/26273807 need to have framework API to get service state.
         return null;
     }
 
@@ -1161,7 +1055,6 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public String telephonyGetCallStateForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
         switch (mTelephonyManager.getCallState(subId)) {
-            //TODO: b/20916221: Standardize names using enum-name convention
             case TelephonyManager.CALL_STATE_IDLE:
                 return TelephonyConstants.TELEPHONY_STATE_IDLE;
             case TelephonyManager.CALL_STATE_RINGING:
