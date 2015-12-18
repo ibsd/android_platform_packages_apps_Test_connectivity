@@ -207,4 +207,13 @@
   <string name="no_interpreters">No interpreters.</string>
   <string name="no_logcat_msg">No logcat messages.</string>
   <string name="cancel_all">Cancel All</string>
+
+  <string name="title_triggers">Triggers</string>
+  <string name="title_scripts">Scripts</string>
+  <string name="title_api_browser">API Browser</string>
+  <string name="title_logcat">Logcat</string>
+  <string name="title_interpreters">Interpreters</string>
+  <string name="title_script_monitor">Script Monitor</string>
+  <string name="title_bluetooth_devices">Bluetooth Devices</string>
+
 </resources>
