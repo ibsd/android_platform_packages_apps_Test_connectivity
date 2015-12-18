@@ -46,8 +46,8 @@ public class CarrierConfigFacade extends RpcReceiver {
         String[] mProvisionApp = mService.getResources().getStringArray(
                 com.android.internal.R.array.config_mobile_hotspot_provision_app);
         /* following check defined in
-            packages/apps/Settings/src/com/android/settings/TetherSettings.java
-            isProvisioningNeeded
+        frameworks/base/packages/SettingsLib/src/com/android/settingslib/TetherUtil.java
+        isProvisioningNeeded
         */
         if ((mProvisionApp == null) || (mProvisionApp.length != 2)){
             Log.d("carrierConfigIsTetheringModeAllowed: no check is present.");
@@ -56,18 +56,20 @@ public class CarrierConfigFacade extends RpcReceiver {
         Log.d("carrierConfigIsTetheringModeAllowed mProvisionApp 0 " + mProvisionApp[0]);
         Log.d("carrierConfigIsTetheringModeAllowed mProvisionApp 1 " + mProvisionApp[1]);
 
-        // FIXME: Need to use TetherSettings.xxx to replace the following private definitions.
-        /* defined in packages/apps/Settings/src/com/android/settings/TetherSettings.java
+        /* defined in frameworks/base/packages/SettingsLib/src/com/android/settingslib/TetherUtil.java
         public static final int INVALID             = -1;
         public static final int WIFI_TETHERING      = 0;
         public static final int USB_TETHERING       = 1;
         public static final int BLUETOOTH_TETHERING = 2;
-        private static final int PROVISION_REQUEST = 0;
         */
         final int INVALID             = -1;
         final int WIFI_TETHERING      = 0;
         final int USB_TETHERING       = 1;
         final int BLUETOOTH_TETHERING = 2;
+
+        /* defined in packages/apps/Settings/src/com/android/settings/TetherSettings.java
+        private static final int PROVISION_REQUEST = 0;
+        */
         final int PROVISION_REQUEST = 0;
 
         int mTetherChoice = INVALID;
@@ -99,6 +101,6 @@ public class CarrierConfigFacade extends RpcReceiver {
 
     @Override
     public void shutdown() {
-        // TODO Auto-generated method stub
+
     }
 }
