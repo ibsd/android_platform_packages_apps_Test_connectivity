@@ -48,7 +48,6 @@ import com.googlecode.android_scripting.FileUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.R;
 import com.googlecode.android_scripting.ScriptStorageAdapter;
-import com.googlecode.android_scripting.dialog.Help;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
 
@@ -185,7 +184,6 @@ public class ScriptEditor extends Activity implements OnClickListener {
         android.R.drawable.ic_menu_preferences);
     menu.add(0, MenuId.API_BROWSER.getId(), 0, "API Browser").setIcon(
         android.R.drawable.ic_menu_info_details);
-    menu.add(0, MenuId.HELP.getId(), 0, "Help").setIcon(android.R.drawable.ic_menu_help);
     menu.add(0, MenuId.SHARE.getId(), 0, "Share").setIcon(android.R.drawable.ic_menu_share);
     menu.add(0, MenuId.GOTO.getId(), 0, "GoTo").setIcon(android.R.drawable.ic_menu_directions);
     menu.add(0, MenuId.SEARCH.getId(), 0, "Find").setIcon(android.R.drawable.ic_menu_search);
@@ -220,8 +218,6 @@ public class ScriptEditor extends Activity implements OnClickListener {
           mConfiguration.getInterpreterForScript(mNameText.getText().toString()).getName());
       intent.putExtra(Constants.EXTRA_SCRIPT_TEXT, mContentText.getText().toString());
       startActivityForResult(intent, RequestCode.RPC_HELP.ordinal());
-    } else if (item.getItemId() == MenuId.HELP.getId()) {
-      Help.show(this);
     } else if (item.getItemId() == MenuId.SHARE.getId()) {
       Intent intent = new Intent(Intent.ACTION_SEND);
       intent.putExtra(Intent.EXTRA_TEXT, mContentText.getText().toString());

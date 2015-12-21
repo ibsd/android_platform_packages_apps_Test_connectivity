@@ -34,7 +34,6 @@ import com.googlecode.android_scripting.ActivityFlinger;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.Process;
 import com.googlecode.android_scripting.R;
-import com.googlecode.android_scripting.dialog.Help;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -112,8 +111,6 @@ public class LogcatViewer extends ListActivity {
         android.R.drawable.ic_menu_preferences);
     menu.add(Menu.NONE, MenuId.JUMP_TO_BOTTOM.getId(), Menu.NONE, "Jump to Bottom").setIcon(
         android.R.drawable.ic_menu_revert);
-    menu.add(Menu.NONE, MenuId.HELP.getId(), Menu.NONE, "Help").setIcon(
-        android.R.drawable.ic_menu_help);
     menu.add(Menu.NONE, MenuId.SHARE.getId(), Menu.NONE, "Share").setIcon(
         android.R.drawable.ic_menu_share);
     menu.add(Menu.NONE, MenuId.COPY.getId(), Menu.NONE, "Copy").setIcon(
@@ -132,9 +129,7 @@ public class LogcatViewer extends ListActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == MenuId.HELP.getId()) {
-      Help.show(this);
-    } else if (itemId == MenuId.JUMP_TO_BOTTOM.getId()) {
+    if (itemId == MenuId.JUMP_TO_BOTTOM.getId()) {
       getListView().setSelection(mLogcatMessages.size() - 1);
     } else if (itemId == MenuId.PREFERENCES.getId()) {
       startActivity(new Intent(this, Preferences.class));

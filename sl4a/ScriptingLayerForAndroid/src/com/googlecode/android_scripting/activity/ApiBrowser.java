@@ -43,7 +43,6 @@ import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.R;
-import com.googlecode.android_scripting.dialog.Help;
 import com.googlecode.android_scripting.facade.FacadeConfiguration;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
@@ -200,9 +199,6 @@ public class ApiBrowser extends ListActivity {
     }
     menu.add(Menu.NONE, ContextMenuId.INSERT_TEXT.getId(), Menu.NONE, "Insert");
     menu.add(Menu.NONE, ContextMenuId.PROMPT_PARAMETERS.getId(), Menu.NONE, "Prompt");
-    if (Help.checkApiHelp(this)) {
-      menu.add(Menu.NONE, ContextMenuId.HELP.getId(), Menu.NONE, "Help");
-    }
   }
 
   @Override
@@ -238,7 +234,6 @@ public class ApiBrowser extends ListActivity {
       startActivityForResult(intent, RequestCode.RPC_PROMPT.ordinal());
     } else if (item.getItemId() == ContextMenuId.HELP.getId()) {
       String help = rpc.getDeclaringClass().getSimpleName() + ".html#" + rpc.getName();
-      Help.showApiHelp(this, help);
 
     }
     return true;

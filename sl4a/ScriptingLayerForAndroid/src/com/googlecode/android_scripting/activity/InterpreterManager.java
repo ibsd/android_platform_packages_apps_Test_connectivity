@@ -44,7 +44,6 @@ import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.FeaturedInterpreters;
 import com.googlecode.android_scripting.R;
-import com.googlecode.android_scripting.dialog.Help;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration.ConfigurationObserver;
@@ -113,8 +112,6 @@ public class InterpreterManager extends ListActivity {
         android.R.drawable.ic_menu_share);
     menu.add(Menu.NONE, MenuId.PREFERENCES.getId(), Menu.NONE, "Preferences").setIcon(
         android.R.drawable.ic_menu_preferences);
-    menu.add(Menu.NONE, MenuId.HELP.getId(), Menu.NONE, "Help").setIcon(
-        android.R.drawable.ic_menu_help);
     return super.onPrepareOptionsMenu(menu);
   }
 
@@ -131,9 +128,7 @@ public class InterpreterManager extends ListActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == MenuId.HELP.getId()) {
-      Help.show(this);
-    } else if (itemId == MenuId.NETWORK.getId()) {
+    if (itemId == MenuId.NETWORK.getId()) {
       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
       dialog.setItems(new CharSequence[] { "Public", "Private" }, new OnClickListener() {
         @Override

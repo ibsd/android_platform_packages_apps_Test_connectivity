@@ -26,12 +26,6 @@
   <string
     name="application_nice_title">Scripting Layer for Android</string>
   <string
-    name="wiki_url">http://code.google.com/p/android-scripting/wiki/TableOfContents?tm=6
-  </string>
-  <string
-    name="youtube_url">http://www.youtube.com/view_play_list?p=07A81E6CE96F158B
-  </string>
-  <string
     name="text_preferences">Text</string>
   <string
     name="title_fontsize_preference">Font size</string>
