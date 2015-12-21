@@ -19,6 +19,7 @@ package com.googlecode.android_scripting.activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -336,8 +337,12 @@ public class ScriptManager extends ListActivity {
         mQuery = EMPTY;
       }
     } else if (itemId == MenuId.QRCODE_ADD.getId()) {
-      Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-      startActivityForResult(intent, RequestCode.QRCODE_ADD.ordinal());
+      try {
+        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+        startActivityForResult(intent, RequestCode.QRCODE_ADD.ordinal());
+      }catch(ActivityNotFoundException e) {
+        Log.e("No handler found to Scan a QR Code!", e);
+      }
     } else if (itemId == MenuId.FOLDER_ADD.getId()) {
       addFolder();
     } else if (itemId == MenuId.PREFERENCES.getId()) {

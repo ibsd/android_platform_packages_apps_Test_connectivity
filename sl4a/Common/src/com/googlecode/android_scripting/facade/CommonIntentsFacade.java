@@ -17,10 +17,12 @@
 package com.googlecode.android_scripting.facade;
 
 import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Contacts.People;
 
+import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
@@ -57,8 +59,13 @@ public class CommonIntentsFacade extends RpcReceiver {
 
   @Rpc(description = "Starts the barcode scanner.", returns = "A Map representation of the result Intent.")
   public Intent scanBarcode() throws JSONException {
-    return mAndroidFacade.startActivityForResult("com.google.zxing.client.android.SCAN", null,
+    try {
+      return mAndroidFacade.startActivityForResult("com.google.zxing.client.android.SCAN", null,
         null, null, null, null);
+    } catch (ActivityNotFoundException e) {
+        Log.e("No Activity found to scan a barcode!", e);
+        return null;
+    }
   }
 
   private void view(Uri uri, String type) {
