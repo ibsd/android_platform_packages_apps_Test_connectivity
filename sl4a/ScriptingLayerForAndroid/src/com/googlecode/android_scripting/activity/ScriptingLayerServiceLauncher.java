@@ -19,18 +19,30 @@ package com.googlecode.android_scripting.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemProperties;
+
+import android.util.Log;
 
 import com.googlecode.android_scripting.Constants;
 
 public class ScriptingLayerServiceLauncher extends Activity {
 
+    private static final int DEBUGGABLE_BUILD = 1;
+
+    private static final String LOG_TAG = "sl4a";
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     // Forward the intent that launched us to start the service.
-    Intent intent = getIntent();
-    intent.setComponent(Constants.SL4A_SERVICE_COMPONENT_NAME);
-    startService(intent);
-    finish();
+
+    if(SystemProperties.getInt("ro.debuggable", 0) == DEBUGGABLE_BUILD) {
+        Intent intent = getIntent();
+        intent.setComponent(Constants.SL4A_SERVICE_COMPONENT_NAME);
+        startService(intent);
+        finish();
+    }
+    else {
+        Log.e(LOG_TAG, "ERROR: Cannot to start SL4A on non-debuggable build!");
+    }
   }
 }
