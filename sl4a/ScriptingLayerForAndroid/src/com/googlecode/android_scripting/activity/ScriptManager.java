@@ -167,14 +167,12 @@ public class ScriptManager extends ListActivity {
       }
     }));
 
+    // TODO(tturney): Add a text view that shows the queried text.
     synchronized (mQuery) {
       if (!mQuery.equals(query)) {
-        if (query == null || query.equals(EMPTY)) {
-          ((TextView) findViewById(R.id.left_text)).setText("Scripts");
-        } else {
-          ((TextView) findViewById(R.id.left_text)).setText(query);
+        if (query != null || !query.equals(EMPTY)) {
+          mQuery = query;
         }
-        mQuery = query;
       }
     }
 
