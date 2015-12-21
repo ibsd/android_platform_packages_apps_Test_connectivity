@@ -39,7 +39,6 @@ import com.googlecode.android_scripting.BaseApplication;
 import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.R;
-import com.googlecode.android_scripting.dialog.Help;
 import com.googlecode.android_scripting.facade.FacadeConfiguration;
 import com.googlecode.android_scripting.rpc.MethodDescriptor;
 import com.googlecode.android_scripting.trigger.ScriptTrigger;
@@ -92,17 +91,13 @@ public class TriggerManager extends ListActivity {
         android.R.drawable.ic_menu_add);
     menu.add(Menu.NONE, MenuId.PREFERENCES.getId(), Menu.NONE, "Preferences").setIcon(
         android.R.drawable.ic_menu_preferences);
-    menu.add(Menu.NONE, MenuId.HELP.getId(), Menu.NONE, "Help").setIcon(
-        android.R.drawable.ic_menu_help);
     return true;
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == MenuId.HELP.getId()) {
-      Help.show(this);
-    } else if (itemId == MenuId.PREFERENCES.getId()) {
+    if (itemId == MenuId.PREFERENCES.getId()) {
       startActivity(new Intent(this, Preferences.class));
     } else if (itemId != Menu.NONE) {
       Intent intent = new Intent(this, ScriptPicker.class);

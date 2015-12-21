@@ -53,7 +53,6 @@ import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.R;
 import com.googlecode.android_scripting.ScriptListAdapter;
 import com.googlecode.android_scripting.ScriptStorageAdapter;
-import com.googlecode.android_scripting.dialog.Help;
 import com.googlecode.android_scripting.facade.FacadeConfiguration;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
@@ -280,8 +279,6 @@ public class ScriptManager extends ListActivity {
         android.R.drawable.ic_menu_preferences);
     menu.add(Menu.NONE, MenuId.REFRESH.getId(), Menu.NONE, "Refresh").setIcon(
         R.drawable.ic_menu_refresh);
-    menu.add(Menu.NONE, MenuId.HELP.getId(), Menu.NONE, "Help").setIcon(
-        android.R.drawable.ic_menu_help);
     return true;
   }
 
@@ -324,9 +321,7 @@ public class ScriptManager extends ListActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int itemId = item.getItemId();
-    if (itemId == MenuId.HELP.getId()) {
-      Help.show(this);
-    } else if (itemId == MenuId.INTERPRETER_MANAGER.getId()) {
+    if (itemId == MenuId.INTERPRETER_MANAGER.getId()) {
       // Show interpreter manger.
       Intent i = new Intent(this, InterpreterManager.class);
       startActivity(i);
