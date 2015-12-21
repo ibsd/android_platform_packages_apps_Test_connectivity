@@ -39,7 +39,7 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_DATA_APPS)
 
 LOCAL_STATIC_JAVA_LIBRARIES := guava android-common locale_platform android-support-v4
 LOCAL_STATIC_JAVA_LIBRARIES += sl4a.Utils sl4a.Common
-LOCAL_STATIC_JAVA_LIBRARIES += sl4a.InterpreterForAndroid sl4a.ScriptingLayer sl4a.QuickAction
+LOCAL_STATIC_JAVA_LIBRARIES += sl4a.InterpreterForAndroid sl4a.ScriptingLayer
 
 LOCAL_PRIVILEGED_MODULE := true
 LOCAL_PROGUARD_ENABLED := disabled

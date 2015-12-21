@@ -68,9 +68,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.londatiga.android.ActionItem;
-import net.londatiga.android.QuickAction;
-
 /**
  * Manages creation, deletion, and execution of stored scripts.
  * 
@@ -374,82 +371,8 @@ public class ScriptManager extends ListActivity {
       mAdapter.notifyDataSetInvalidated();
       return;
     }
-    if (FacadeConfiguration.getSdkLevel() <= 3 || !mPreferences.getBoolean("use_quick_menu", true)) {
-      doDialogMenu();
-      return;
-    }
-
-    final QuickAction actionMenu = new QuickAction(view);
-
-    ActionItem terminal = new ActionItem();
-    terminal.setIcon(getResources().getDrawable(R.drawable.terminal));
-    terminal.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent intent = new Intent(ScriptManager.this, ScriptingLayerService.class);
-        intent.setAction(Constants.ACTION_LAUNCH_FOREGROUND_SCRIPT);
-        intent.putExtra(Constants.EXTRA_SCRIPT_PATH, file.getPath());
-        startService(intent);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    final ActionItem background = new ActionItem();
-    background.setIcon(getResources().getDrawable(R.drawable.background));
-    background.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent intent = new Intent(ScriptManager.this, ScriptingLayerService.class);
-        intent.setAction(Constants.ACTION_LAUNCH_BACKGROUND_SCRIPT);
-        intent.putExtra(Constants.EXTRA_SCRIPT_PATH, file.getPath());
-        startService(intent);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    final ActionItem edit = new ActionItem();
-    edit.setIcon(getResources().getDrawable(android.R.drawable.ic_menu_edit));
-    edit.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        editScript(file);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    final ActionItem delete = new ActionItem();
-    delete.setIcon(getResources().getDrawable(android.R.drawable.ic_menu_delete));
-    delete.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        delete(file);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    final ActionItem rename = new ActionItem();
-    rename.setIcon(getResources().getDrawable(android.R.drawable.ic_menu_save));
-    rename.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        rename(file);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    final ActionItem external = new ActionItem();
-    external.setIcon(getResources().getDrawable(android.R.drawable.ic_menu_directions));
-    external.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        externalEditor(file);
-        dismissQuickActions(actionMenu);
-      }
-    });
-
-    actionMenu.addActionItems(terminal, background, edit, rename, delete, external);
-    actionMenu.setAnimStyle(QuickAction.ANIM_GROW_FROM_CENTER);
-    actionMenu.show();
+    doDialogMenu();
+    return;
   }
 
   // Quickedit chokes on sdk 3 or below, and some Android builds. Provides alternative menu.
@@ -503,16 +426,6 @@ public class ScriptManager extends ListActivity {
       Toast.makeText(this, "Unable to open external editor\n" + e.toString(), Toast.LENGTH_SHORT)
           .show();
     }
-  }
-
-  private void dismissQuickActions(final QuickAction action) {
-    // HACK(damonkohler): Delay the dismissal to avoid an otherwise noticeable flicker.
-    mHandler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        action.dismiss();
-      }
-    }, 1);
   }
 
   /**
