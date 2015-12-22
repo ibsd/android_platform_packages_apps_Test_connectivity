@@ -21,9 +21,9 @@
     package="com.googlecode.android_scripting"
     android:sharedUserId="android.uid.system">
 
-    <permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
+    <uses-permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
         android:protectionLevel="signature" />
-    <permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
+    <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
         android:protectionLevel="signature" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.INTERNET" />
