@@ -215,7 +215,7 @@ public class TelecomManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Swap two calls")
     public void telecomSwapCalls() {
-        // TODO: Swap the foreground and back ground calls
+        // TODO: b/26273475 Add logic to swap the foreground and back ground calls
     }
 
     @Rpc(description = "Toggles call waiting feature on or off for default voice subscription id.")
@@ -235,7 +235,7 @@ public class TelecomManagerFacade extends RpcReceiver {
             @RpcParameter(name = "enabled")
             @RpcOptional
             Boolean enabled) {
-        // TODO: Enable or Disable the call waiting feature
+        // TODO: b/26273478 Enable or Disable the call waiting feature
     }
 
     @Rpc(description = "Sends an MMI string to Telecom for processing")
@@ -245,7 +245,8 @@ public class TelecomManagerFacade extends RpcReceiver {
         mTelecomManager.handleMmi(dialString);
     }
 
-    //FIXME: b/20917712 to support videoCall parameter in Extras
+    // TODO: b/20917712 add support to pass arbitrary "Extras" object
+    // for videoCall parameter
     @Deprecated
     @Rpc(description = "Calls a phone by resolving a generic URI.")
     public void telecomCall(
@@ -262,16 +263,13 @@ public class TelecomManagerFacade extends RpcReceiver {
         if (uri.getScheme().equals("content")) {
             telecomCallContentUri(uriString, videoCall);
         }
-        /*
-
-         * FIXME: Here we assume if it's not content, it's a number we should do some checking.
-         */
         else {
             telecomCallNumber(uriString, videoCall);
         }
     }
 
-    //FIXME: b/20917712 to support videoCall parameter in Extras
+    // TODO: b/20917712 add support to pass arbitrary "Extras" object
+    // for videoCall parameter
     @Rpc(description = "Calls a phone by resolving a Content-type URI.")
     public void telecomCallContentUri(
                         @RpcParameter(name = "uriString")
@@ -318,7 +316,8 @@ public class TelecomManagerFacade extends RpcReceiver {
         telecomCallNumber(number, videoCall);
     }
 
-    //FIXME: b/20917712 to support videoCall parameter in Extras
+    // TODO: b/20917712 add support to pass arbitrary "Extras" object
+    // for videoCall parameter
     @Rpc(description = "Calls a phone number.")
     public void telecomCallNumber(
                         @RpcParameter(name = "number")
@@ -331,7 +330,8 @@ public class TelecomManagerFacade extends RpcReceiver {
         telecomCallTelUri("tel:" + URLEncoder.encode(number, "ASCII"), videoCall);
     }
 
-    //FIXME: b/20917712 to support videoCall parameter in Extras
+    // TODO: b/20917712 add support to pass arbitrary "Extras" object
+    // for videoCall parameter
     @Rpc(description = "Calls a phone by Tel-URI.")
     public void telecomCallTelUri(
             @RpcParameter(name = "uriString")
