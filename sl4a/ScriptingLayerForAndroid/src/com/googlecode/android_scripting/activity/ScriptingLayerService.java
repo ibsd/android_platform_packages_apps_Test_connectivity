@@ -24,7 +24,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.googlecode.android_scripting.AndroidProxy;
 import com.googlecode.android_scripting.BaseApplication;
@@ -60,6 +62,7 @@ public class ScriptingLayerService extends ForegroundService {
 
   private final IBinder mBinder;
   private final Map<Integer, InterpreterProcess> mProcessMap;
+  private final String LOG_TAG = "sl4a";
   private volatile int mModCount = 0;
   private NotificationManager mNotificationManager;
   private Notification mNotification;
@@ -171,7 +174,11 @@ public class ScriptingLayerService extends ForegroundService {
 
     String name = intent.getStringExtra(Constants.EXTRA_SCRIPT_PATH);
     if (name != null && name.endsWith(HtmlInterpreter.HTML_EXTENSION)) {
-      launchHtmlScript(intent);
+      if (Integer.valueOf(android.os.Build.VERSION.SDK) > 21) {
+          Log.e(LOG_TAG, "Starting a WebViewClient not permitted for your SDK Version.");
+      } else {
+          launchHtmlScript(intent);
+      }
       if (mProcessMap.isEmpty()) {
         stopSelf(startId);
       }
