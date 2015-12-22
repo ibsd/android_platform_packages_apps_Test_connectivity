@@ -377,7 +377,7 @@ public class ScriptManager extends ListActivity {
   private void doDialogMenu() {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     final CharSequence[] menuList =
-        { "Run Foreground", "Run Background", "Edit", "Delete", "Rename", "External Editor" };
+        { "Run Foreground", "Run Background", "Edit", "Delete", "Rename" };
     builder.setTitle(mCurrent.getName());
     builder.setItems(menuList, new DialogInterface.OnClickListener() {
 
@@ -406,24 +406,10 @@ public class ScriptManager extends ListActivity {
         case 4:
           rename(mCurrent);
           break;
-        case 5:
-          externalEditor(mCurrent);
-          break;
         }
       }
     });
     builder.show();
-  }
-
-  protected void externalEditor(File file) {
-    Intent intent = new Intent(Intent.ACTION_EDIT);
-    intent.setDataAndType(Uri.fromFile(file), "text/plain");
-    try {
-      startActivity(intent);
-    } catch (Exception e) {
-      Toast.makeText(this, "Unable to open external editor\n" + e.toString(), Toast.LENGTH_SHORT)
-          .show();
-    }
   }
 
   /**
