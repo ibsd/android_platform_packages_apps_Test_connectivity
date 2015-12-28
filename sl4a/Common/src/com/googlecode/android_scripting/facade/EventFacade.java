@@ -37,6 +37,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
+import com.googlecode.android_scripting.event.EventObserver;
+import com.googlecode.android_scripting.event.EventServer;
 import com.googlecode.android_scripting.future.FutureResult;
 import com.googlecode.android_scripting.jsonrpc.JsonBuilder;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -404,10 +406,6 @@ public class EventFacade extends RpcReceiver {
     public void removeEventObserver(EventObserver observer) {
         mNamedEventObservers.removeAll(observer);
         mGlobalEventObservers.remove(observer);
-    }
-
-    public interface EventObserver {
-        public void onEventReceived(Event event);
     }
 
     public class BroadcastListener extends android.content.BroadcastReceiver {
