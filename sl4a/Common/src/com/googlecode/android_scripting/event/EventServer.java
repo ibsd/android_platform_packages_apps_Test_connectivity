@@ -14,11 +14,10 @@
  * the License.
  */
 
-package com.googlecode.android_scripting.facade;
+package com.googlecode.android_scripting.event;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.SimpleServer;
-import com.googlecode.android_scripting.event.Event;
 import com.googlecode.android_scripting.jsonrpc.JsonBuilder;
 
 import java.io.BufferedReader;
@@ -34,11 +33,9 @@ import org.json.JSONException;
 /**
  * An Event Forwarding server that forwards events from the rpc queue in realtime to listener
  * clients.
- * 
- * @author Manuel Naranjo (manuel@aircable.net)
- * @see com.googlecode.android_scripting.SimpleServer
+ *
  */
-public class EventServer extends SimpleServer implements EventFacade.EventObserver {
+public class EventServer extends SimpleServer implements EventObserver {
   private static final Vector<Listener> mListeners = new Vector<Listener>();
   private InetSocketAddress address = null;
 

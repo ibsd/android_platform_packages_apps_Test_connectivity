@@ -36,6 +36,7 @@ import com.googlecode.android_scripting.FileUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.SingleThreadExecutor;
 import com.googlecode.android_scripting.event.Event;
+import com.googlecode.android_scripting.event.EventObserver;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.ui.UiFacade;
 import com.googlecode.android_scripting.future.FutureActivityTask;
@@ -242,7 +243,7 @@ public class HtmlActivityTask extends FutureActivityTask<Void> {
     }
   }
 
-  private class HtmlEventObserver implements EventFacade.EventObserver {
+  private class HtmlEventObserver implements EventObserver {
     private Map<String, Set<Integer>> mEventMap = new HashMap<String, Set<Integer>>();
 
     public void register(String eventName, Integer id) {
