@@ -263,7 +263,6 @@ public class BluetoothRfcommFacade extends RpcReceiver {
     try {
       conn = getConnection(connID);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
       return;
     }
