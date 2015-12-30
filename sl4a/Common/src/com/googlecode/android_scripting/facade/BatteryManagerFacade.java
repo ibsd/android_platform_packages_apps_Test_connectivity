@@ -27,7 +27,6 @@ import android.os.Bundle;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
 
@@ -37,7 +36,7 @@ import java.lang.reflect.Field;
  * Exposes Batterymanager API. Note that in order to use any of the batteryGet* functions, you need
  * to batteryStartMonitoring, and then wait for a "battery" event. Sleeping for a second will
  * usually work just as well.
- * 
+ *
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
@@ -183,13 +182,11 @@ public class BatteryManagerFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Returns the most recently received battery presence data.")
-  @RpcMinSdk(5)
   public Boolean batteryCheckPresent() {
     return mBatteryPresent;
   }
 
   @Rpc(description = "Returns the most recently received battery level (percentage).")
-  @RpcMinSdk(5)
   public Integer batteryGetLevel() {
     if (mBatteryMaxLevel == null || mBatteryMaxLevel == 100 || mBatteryMaxLevel == 0) {
       return mBatteryLevel;
@@ -199,19 +196,16 @@ public class BatteryManagerFacade extends RpcReceiver {
   }
 
   @Rpc(description = "Returns the most recently received battery voltage.")
-  @RpcMinSdk(5)
   public Integer batteryGetVoltage() {
     return mBatteryVoltage;
   }
 
   @Rpc(description = "Returns the most recently received battery temperature.")
-  @RpcMinSdk(5)
   public Integer batteryGetTemperature() {
     return mBatteryTemperature;
   }
 
   @Rpc(description = "Returns the most recently received battery technology data.")
-  @RpcMinSdk(5)
   public String batteryGetTechnology() {
     return mBatteryTechnology;
   }

@@ -28,7 +28,6 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcStartEvent;
 import com.googlecode.android_scripting.rpc.RpcStopEvent;
 
@@ -39,7 +38,6 @@ import java.util.concurrent.Callable;
  *
  * @author Joerg Zieren (joerg.zieren@gmail.com)
  */
-@RpcMinSdk(7)
 public class SignalStrengthFacade extends RpcReceiver {
   private final Service mService;
   private final TelephonyManager mTelephonyManager;

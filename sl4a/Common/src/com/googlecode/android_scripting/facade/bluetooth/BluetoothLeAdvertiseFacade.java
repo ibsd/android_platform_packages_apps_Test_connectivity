@@ -36,7 +36,6 @@ import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
-import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 import com.googlecode.android_scripting.ConvertUtils;
 
@@ -44,7 +43,6 @@ import com.googlecode.android_scripting.ConvertUtils;
  * BluetoothLe Advertise functions.
  */
 
-@RpcMinSdk(5)
 public class BluetoothLeAdvertiseFacade extends RpcReceiver {
 
     private final EventFacade mEventFacade;

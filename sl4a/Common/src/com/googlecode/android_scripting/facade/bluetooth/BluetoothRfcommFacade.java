@@ -29,7 +29,6 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
-import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
@@ -51,7 +50,6 @@ import org.apache.commons.codec.binary.Base64Codec;
  */
 // Discovery functions added by Eden Sayag
 
-@RpcMinSdk(5)
 public class BluetoothRfcommFacade extends RpcReceiver {
 
   // UUID for SL4A.
