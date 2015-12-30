@@ -74,8 +74,23 @@ public class TelecomManagerFacade extends RpcReceiver {
     }
 
     @Rpc(description = "If there's a ringing call, accept on behalf of the user.")
-    public void telecomAcceptRingingCall() {
-        mTelecomManager.acceptRingingCall();
+    public void telecomAcceptRingingCall(
+            @RpcOptional
+            String videoState) {
+
+        if (videoState == null) {
+            mTelecomManager.acceptRingingCall();
+        }
+        else {
+            int state = InCallServiceImpl.getVideoCallState(videoState);
+
+            if (state == InCallServiceImpl.STATE_INVALID) {
+                Log.e("telecomAcceptRingingCall: video state is invalid!");
+                return;
+            }
+
+            mTelecomManager.acceptRingingCall(state);
+        }
     }
 
     @Rpc(description = "Removes the missed-call notification if one is present.")
@@ -171,7 +186,7 @@ public class TelecomManagerFacade extends RpcReceiver {
         return mTelecomManager.getUserSelectedOutgoingPhoneAccount();
     }
 
-    @Rpc(description = "Set the PhoneAccount corresponding to user selcted subscription id " +
+    @Rpc(description = "Set the PhoneAccount corresponding to user selected subscription id " +
                        " for making outgoing phone calls.")
     public void telecomSetUserSelectedOutgoingPhoneAccountBySubId(
                         @RpcParameter(name = "subId")
