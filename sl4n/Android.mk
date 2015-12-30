@@ -22,7 +22,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := sl4n
 
 LOCAL_C_INCLUDES += \
-  $(ANDROID_BUILD_TOP)/system/bt \
+  $(LOCAL_PATH)/../../../../../system/bt \
   $(LOCAL_PATH)/rapidjson/include \
   $(LOCAL_PATH)/facades
 
