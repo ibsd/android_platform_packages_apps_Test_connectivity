@@ -105,50 +105,34 @@ public class FacadeConfiguration {
         sFacadeClassList.add(HttpFacade.class);
         sFacadeClassList.add(WifiManagerFacade.class);
         sFacadeClassList.add(UiFacade.class);
+        sFacadeClassList.add(TextToSpeechFacade.class);
+        sFacadeClassList.add(BluetoothFacade.class);
+        sFacadeClassList.add(BluetoothA2dpFacade.class);
+        sFacadeClassList.add(BluetoothAvrcpFacade.class);
+        sFacadeClassList.add(BluetoothConnectionFacade.class);
+        sFacadeClassList.add(BluetoothHspFacade.class);
+        sFacadeClassList.add(BluetoothHidFacade.class);
+        sFacadeClassList.add(BluetoothMapFacade.class);
+        sFacadeClassList.add(BluetoothRfcommFacade.class);
+        sFacadeClassList.add(SignalStrengthFacade.class);
+        sFacadeClassList.add(WebCamFacade.class);
+        sFacadeClassList.add(WifiP2pManagerFacade.class);
+        sFacadeClassList.add(BluetoothLeScanFacade.class);
+        sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
+        sFacadeClassList.add(GattClientFacade.class);
+        sFacadeClassList.add(GattServerFacade.class);
+        sFacadeClassList.add(ConnectivityManagerFacade.class);
+        sFacadeClassList.add(DisplayFacade.class);
+        sFacadeClassList.add(TelecomManagerFacade.class);
+        sFacadeClassList.add(WifiRttManagerFacade.class);
+        sFacadeClassList.add(WifiScannerFacade.class);
+        sFacadeClassList.add(SubscriptionManagerFacade.class);
+        sFacadeClassList.add(TelecomCallFacade.class);
+        sFacadeClassList.add(CarrierConfigFacade.class);
 
-        if (sSdkLevel >= 4) {
-            sFacadeClassList.add(TextToSpeechFacade.class);
-        } else {
-            sFacadeClassList.add(EyesFreeFacade.class);
-        }
-
-        if (sSdkLevel >= 5) {
-            sFacadeClassList.add(BluetoothFacade.class);
-            sFacadeClassList.add(BluetoothA2dpFacade.class);
-            sFacadeClassList.add(BluetoothAvrcpFacade.class);
-            sFacadeClassList.add(BluetoothConnectionFacade.class);
-            sFacadeClassList.add(BluetoothHspFacade.class);
-            sFacadeClassList.add(BluetoothHidFacade.class);
-            sFacadeClassList.add(BluetoothMapFacade.class);
-            sFacadeClassList.add(BluetoothRfcommFacade.class);
-        }
-
-        if (sSdkLevel >= 7) {
-            sFacadeClassList.add(SignalStrengthFacade.class);
-        }
-
-        if (sSdkLevel >= 8) {
-            sFacadeClassList.add(WebCamFacade.class);
-        }
-
-        if (sSdkLevel >= 14) {
-            sFacadeClassList.add(WifiP2pManagerFacade.class);
-        }
-
-        if (sSdkLevel >= 19) {
-            sFacadeClassList.add(BluetoothLeScanFacade.class);
-            sFacadeClassList.add(BluetoothLeAdvertiseFacade.class);
-            sFacadeClassList.add(GattClientFacade.class);
-            sFacadeClassList.add(GattServerFacade.class);
-            sFacadeClassList.add(ConnectivityManagerFacade.class);
-            sFacadeClassList.add(DisplayFacade.class);
-            sFacadeClassList.add(TelecomManagerFacade.class);
-            sFacadeClassList.add(WifiRttManagerFacade.class);
-            sFacadeClassList.add(WifiScannerFacade.class);
-            sFacadeClassList.add(SubscriptionManagerFacade.class);
-            sFacadeClassList.add(TelecomCallFacade.class);
-            sFacadeClassList.add(CarrierConfigFacade.class);
-
+        /*Compatibility reset to >= Marshmallow */
+        if( sSdkLevel > 23 ) {
+            //add new facades here
         }
 
         for (Class<? extends RpcReceiver> recieverClass : sFacadeClassList) {
