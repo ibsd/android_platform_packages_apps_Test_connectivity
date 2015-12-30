@@ -1177,9 +1177,9 @@ public class InCallServiceImpl extends InCallService {
     private static int getVideoCallCallbackEvent(String event) {
 
         switch (event) {
-            case TelephonyConstants.EventSessionModifyRequestRceived:
+            case TelephonyConstants.EventSessionModifyRequestReceived:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED;
-            case TelephonyConstants.EventSessionModifyResponsetRceived:
+            case TelephonyConstants.EventSessionModifyResponseReceived:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED;
             case TelephonyConstants.EventSessionEvent:
                 return VideoCallCallback.EVENT_SESSION_EVENT;
@@ -1200,9 +1200,9 @@ public class InCallServiceImpl extends InCallService {
 
         switch (event) {
             case VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED:
-                return TelephonyConstants.EventSessionModifyRequestRceived;
+                return TelephonyConstants.EventSessionModifyRequestReceived;
             case VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED:
-                return TelephonyConstants.EventSessionModifyResponsetRceived;
+                return TelephonyConstants.EventSessionModifyResponseReceived;
             case VideoCallCallback.EVENT_SESSION_EVENT:
                 return TelephonyConstants.EventSessionEvent;
             case VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED:

@@ -280,8 +280,8 @@ public class TelephonyConstants {
     /**
      * Constant for Video Call Call-Back Event Name
      * **/
-    public static final String EventSessionModifyRequestRceived = "SessionModifyRequestRceived";
-    public static final String EventSessionModifyResponsetRceived = "SessionModifyResponsetRceived";
+    public static final String EventSessionModifyRequestReceived = "SessionModifyRequestReceived";
+    public static final String EventSessionModifyResponseReceived = "SessionModifyResponseReceived";
     public static final String EventSessionEvent = "SessionEvent";
     public static final String EventPeerDimensionsChanged = "PeerDimensionsChanged";
     public static final String EventVideoQualityChanged = "VideoQualityChanged";
