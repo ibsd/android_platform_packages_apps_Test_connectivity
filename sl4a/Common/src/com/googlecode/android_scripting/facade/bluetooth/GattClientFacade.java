@@ -660,7 +660,6 @@ public class GattClientFacade extends RpcReceiver {
             @RpcParameter(name = "enable")
             Boolean enable
             ) throws Exception {
-        //TODO: (tturney) Implement setCharacteristicNotification for the characteristic discovered
         if (mBluetoothGattList.get(gattIndex) != null) {
             if(mBluetoothGattDiscoveredServicesList.get(discoveredServiceListIndex) != null) {
                 List<BluetoothGattService> discoveredServiceList =

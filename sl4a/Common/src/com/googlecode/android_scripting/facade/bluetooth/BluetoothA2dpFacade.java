@@ -80,11 +80,23 @@ public class BluetoothA2dpFacade extends RpcReceiver {
     return sA2dpProfile.disconnect(device);
   }
 
+  /**
+   * Checks to see if the A2DP profile is ready for use.
+   *
+   * @return Returns true if the A2DP Profile is ready.
+   */
   @Rpc(description = "Is A2dp profile ready.")
   public Boolean bluetoothA2dpIsReady() {
     return sIsA2dpReady;
   }
 
+  /**
+   * Connect to remote device using the A2DP profile.
+   *
+   * @param deviceId the name or mac address of the remote Bluetooth device.
+   * @return True if connected successfully.
+   * @throws Exception
+   */
   @Rpc(description = "Connect to an A2DP device.")
   public Boolean bluetoothA2dpConnect(
       @RpcParameter(name = "deviceID", description = "Name or MAC address of a bluetooth device.")
@@ -98,6 +110,13 @@ public class BluetoothA2dpFacade extends RpcReceiver {
     return a2dpConnect(mDevice);
   }
 
+  /**
+   * Disconnect a remote device using the A2DP profile.
+   *
+   * @param deviceId the name or mac address of the remote Bluetooth device.
+   * @return True if connected successfully.
+   * @throws Exception
+   */
   @Rpc(description = "Disconnect an A2DP device.")
   public Boolean bluetoothA2dpDisconnect(
       @RpcParameter(name = "deviceID", description = "Name or MAC address of a device.")
@@ -111,6 +130,12 @@ public class BluetoothA2dpFacade extends RpcReceiver {
     return a2dpDisconnect(mDevice);
   }
 
+  /**
+   * Get the list of devices connected through the A2DP profile.
+   *
+   * @return List of bluetooth devices that are in one of the following states:
+   *   connected, connecting, and disconnecting.
+   */
   @Rpc(description = "Get all the devices connected through A2DP.")
   public List<BluetoothDevice> bluetoothA2dpGetConnectedDevices() {
     while (!sIsA2dpReady);
