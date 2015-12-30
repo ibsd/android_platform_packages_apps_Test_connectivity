@@ -34,7 +34,6 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
-import com.googlecode.android_scripting.rpc.RpcMinSdk;
 import com.googlecode.android_scripting.rpc.RpcOptional;
 import com.googlecode.android_scripting.rpc.RpcParameter;
 
@@ -48,7 +47,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Basic Bluetooth functions.
  */
-@RpcMinSdk(5)
 public class BluetoothFacade extends RpcReceiver {
     private final Service mService;
     private final BroadcastReceiver mDiscoveryReceiver;
