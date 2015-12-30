@@ -107,7 +107,6 @@ public class BluetoothFacade extends RpcReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            // TODO: Keep track of the separate states be a separate method.
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = mBluetoothAdapter.getState();
                 Bundle msg = new Bundle();
@@ -284,11 +283,8 @@ public class BluetoothFacade extends RpcReceiver {
             enabled = !bluetoothCheckState();
         }
         if (enabled) {
-            // TODO(damonkohler): Make this synchronous as well.
             mBluetoothAdapter.enable();
         } else {
-            // TODO(damonkohler): Add support for prompting on disable.
-            // TODO(damonkohler): Make this synchronous as well.
             shutdown();
             mBluetoothAdapter.disable();
         }
@@ -307,8 +303,6 @@ public class BluetoothFacade extends RpcReceiver {
     @Rpc(description = "Cancel the current device discovery process.",
          returns = "true on success, false on error")
     public Boolean bluetoothCancelDiscovery() {
-        //TODO (tturney): Figure out why bluetoothStartDiscovery sometimes
-        //doesn't register the reiever.
         try {
             mService.unregisterReceiver(mDiscoveryReceiver);
         } catch (IllegalArgumentException e) {
@@ -345,7 +339,6 @@ public class BluetoothFacade extends RpcReceiver {
             ) {
         BluetoothActivityEnergyInfo energyInfo = mBluetoothAdapter
             .getControllerActivityEnergyInfo(value);
-        //TODO (tturney): Fix when method dosn't return null... cosmic issue.
         while (energyInfo == null) {
           energyInfo = mBluetoothAdapter.getControllerActivityEnergyInfo(value);
         }

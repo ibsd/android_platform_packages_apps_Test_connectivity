@@ -196,19 +196,6 @@ public class GattServerFacade extends RpcReceiver {
     return index;
   }
 
-  // TODO: Finish this for bluetooth device, need to create a bt device list.
-  /*
-   * @Rpc(description = "cancel gatt server connection by device") public void
-   * gattServerCancelConnection(
-   *
-   * @RpcParameter(name = "index") Integer index,
-   *
-   * @RpcParameter(name = "deviceIndex") Integer bluetoothDevice ) throws Exception { if
-   * (mBluetoothGattServerList.get(index) != null) {
-   * mBluetoothGattServerList.get(index).cancelConnection(bluetoothDevice); } else { throw new
-   * Exception("Invalid index input:" + Integer.toString(index)); } }
-   */
-
   /**
    * Add a characteristic to a bluetooth gatt service
    *
