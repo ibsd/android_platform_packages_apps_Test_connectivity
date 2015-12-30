@@ -968,20 +968,6 @@ public class TelephonyManagerFacade extends RpcReceiver {
         return key;
     }
 
-    @Rpc(description = "Sets the preferred Network type")
-    public void telephonySetPreferredNetwork(Integer networktype) {
-        Integer subId = SubscriptionManager.getDefaultSubId();
-        telephonySetPreferredNetworkForSubscription(subId, networktype);
-    }
-
-    @Rpc(description = "Sets the preferred network type for the given subId")
-    public void telephonySetPreferredNetworkForSubscription(Integer subId, Integer networktype) {
-        android.provider.Settings.Global.putInt(mService.getContentResolver(),
-                android.provider.Settings.Global.PREFERRED_NETWORK_MODE + subId,
-                networktype );
-        mTelephonyManager.setPreferredNetworkType(subId, networktype);
-    }
-
     @Rpc(description = "Returns the current data connection state")
     public String telephonyGetDataConnectionState() {
         int state = mTelephonyManager.getDataState();

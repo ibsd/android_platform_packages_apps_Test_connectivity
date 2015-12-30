@@ -315,52 +315,52 @@ public class TelephonyConstants {
     /**
      * Constant for Packet Keep Alive Call Back
      * **/
-    public static final String  PacketKeepaliveCallBack = "PacketKeepliveCallBack";
-    public static final String  PacketKeepaliveCallBackStarted = "Started";
-    public static final String  PacketKeepaliveCallBackStopped = "Stopped";
-    public static final String  PacketKeepaliveCallBackError = "Error";
-    public static final String  PacketKeepaliveCallBackInvalid = "Invalid";
+    public static final String PacketKeepaliveCallBack = "PacketKeepliveCallBack";
+    public static final String PacketKeepaliveCallBackStarted = "Started";
+    public static final String PacketKeepaliveCallBackStopped = "Stopped";
+    public static final String PacketKeepaliveCallBackError = "Error";
+    public static final String PacketKeepaliveCallBackInvalid = "Invalid";
 
     /**
      * Constant for Network Call Back
      * **/
-    public static final String  NetworkCallBack = "NetworkCallBack";
-    public static final String  NetworkCallBackPreCheck = "PreCheck";
-    public static final String  NetworkCallBackAvailable = "Available";
-    public static final String  NetworkCallBackLosing = "Losing";
-    public static final String  NetworkCallBackLost = "Lost";
-    public static final String  NetworkCallBackUnavailable = "Unavailable";
-    public static final String  NetworkCallBackCapabilitiesChanged = "CapabilitiesChanged";
-    public static final String  NetworkCallBackSuspended = "Suspended";
-    public static final String  NetworkCallBackResumed = "Resumed";
-    public static final String  NetworkCallBackLinkPropertiesChanged = "LinkPropertiesChanged";
-    public static final String  NetworkCallBackInvalid = "Invalid";
+    public static final String NetworkCallBack = "NetworkCallBack";
+    public static final String NetworkCallBackPreCheck = "PreCheck";
+    public static final String NetworkCallBackAvailable = "Available";
+    public static final String NetworkCallBackLosing = "Losing";
+    public static final String NetworkCallBackLost = "Lost";
+    public static final String NetworkCallBackUnavailable = "Unavailable";
+    public static final String NetworkCallBackCapabilitiesChanged = "CapabilitiesChanged";
+    public static final String NetworkCallBackSuspended = "Suspended";
+    public static final String NetworkCallBackResumed = "Resumed";
+    public static final String NetworkCallBackLinkPropertiesChanged = "LinkPropertiesChanged";
+    public static final String NetworkCallBackInvalid = "Invalid";
 
     /**
      * Constant for Network Preference
      * **/
-    public static final String  NetworkModeWcdmaPref = "NetworkModeWcdmaPref";
-    public static final String  NetworkModeGsmOnly = "NetworkModeGsmOnly";
-    public static final String  NetworkModeWcdmaOnly = "NetworkModeWcdmaOnly";
-    public static final String  NetworkModeGsmUmts = "NetworkModeGsmUmts";
-    public static final String  NetworkModeCdma = "NetworkModeCdma";
-    public static final String  NetworkModeCdmaNoEvdo = "NetworkModeCdmaNoEvdo";
-    public static final String  NetworkModeEvdoNoCdma = "NetworkModeEvdoNoCdma";
-    public static final String  NetworkModeGlobal = "NetworkModeGlobal";
-    public static final String  NetworkModeLteCdmaEvdo = "NetworkModeLteCdmaEvdo";
-    public static final String  NetworkModeLteGsmWcdma = "NetworkModeLteGsmWcdma";
-    public static final String  NetworkModeLteCdmaEvdoGsmWcdma = "NetworkModeLteCdmaEvdoGsmWcdma";
-    public static final String  NetworkModeLteOnly = "NetworkModeLteOnly";
-    public static final String  NetworkModeLteWcdma = "NetworkModeLteWcdma";
-    public static final String  NetworkModeTdscdmaOnly = "NetworkModeTdscdmaOnly";
-    public static final String  NetworkModeTdscdmaWcdma = "NetworkModeTdscdmaWcdma";
-    public static final String  NetworkModeLteTdscdma = "NetworkModeLteTdscdma";
-    public static final String  NetworkModeTdsdmaGsm = "NetworkModeTdsdmaGsm";
-    public static final String  NetworkModeLteTdscdmaGsm = "NetworkModeLteTdscdmaGsm";
-    public static final String  NetworkModeTdscdmaGsmWcdma = "NetworkModeTdscdmaGsmWcdma";
-    public static final String  NetworkModeLteTdscdmaWcdma = "NetworkModeLteTdscdmaWcdma";
-    public static final String  NetworkModeLteTdscdmaGsmWcdma = "NetworkModeLteTdscdmaGsmWcdma";
-    public static final String  NetworkModeTdscdmaCdmaEvdoGsmWcdma = "NetworkModeTdscdmaCdmaEvdoGsmWcdma";
-    public static final String  NetworkModeLteTdscdmaCdmaEvdoGsmWcdma = "NetworkModeLteTdscdmaCdmaEvdoGsmWcdma";
-    public static final String  NetworkModeInvalid = "Invalid";
+    public static final String NETWORK_MODE_WCDMA_PREF = "NETWORK_MODE_WCDMA_PREF";
+    public static final String NETWORK_MODE_GSM_ONLY = "NETWORK_MODE_GSM_ONLY";
+    public static final String NETWORK_MODE_WCDMA_ONLY = "NETWORK_MODE_WCDMA_ONLY";
+    public static final String NETWORK_MODE_GSM_UMTS = "NETWORK_MODE_GSM_UMTS";
+    public static final String NETWORK_MODE_CDMA = "NETWORK_MODE_CDMA";
+    public static final String NETWORK_MODE_CDMA_NO_EVDO = "NETWORK_MODE_CDMA_NO_EVDO";
+    public static final String NETWORK_MODE_EVDO_NO_CDMA = "NETWORK_MODE_EVDO_NO_CDMA";
+    public static final String NETWORK_MODE_GLOBAL = "NETWORK_MODE_GLOBAL";
+    public static final String NETWORK_MODE_LTE_CDMA_EVDO = "NETWORK_MODE_LTE_CDMA_EVDO";
+    public static final String NETWORK_MODE_LTE_GSM_WCDMA = "NETWORK_MODE_LTE_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_ONLY = "NETWORK_MODE_LTE_ONLY";
+    public static final String NETWORK_MODE_LTE_WCDMA = "NETWORK_MODE_LTE_WCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_ONLY = "NETWORK_MODE_TDSCDMA_ONLY";
+    public static final String NETWORK_MODE_TDSCDMA_WCDMA = "NETWORK_MODE_TDSCDMA_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA = "NETWORK_MODE_LTE_TDSCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_GSM = "NETWORK_MODE_TDSCDMA_GSM";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM = "NETWORK_MODE_LTE_TDSCDMA_GSM";
+    public static final String NETWORK_MODE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_INVALID = "INVALID";
 }
