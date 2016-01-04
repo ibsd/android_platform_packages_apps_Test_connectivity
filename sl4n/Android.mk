@@ -22,7 +22,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := sl4n
 
 LOCAL_C_INCLUDES += \
-  $(LOCAL_PATH)/../../../../../system/bt \
+  system/bt \
   $(LOCAL_PATH)/rapidjson/include \
   $(LOCAL_PATH)/facades
 
