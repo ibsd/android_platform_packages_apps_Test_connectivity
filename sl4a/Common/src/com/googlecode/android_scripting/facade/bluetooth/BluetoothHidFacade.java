@@ -185,7 +185,7 @@ public class BluetoothHidFacade extends RpcReceiver {
 
   @Rpc(description = "Test byte transfer.")
   public byte[] testByte() {
-      byte[] bts = {0b01,0b10,0b11,0b100}; 
+      byte[] bts = {0b01,0b10,0b11,0b100};
       return bts;
   }
 

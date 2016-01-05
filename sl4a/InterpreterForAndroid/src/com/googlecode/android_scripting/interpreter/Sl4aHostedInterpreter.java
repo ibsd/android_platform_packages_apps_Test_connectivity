@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * A description of the interpreters hosted by the SL4A project.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */

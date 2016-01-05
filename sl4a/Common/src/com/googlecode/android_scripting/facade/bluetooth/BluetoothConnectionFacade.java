@@ -104,7 +104,7 @@ public class BluetoothConnectionFacade extends RpcReceiver {
         BroadcastReceiver listener = listeningDevices.remove(listenerId);
         if (listener != null) {
             mService.unregisterReceiver(listener);
-        }        
+        }
     }
 
     /**

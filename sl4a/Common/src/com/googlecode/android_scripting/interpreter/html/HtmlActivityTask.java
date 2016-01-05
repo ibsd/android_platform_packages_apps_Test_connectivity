@@ -113,7 +113,7 @@ public class HtmlActivityTask extends FutureActivityTask<Void> {
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
       /*
-       * if (Uri.parse(url).getHost().equals("www.example.com")) { 
+       * if (Uri.parse(url).getHost().equals("www.example.com")) {
        * // This is my web site, so do not
        * override; let my WebView load the page return false; }
        * // Otherwise, the link is not for a

@@ -182,14 +182,14 @@ public class UiFacade extends RpcReceiver {
   /**
    * The result is the user's input, or None (null) if cancel was hit. <br>
    * Example (python)
-   * 
+   *
    * <pre>
    * import android
    * droid=android.Android()
-   * 
+   *
    * print droid.dialogGetInput("Title","Message","Default").result
    * </pre>
-   * 
+   *
    */
   @SuppressWarnings("unchecked")
   @Rpc(description = "Queries the user for a text input.")
@@ -248,7 +248,7 @@ public class UiFacade extends RpcReceiver {
 
   /**
    * <b>Example (python)</b>
-   * 
+   *
    * <pre>
    *   import android
    *   droid=android.Android()
@@ -268,7 +268,7 @@ public class UiFacade extends RpcReceiver {
    *     print "You can't even make up your mind?"
    *   else:
    *     print "Unknown response=",response
-   * 
+   *
    *   print "Done"
    * </pre>
    */
@@ -485,18 +485,18 @@ public class UiFacade extends RpcReceiver {
 
   /**
    * <b>Example (python)</b>
-   * 
+   *
    * <pre>
    * import android
    * droid=android.Android()
-   * 
+   *
    * droid.addOptionsMenuItem("Silly","silly",None,"star_on")
    * droid.addOptionsMenuItem("Sensible","sensible","I bet.","star_off")
    * droid.addOptionsMenuItem("Off","off",None,"ic_menu_revert")
-   * 
+   *
    * print "Hit menu to see extra options."
    * print "Will timeout in 10 seconds if you hit nothing."
-   * 
+   *
    * while True: # Wait for events from the menu.
    *   response=droid.eventWait(10000).result
    *   if response==None:
@@ -505,7 +505,7 @@ public class UiFacade extends RpcReceiver {
    *   if response["name"]=="off":
    *     break
    * print "And done."
-   * 
+   *
    * </pre>
    */
   @Rpc(description = "Adds a new item to options menu.")
@@ -652,11 +652,11 @@ public class UiFacade extends RpcReceiver {
 
   /**
    * This will override the default behaviour of keys while in the fullscreen mode. ie:
-   * 
+   *
    * <pre>
    *   droid.fullKeyOverride([24,25],True)
    * </pre>
-   * 
+   *
    * This will override the default behaviour of the volume keys (codes 24 and 25) so that they do
    * not actually adjust the volume. <br>
    * Returns a list of currently overridden keycodes.

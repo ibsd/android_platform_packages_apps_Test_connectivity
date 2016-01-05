@@ -48,7 +48,7 @@ import org.connectbot.ConsoleActivity;
 
 /**
  * An activity that allows to monitor running scripts.
- * 
+ *
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public class ScriptProcessMonitor extends ListActivity {

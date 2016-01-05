@@ -770,7 +770,7 @@ public class ConsoleActivity extends Activity {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see android.app.Activity#onNewIntent(android.content.Intent)
    */
   @Override
@@ -914,7 +914,7 @@ public class ConsoleActivity extends Activity {
 
   /**
    * Adds a new TerminalBridge to the current set of views in our ViewFlipper.
-   * 
+   *
    * @param bridge
    *          TerminalBridge to add to our ViewFlipper
    * @return the child index of the new view in the ViewFlipper
@@ -966,7 +966,7 @@ public class ConsoleActivity extends Activity {
 
   /**
    * Displays the child in the ViewFlipper at the requestedIndex and updates the prompts.
-   * 
+   *
    * @param requestedIndex
    *          the index of the terminal view to display
    */

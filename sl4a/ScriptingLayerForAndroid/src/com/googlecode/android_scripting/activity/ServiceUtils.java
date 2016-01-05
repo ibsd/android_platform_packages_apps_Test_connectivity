@@ -28,7 +28,7 @@ import java.lang.reflect.Method;
 
 /**
  * A utility class supplying helper methods for {@link Service} objects.
- * 
+ *
  * @author Felix Arends (felix.arends@gmail.com)
  */
 public class ServiceUtils {
@@ -39,7 +39,7 @@ public class ServiceUtils {
    * Marks the service as a foreground service. This uses reflection to figure out whether the new
    * APIs for marking a service as a foreground service are available. If not, it falls back to the
    * old {@link #setForeground(boolean)} call.
-   * 
+   *
    * @param service
    *          the service to put in foreground mode
    * @param notificationId

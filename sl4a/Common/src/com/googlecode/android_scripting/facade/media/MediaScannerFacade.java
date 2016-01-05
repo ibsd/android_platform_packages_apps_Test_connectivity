@@ -51,7 +51,7 @@ public class MediaScannerFacade extends RpcReceiver {
         mReceiver = new MediaScannerReceiver();
     }
 
-    public class MediaScannerReceiver extends BroadcastReceiver {  
+    public class MediaScannerReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -60,7 +60,7 @@ public class MediaScannerFacade extends RpcReceiver {
                 Log.d("Scan finished, posting event.");
                 mEventFacade.postEvent("MediaScanFinished", new Bundle());
                 mService.unregisterReceiver(mReceiver);
-            } 
+            }
         }
     }
 

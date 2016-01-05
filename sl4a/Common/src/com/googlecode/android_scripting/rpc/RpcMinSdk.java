@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Use this annotation to specify minimum SDK level (if higher than 3).
- * 
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

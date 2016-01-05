@@ -45,8 +45,8 @@ class MjpegServer extends SimpleServer {
         "Connection: close\r\n" +
         "Max-Age: 0\r\n" +
         "Expires: 0\r\n" +
-        "Cache-Control: no-cache, private\r\n" + 
-        "Pragma: no-cache\r\n" + 
+        "Cache-Control: no-cache, private\r\n" +
+        "Pragma: no-cache\r\n" +
         "Content-Type: multipart/x-mixed-replace; boundary=--BoundaryString\r\n\r\n").getBytes());
     while (true) {
       data = mProvider.getJpeg();

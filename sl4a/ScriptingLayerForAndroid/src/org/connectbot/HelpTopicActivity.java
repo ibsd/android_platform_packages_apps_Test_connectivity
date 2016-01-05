@@ -27,7 +27,7 @@ import org.connectbot.util.HelpTopicView;
 
 /**
  * @author Kenny Root
- * 
+ *
  */
 public class HelpTopicActivity extends Activity {
   public final static String TAG = "ConnectBot.HelpActivity";

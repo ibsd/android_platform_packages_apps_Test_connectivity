@@ -26,7 +26,7 @@ import org.connectbot.HelpActivity;
 
 /**
  * @author Kenny Root
- * 
+ *
  */
 public class HelpTopicView extends WebView {
   public HelpTopicView(Context context, AttributeSet attrs, int defStyle) {

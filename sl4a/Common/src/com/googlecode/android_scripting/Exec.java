@@ -30,7 +30,7 @@ public class Exec {
    * @param arg1
    *          the second argument to the command, may be null
    * @return the file descriptor of the started process.
-   * 
+   *
    */
   public static FileDescriptor createSubprocess(String command, String[] arguments,
       String[] environmentVariables, String workingDirectory) {
@@ -47,7 +47,7 @@ public class Exec {
    * @param processId
    *          A one-element array to which the process ID of the started process will be written.
    * @return the file descriptor of the opened process's psuedo-terminal.
-   * 
+   *
    */
   public static native FileDescriptor createSubprocess(String command, String[] arguments,
       String[] environmentVariables, String workingDirectory, int[] processId);
@@ -58,9 +58,9 @@ public class Exec {
   /**
    * Causes the calling thread to wait for the process associated with the receiver to finish
    * executing.
-   * 
+   *
    * @return The exit value of the Process being waited on
-   * 
+   *
    */
   public static native int waitFor(int processId);
 

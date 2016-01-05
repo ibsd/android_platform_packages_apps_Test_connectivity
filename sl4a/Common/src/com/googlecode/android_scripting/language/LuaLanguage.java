@@ -18,7 +18,7 @@ package com.googlecode.android_scripting.language;
 
 /**
  * Represents the Lua programming language.
- * 
+ *
  * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class LuaLanguage extends Language {

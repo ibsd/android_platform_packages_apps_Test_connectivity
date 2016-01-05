@@ -49,7 +49,7 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * Access Camera functions.
- * 
+ *
  */
 public class CameraFacade extends RpcReceiver {
 

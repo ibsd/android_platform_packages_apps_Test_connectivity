@@ -21,9 +21,9 @@ import org.json.JSONObject;
 
 /**
  * Represents a JSON RPC result.
- * 
+ *
  * @see http://json-rpc.org/wiki/specification
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class JsonRpcResult {

@@ -36,7 +36,7 @@ import java.io.IOException;
 
 /**
  * @author Kenny Root
- * 
+ *
  */
 public class HelpActivity extends Activity {
   public final static String TAG = "ConnectBot.HelpActivity";

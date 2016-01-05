@@ -44,14 +44,14 @@ import java.util.List;
  * accelerometer is limited (by the phone manufacturer) to a maximum reading of 2g. The magnetometer
  * (which also provides orientation readings) is strongly affected by the presence of ferrous metals
  * and can give large errors in vehicles, on board ship etc.
- * 
+ *
  * Following a startSensingTimed(A,B) api call sensor events are entered into the Event Queue (see
  * EventFacade). For the A parameter: 1 = All Sensors, 2 = Accelerometer, 3 = Magnetometer and 4 =
  * Light. The B parameter is the minimum delay between recordings in milliseconds. To avoid
  * duplicate readings the minimum delay should be 20 milliseconds. The light sensor will probably be
  * much slower (taking about 1 second to register a change in light level). Note that if the light
  * level is constant no sensor events will be registered by the light sensor.
- * 
+ *
  * Following a startSensingThreshold(A,B,C) api call sensor events greater than a given threshold
  * are entered into the Event Queue. For the A parameter: 1 = Orientation, 2 = Accelerometer, 3 =
  * Magnetometer and 4 = Light. The B parameter is the integer value of the required threshold level.
@@ -59,10 +59,10 @@ import java.util.List;
  * can exceed the threshold value for long periods only crossing and return events are recorded. The
  * C parameter is the required axis (XYZ) of the sensor: 0 = No axis, 1 = X, 2 = Y, 3 = X+Y, 4 = Z,
  * 5= X+Z, 6 = Y+Z, 7 = X+Y+Z. For orientation X = azimuth, Y = pitch and Z = roll. <br>
- * 
+ *
  * <br>
  * <b>Example (python)</b>
- * 
+ *
  * <pre>
  * import android, time
  * droid = android.Android()
@@ -76,7 +76,7 @@ import java.util.List;
  * s6 = droid.sensorsReadOrientation().result
  * droid.stopSensing()
  * </pre>
- * 
+ *
  * Returns:<br>
  * s1 = {u'accuracy': 3, u'pitch': -0.47323511242866517, u'xmag': 1.75, u'azimuth':
  * -0.26701245009899138, u'zforce': 8.4718560000000007, u'yforce': 4.2495484000000001, u'time':
@@ -88,7 +88,7 @@ import java.util.List;
  * s5 = [1.75, -8.9375, -41.0625] -----(x, y, z magnetic readings)<br>
  * s6 = [-0.26701245009899138, -0.47323511242866517, -0.031366908922791481] ---(azimuth, pitch, roll
  * in radians)<br>
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author Felix Arends (felix.arends@gmail.com)
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)

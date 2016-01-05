@@ -32,13 +32,13 @@ import java.util.Map;
 
 /**
  * A provider that can be queried to obtain execution-related interpreter info.
- * 
+ *
  * <p>
  * To create an interpreter APK, please extend this content provider and implement getDescriptor()
  * and getEnvironmentSettings().<br>
  * Please declare the provider in the android manifest xml (the authority values has to be set to
  * your_package_name.provider_name).
- * 
+ *
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public abstract class InterpreterProvider extends ContentProvider {
