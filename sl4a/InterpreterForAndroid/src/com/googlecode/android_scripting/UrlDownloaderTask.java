@@ -37,7 +37,7 @@ import java.net.URLConnection;
 
 /**
  * AsyncTask for extracting ZIP files.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */

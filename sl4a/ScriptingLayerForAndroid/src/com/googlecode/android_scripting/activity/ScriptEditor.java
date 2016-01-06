@@ -62,7 +62,7 @@ import java.util.regex.Pattern;
 
 /**
  * A text editor for scripts.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptEditor extends Activity implements OnClickListener {
@@ -481,7 +481,7 @@ public class ScriptEditor extends Activity implements OnClickListener {
      * Adds a new edit operation to the history at the current position. If executed after a call to
      * getPrevious() removes all the future history (elements with positions >= current history
      * position).
-     * 
+     *
      */
     private void add(EditItem item) {
       mmHistory.setSize(mmPosition);

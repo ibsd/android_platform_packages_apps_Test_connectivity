@@ -38,7 +38,7 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
  * This {@link Activity} is launched by {@link RpcReceiver}s in order to perform operations that a
  * {@link Service} is unable to do. For example: start another activity for result, show dialogs,
  * etc.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class FutureActivity extends Activity {

@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * Represents the programming language supported by the SL4A.
- * 
+ *
  * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class Language {

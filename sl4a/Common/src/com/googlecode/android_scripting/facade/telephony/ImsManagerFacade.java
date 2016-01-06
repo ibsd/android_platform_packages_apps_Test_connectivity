@@ -43,7 +43,7 @@ public class ImsManagerFacade extends RpcReceiver {
         super(manager);
         mService = manager.getService();
         mContext = mService.getBaseContext();
-        mImsManager = ImsManager.getInstance(mContext, 
+        mImsManager = ImsManager.getInstance(mContext,
                 SubscriptionManager.getDefaultVoicePhoneId());
     }
 

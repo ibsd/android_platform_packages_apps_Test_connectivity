@@ -29,7 +29,7 @@ import org.json.JSONArray;
 /**
  * A {@link TriggerRepositoryObserver} that starts and stops the monitoring of events depending on
  * whether or not triggers for the event exist.
- * 
+ *
  * @author Felix Arends (felix.arends@gmail.com)
  */
 public class EventGenerationControllingObserver implements TriggerRepositoryObserver {
@@ -40,7 +40,7 @@ public class EventGenerationControllingObserver implements TriggerRepositoryObse
 
   /**
    * Creates a new StartEventMonitoringObserver for the given trigger repository.
-   * 
+   *
    * @param facadeManager
    * @param triggerRepository
    */

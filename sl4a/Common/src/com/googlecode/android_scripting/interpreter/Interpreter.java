@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Combines all the execution-related specs of a particular interpreter installed in the system.
  * This class is instantiated through a map received from a concrete InterpreterProfider.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */

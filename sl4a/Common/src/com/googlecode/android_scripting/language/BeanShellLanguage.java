@@ -20,7 +20,7 @@ import com.googlecode.android_scripting.rpc.ParameterDescriptor;
 
 /**
  * Represents the BeanShell programming language.
- * 
+ *
  * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class BeanShellLanguage extends Language {

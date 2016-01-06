@@ -66,7 +66,7 @@ import java.util.Map.Entry;
  * A playing media will throw a <b>"media"</b> event on completion. NB: In remote mode, a media file
  * will continue playing after the script has finished unless an explicit {@link #mediaPlayClose
  * mediaPlayClose} event is called.
- * 
+ *
  * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
 

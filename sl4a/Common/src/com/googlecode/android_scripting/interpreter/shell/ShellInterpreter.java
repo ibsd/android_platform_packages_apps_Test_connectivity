@@ -23,7 +23,7 @@ import java.io.File;
 
 /**
  * Represents the shell.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ShellInterpreter extends Interpreter {

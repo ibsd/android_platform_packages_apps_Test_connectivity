@@ -28,7 +28,7 @@ import java.net.UnknownHostException;
 
 /**
  * This is a skeletal implementation of an interpreter process.
- * 
+ *
  * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class InterpreterProcess extends Process {
@@ -39,7 +39,7 @@ public class InterpreterProcess extends Process {
 
   /**
    * Creates a new {@link InterpreterProcess}.
-   * 
+   *
    * @param launchScript
    *          the absolute path to a script that should be launched with the interpreter
    * @param port

@@ -35,7 +35,7 @@ import org.json.JSONException;
 
 /**
  * Wrapper class for alert dialog running in separate thread.
- * 
+ *
  * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 class AlertDialogTask extends DialogTask {
@@ -83,7 +83,7 @@ class AlertDialogTask extends DialogTask {
 
   /**
    * Set list items.
-   * 
+   *
    * @param items
    */
   public void setItems(JSONArray items) {
@@ -100,7 +100,7 @@ class AlertDialogTask extends DialogTask {
 
   /**
    * Set single choice items.
-   * 
+   *
    * @param items
    *          a list of items as {@link String}s to display
    * @param selected
@@ -115,7 +115,7 @@ class AlertDialogTask extends DialogTask {
 
   /**
    * Set multi choice items.
-   * 
+   *
    * @param items
    *          a list of items as {@link String}s to display
    * @param selected

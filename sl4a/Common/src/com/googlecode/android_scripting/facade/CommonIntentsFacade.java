@@ -37,7 +37,7 @@ import org.json.JSONObject;
  * A selection of commonly used intents. <br>
  * <br>
  * These can be used to trigger some common tasks.
- * 
+ *
  */
 public class CommonIntentsFacade extends RpcReceiver {
 

@@ -18,7 +18,7 @@ package com.googlecode.android_scripting.language;
 
 /**
  * Represents the Sleep programming language.
- * 
+ *
  * @author tomcatalbino@gmail.com
  */
 public class SleepLanguage extends Language {

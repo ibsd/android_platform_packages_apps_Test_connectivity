@@ -85,7 +85,7 @@ import org.json.JSONObject;
  * </ul>
  * <br>
  * An intent can be built using the {@see #makeIntent} call, but can also be constructed exterally.
- * 
+ *
  */
 public class AndroidFacade extends RpcReceiver {
   /**

@@ -19,7 +19,7 @@ package com.googlecode.android_scripting;
 /**
  * This listener asynchronously receives a task result whenever it finishes. Should be implemented
  * to avoid blocking on task's get() method.
- * 
+ *
  * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public interface AsyncTaskListener<T> {

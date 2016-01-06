@@ -35,7 +35,7 @@ public class AndroidProxy {
   private final RpcReceiverManagerFactory mFacadeManagerFactory;
 
   /**
-   * 
+   *
    * @param service
    *          Android service (required to build facades).
    * @param intent
@@ -67,7 +67,7 @@ public class AndroidProxy {
     mAddress = mJsonRpcServer.startLocal(port);
     return mAddress;
   }
-  
+
   public InetSocketAddress startPublic() {
     return startPublic(0);
   }

@@ -31,7 +31,7 @@ import java.util.Map;
 
 /**
  * This facade allows access to the Preferences interface.
- * 
+ *
  * <br>
  * <b>Notes:</b> <br>
  * <b>filename</b> - Filename indicates which preference file to refer to. If no filename is
@@ -43,7 +43,7 @@ import java.util.Map;
  * href=http://developer.android.com/reference/java/util/prefs/Preferences.html>Preferences</a> and
  * <a href=http://developer.android.com/guide/topics/data/data-storage.html#pref>Shared
  * Preferences</a> in the android documentation on how preferences work.
- * 
+ *
  * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
 

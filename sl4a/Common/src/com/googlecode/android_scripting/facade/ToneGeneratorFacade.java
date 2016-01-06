@@ -26,7 +26,7 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
 
 /**
  * Generate DTMF tones.
- * 
+ *
  */
 public class ToneGeneratorFacade extends RpcReceiver {
 

@@ -46,14 +46,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A facade for recording media.
- * 
+ *
  * Guidance notes: Use e.g. '/sdcard/file.ext' for your media destination file. A file extension of
  * mpg will use the default settings for format and codec (often h263 which won't work with common
  * PC media players). A file extension of mp4 or 3gp will use the appropriate format with the (more
  * common) h264 codec. A video player such as QQPlayer (from the android market) plays both codecs
  * and uses the composition matrix (embedded in the video file) to correct for image rotation. Many
  * PC based media players ignore this matrix. Standard video sizes may be specified.
- * 
+ *
  * @author Felix Arends (felix.arends@gmail.com)
  * @author Damon Kohler (damonkohler@gmail.com)
  * @author John Karwatzki (jokar49@gmail.com)

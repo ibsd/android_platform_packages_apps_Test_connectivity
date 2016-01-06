@@ -38,7 +38,7 @@ import org.json.JSONObject;
 
 /**
  * Provides access to contacts related functionality.
- * 
+ *
  * @author MeanEYE.rcf (meaneye.rcf@gmail.com
  */
 public class ContactsFacade extends RpcReceiver {
