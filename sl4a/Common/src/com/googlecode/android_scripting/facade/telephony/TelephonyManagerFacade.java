@@ -797,8 +797,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns phone # string \"line 1\", such as MSISDN " +
                        "for default subscription ID; null if unavailable")
     public String telephonyGetLine1Number() {
-        return telephonyGetLine1NumberForSubscription(
-                        SubscriptionManager.getDefaultSubId());
+        return mTelephonyManager.getLine1Number();
     }
 
     @Rpc(description = "Returns phone # string \"line 1\", such as MSISDN " +
@@ -806,6 +805,38 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public String telephonyGetLine1NumberForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.getLine1NumberForSubscriber(subId);
+    }
+
+    @Rpc(description = "Returns the Alpha Tag for the default subscription " +
+                       "ID; null if unavailable")
+    public String telephonyGetLine1AlphaTag() {
+        return mTelephonyManager.getLine1AlphaTag();
+    }
+
+    @Rpc(description = "Returns the Alpha Tag for the specified subscription " +
+                       "ID; null if unavailable")
+    public String telephonyGetLine1AlphaTagForSubscription(
+                  @RpcParameter(name = "subId") Integer subId) {
+        return mTelephonyManager.getLine1AlphaTagForSubscriber(subId);
+    }
+
+    @Rpc(description = "Set the Line1-number (phone number) and Alpha Tag" +
+                       "for the default subscription")
+    public Boolean telephonySetLine1Number(
+                @RpcParameter(name = "number") String number,
+                @RpcOptional
+                @RpcParameter(name = "alphaTag") String alphaTag) {
+        return mTelephonyManager.setLine1NumberForDisplay(alphaTag, number);
+    }
+
+    @Rpc(description = "Set the Line1-number (phone number) and Alpha Tag" +
+                       "for the specified subscription")
+    public Boolean telephonySetLine1NumberForSubscription(
+                @RpcParameter(name = "subId") Integer subId,
+                @RpcParameter(name = "number") String number,
+                @RpcOptional
+                @RpcParameter(name = "alphaTag") String alphaTag) {
+        return mTelephonyManager.setLine1NumberForDisplayForSubscriber(subId, alphaTag, number);
     }
 
     @Rpc(description = "Returns the neighboring cell information of the device.")
