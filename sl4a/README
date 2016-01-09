@@ -48,3 +48,14 @@ or;
 
     where <HOST_PORT_NUM> and <DEVICE_PORT_NUM> are the tcp ports on the host computer and device.
 
+
+===========================
+Doc Generation Instructions
+===========================
+
+From SL4A source directory run this command:
+    1)"perl Docs/generate_api_reference_md.pl"
+
+In the Docs direcotry there should now be an ApiReference.md file that
+contains which RPC functions are available in SL4A as well as documentation
+for the RPC functions.

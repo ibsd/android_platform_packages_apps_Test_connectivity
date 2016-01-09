@@ -16,9 +16,6 @@
 
 LOCAL_PATH := $(call my-dir)
 
-$(shell (perl $(LOCAL_PATH)/Docs/generate_api_reference_md.pl $(LOCAL_PATH)))
-MY_LOCAL_PATH := $(LOCAL_PATH)
-
 include $(CLEAR_VARS)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
