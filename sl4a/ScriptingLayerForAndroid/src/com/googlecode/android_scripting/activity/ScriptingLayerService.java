@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Build;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -184,6 +185,14 @@ public class ScriptingLayerService extends ForegroundService {
       }
       return START_REDELIVER_INTENT;
     }
+
+    //TODO: b/26538940 We need to go back to a strict policy and fix the problems
+    StrictMode.ThreadPolicy sl4aPolicy = new StrictMode.ThreadPolicy.Builder()
+        .detectAll()
+        .penaltyLog()
+        .build();
+
+    StrictMode.setThreadPolicy(sl4aPolicy);
 
     AndroidProxy proxy = null;
     InterpreterProcess interpreterProcess = null;
