@@ -353,6 +353,12 @@ public class WifiScannerFacade extends RpcReceiver {
         }
         /* periodInMs and reportEvents are required */
         result.periodInMs = j.getInt("periodInMs");
+        if (j.has("maxPeriodInMs")) {
+            result.maxPeriodInMs = j.getInt("maxPeriodInMs");
+        }
+        if (j.has("stepCount")) {
+            result.stepCount = j.getInt("stepCount");
+        }
         result.reportEvents = j.getInt("reportEvents");
         if (j.has("numBssidsPerScan")) {
             result.numBssidsPerScan = j.getInt("numBssidsPerScan");
