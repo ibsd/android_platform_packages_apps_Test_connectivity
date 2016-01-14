@@ -52,6 +52,8 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .CallStateChangeListener;
 import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
+                                                   .CellInfoChangeListener;
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .DataConnectionRealTimeInfoChangeListener;
 import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .DataConnectionStateChangeListener;
@@ -131,22 +133,24 @@ public class TelephonyManagerFacade extends RpcReceiver {
                 // Creating listeners for all subscription IDs
                 for (int i = 0; i < mSubInfos.size(); i++) {
                     int subId = mSubInfos.get(i).getSubscriptionId();
-                    StateChangeListener mStateListeners =
+                    StateChangeListener tempStateListener =
                                                      new StateChangeListener();
-                    mStateListeners.mServiceStateChangeListener =
+                    tempStateListener.mServiceStateChangeListener =
                         new ServiceStateChangeListener(mEventFacade, subId);
-                    mStateListeners.mDataConnectionStateChangeListener =
+                    tempStateListener.mDataConnectionStateChangeListener =
                         new DataConnectionStateChangeListener(mEventFacade,
                                                       mTelephonyManager, subId);
-                    mStateListeners.mCallStateChangeListener =
+                    tempStateListener.mCallStateChangeListener =
                         new CallStateChangeListener(mEventFacade, subId);
-                    mStateListeners.mDataConnectionRTInfoChangeListener =
+                    tempStateListener.mCellInfoChangeListener =
+                        new CellInfoChangeListener(mEventFacade, subId);
+                    tempStateListener.mDataConnectionRTInfoChangeListener =
                         new DataConnectionRealTimeInfoChangeListener(mEventFacade,
                                                                      subId);
-                    mStateListeners.mVoiceMailStateChangeListener =
+                    tempStateListener.mVoiceMailStateChangeListener =
                         new VoiceMailStateChangeListener(mEventFacade, subId);
 
-                    StateChangeListeners.put(subId, mStateListeners);
+                    StateChangeListeners.put(subId, tempStateListener);
                 }
                 return null;
             }
@@ -254,6 +258,28 @@ public class TelephonyManagerFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Starts tracking cell info change" +
+                       "for default subscription ID.")
+    public Boolean telephonyStartTrackingCellInfoChange() {
+        return telephonyStartTrackingCellInfoChangeForSubscription(
+                              SubscriptionManager.getDefaultVoiceSubId());
+    }
+
+    @Rpc(description = "Starts tracking cell info change" +
+                       "for specified subscription ID.")
+    public Boolean telephonyStartTrackingCellInfoChangeForSubscription(
+                @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mCellInfoChangeListener,
+                PhoneStateListener.LISTEN_CELL_INFO);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
     @Rpc(description = "Turn on/off precise listening on fore/background or" +
                        " ringing calls for default voice subscription ID.")
     public Boolean telephonyAdjustPreciseCallStateListenLevel(String type,
@@ -282,6 +308,27 @@ public class TelephonyManagerFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Stops tracking cell info change " +
+            "for default voice subscription ID.")
+    public Boolean telephonyStopTrackingCellInfoChange() {
+        return telephonyStopTrackingCellInfoChangeForSubscription(
+                SubscriptionManager.getDefaultVoiceSubId());
+    }
+
+    @Rpc(description = "Stops tracking cell info change " +
+                       "for specified subscription ID.")
+    public Boolean telephonyStopTrackingCellInfoChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mCellInfoChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
     @Rpc(description = "Stops tracking call state change " +
             "for default voice subscription ID.")
     public Boolean telephonyStopTrackingCallStateChange() {
@@ -844,6 +891,14 @@ public class TelephonyManagerFacade extends RpcReceiver {
         return mTelephonyManager.getNeighboringCellInfo();
     }
 
+    @Rpc(description =  "Sets the minimum reporting interval for CellInfo" +
+                        "0-as quickly as possible, 0x7FFFFFF-off")
+    public void telephonySetCellInfoListRate(
+                @RpcParameter(name = "rate") Integer rate
+            ) {
+        mTelephonyManager.setCellInfoListRate(rate);
+    }
+
     @Rpc(description = "Returns all observed cell information from all radios"+
                        "on the device including the primary and neighboring cells")
     public List<CellInfo> telephonyGetAllCellInfo() {
@@ -1093,6 +1148,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     private static class StateChangeListener {
         private ServiceStateChangeListener mServiceStateChangeListener;
         private CallStateChangeListener mCallStateChangeListener;
+        private CellInfoChangeListener mCellInfoChangeListener;
         private DataConnectionStateChangeListener
                            mDataConnectionStateChangeListener;
         private DataConnectionRealTimeInfoChangeListener
