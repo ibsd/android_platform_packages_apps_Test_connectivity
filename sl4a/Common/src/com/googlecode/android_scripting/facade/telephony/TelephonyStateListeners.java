@@ -18,6 +18,7 @@ package com.googlecode.android_scripting.facade.telephony;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.Log;
 import android.os.Bundle;
+import android.telephony.CellInfo;
 import android.telephony.DataConnectionRealTimeInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.PreciseCallState;
@@ -25,6 +26,8 @@ import android.telephony.ServiceState;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.telephony.VoLteServiceState;
+
+import java.util.List;
 
 /**
  * Store all subclasses of PhoneStateListener here.
@@ -316,6 +319,28 @@ public class TelephonyStateListeners {
             event.putInt("subscriptionId", subscriptionId);
             event.putString("subEvent", subEvent);
             mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged, event);
+        }
+
+    }
+
+    public static class CellInfoChangeListener
+            extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+
+        public CellInfoChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public CellInfoChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        @Override
+        public void onCellInfoChanged(List<CellInfo> cellInfo) {
+            mEventFacade.postEvent(TelephonyConstants.EventCellInfoChanged, cellInfo);
         }
     }
 

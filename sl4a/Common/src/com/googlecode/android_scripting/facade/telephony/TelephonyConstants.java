@@ -303,6 +303,7 @@ public class TelephonyConstants {
     /**
      * Constant for Other Event Name
      * **/
+    public static final String EventCellInfoChanged = "CellInfoChanged";
     public static final String EventCallStateChanged = "CallStateChanged";
     public static final String EventPreciseStateChanged = "PreciseStateChanged";
     public static final String EventDataConnectionRealTimeInfoChanged = "DataConnectionRealTimeInfoChanged";
