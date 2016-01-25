@@ -17,6 +17,7 @@ package com.googlecode.android_scripting.facade.telephony;
 
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.telephony.TelephonyEvents;
 import android.os.Bundle;
 import android.telephony.CellInfo;
 import android.telephony.DataConnectionRealTimeInfo;
@@ -60,42 +61,9 @@ public class TelephonyStateListeners {
 
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
-            Bundle mCallStateEvent = new Bundle();
-            String subEvent = null;
-            String postIncomingNumberStr = null;
-            int len = 0;
-            if (incomingNumber == null) {
-                len = 0;
-            } else {
-                len = incomingNumber.length();
-            }
-            if (len > 0) {
-                /**
-                 * Currently this incomingNumber modification is specific for US numbers.
-                 */
-                if ((12 == len) && ('+' == incomingNumber.charAt(0))) {
-                    postIncomingNumberStr = incomingNumber.substring(1);
-                } else if (10 == len) {
-                    postIncomingNumberStr = '1' + incomingNumber;
-                } else {
-                    postIncomingNumberStr = incomingNumber;
-                }
-                mCallStateEvent.putString("incomingNumber", postIncomingNumberStr);
-            }
-            switch (state) {
-                case TelephonyManager.CALL_STATE_IDLE:
-                    subEvent = TelephonyConstants.TELEPHONY_STATE_IDLE;
-                    break;
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                    subEvent = TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
-                    break;
-                case TelephonyManager.CALL_STATE_RINGING:
-                    subEvent = TelephonyConstants.TELEPHONY_STATE_RINGING;
-                    break;
-            }
-            mCallStateEvent.putInt("subscriptionId", subscriptionId);
-            mCallStateEvent.putString("subEvent", subEvent);
-            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged, mCallStateEvent);
+            mEventFacade.postEvent(TelephonyConstants.EventCallStateChanged,
+                new TelephonyEvents.CallStateEvent(
+                    state, incomingNumber, subscriptionId));
         }
 
         @Override
@@ -123,35 +91,11 @@ public class TelephonyStateListeners {
             }
         }
 
-        private void processCallState(int newState, String which, PreciseCallState callState) {
-            Bundle EventMsg = new Bundle();
-            String subEvent = null;
-            EventMsg.putString("Type", which);
-            if (newState == PreciseCallState.PRECISE_CALL_STATE_ACTIVE) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_ACTIVE;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_HOLDING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_HOLDING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DIALING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DIALING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_ALERTING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_ALERTING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_INCOMING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_INCOMING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_WAITING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_WAITING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTED) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DISCONNECTED;
-                EventMsg.putInt("Cause", callState.getPreciseDisconnectCause());
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_DISCONNECTING) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_DISCONNECTING;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_IDLE) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_IDLE;
-            } else if (newState == PreciseCallState.PRECISE_CALL_STATE_NOT_VALID) {
-                subEvent = TelephonyConstants.PRECISE_CALL_STATE_INVALID;
-            }
-            EventMsg.putInt("subscriptionId", subscriptionId);
-            EventMsg.putString("subEvent", subEvent);
-            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged, EventMsg);
+        private void processCallState(
+            int newState, String which, PreciseCallState callState) {
+            mEventFacade.postEvent(TelephonyConstants.EventPreciseStateChanged,
+                new TelephonyEvents.PreciseCallStateEvent(
+                    newState, which, callState, subscriptionId));
         }
     }
 
@@ -175,25 +119,12 @@ public class TelephonyStateListeners {
         }
 
         @Override
-        public void onDataConnectionRealTimeInfoChanged(DataConnectionRealTimeInfo dcRtInfo) {
-            Bundle event = new Bundle();
-            String subEvent = null;
-            event.putString("Type", "modemPowerLvl");
-            event.putLong("Time", dcRtInfo.getTime());
-
-            int state = dcRtInfo.getDcPowerState();
-            if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_LOW) {
-                subEvent = TelephonyConstants.DC_POWER_STATE_LOW;
-            } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_HIGH) {
-                subEvent = TelephonyConstants.DC_POWER_STATE_HIGH;
-            } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_MEDIUM) {
-                subEvent = TelephonyConstants.DC_POWER_STATE_MEDIUM;
-            } else if (state == DataConnectionRealTimeInfo.DC_POWER_STATE_UNKNOWN) {
-                subEvent = TelephonyConstants.DC_POWER_STATE_UNKNOWN;
-            }
-            event.putInt("subscriptionId", subscriptionId);
-            event.putString("subEvent", subEvent);
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionRealTimeInfoChanged, event);
+        public void onDataConnectionRealTimeInfoChanged(
+            DataConnectionRealTimeInfo dcRtInfo) {
+            mEventFacade.postEvent(
+                TelephonyConstants.EventDataConnectionRealTimeInfoChanged,
+                new TelephonyEvents.DataConnectionRealTimeInfoEvent(
+                    dcRtInfo, subscriptionId));
         }
     }
 
@@ -221,28 +152,12 @@ public class TelephonyStateListeners {
 
         @Override
         public void onDataConnectionStateChanged(int state) {
-            Bundle event = new Bundle();
-            String subEvent = null;
-            event.putString("Type", "DataConnectionState");
-            if (state == TelephonyManager.DATA_DISCONNECTED) {
-                subEvent = TelephonyConstants.DATA_STATE_DISCONNECTED;
-            } else if (state == TelephonyManager.DATA_CONNECTING) {
-                subEvent = TelephonyConstants.DATA_STATE_CONNECTING;
-            } else if (state == TelephonyManager.DATA_CONNECTED) {
-                subEvent = TelephonyConstants.DATA_STATE_CONNECTED;
-                event.putString("DataNetworkType", TelephonyUtils.getNetworkTypeString(
-                                 mTelephonyManager.getDataNetworkType()));
-            } else if (state == TelephonyManager.DATA_SUSPENDED) {
-                subEvent = TelephonyConstants.DATA_STATE_SUSPENDED;
-            } else if (state == TelephonyManager.DATA_UNKNOWN) {
-                subEvent = TelephonyConstants.DATA_STATE_UNKNOWN;
-            } else {
-                subEvent = "UnknownStateCode";
-                event.putInt("UnknownStateCode", state);
-            }
-            event.putInt("subscriptionId", subscriptionId);
-            event.putString("subEvent", subEvent);
-            mEventFacade.postEvent(TelephonyConstants.EventDataConnectionStateChanged, event);
+            mEventFacade.postEvent(
+                TelephonyConstants.EventDataConnectionStateChanged,
+                new TelephonyEvents.DataConnectionStateEvent(state,
+                    TelephonyUtils.getNetworkTypeString(
+                                 mTelephonyManager.getDataNetworkType()),
+                    subscriptionId));
         }
     }
 
@@ -266,60 +181,9 @@ public class TelephonyStateListeners {
 
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
-            Bundle event = new Bundle();
-            String subEvent = null;
-            String networkRat = null;
-            switch(serviceState.getState()) {
-                case ServiceState.STATE_EMERGENCY_ONLY:
-                    subEvent = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
-                break;
-                case ServiceState.STATE_IN_SERVICE:
-                    subEvent = TelephonyConstants.SERVICE_STATE_IN_SERVICE;
-                break;
-                case ServiceState.STATE_OUT_OF_SERVICE:
-                    subEvent = TelephonyConstants.SERVICE_STATE_OUT_OF_SERVICE;
-                    if(serviceState.isEmergencyOnly())
-                        subEvent = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
-                break;
-                case ServiceState.STATE_POWER_OFF:
-                    subEvent = TelephonyConstants.SERVICE_STATE_POWER_OFF;
-                break;
-            }
-            event.putString("VoiceRegState", TelephonyUtils.getNetworkStateString(
-                             serviceState.getVoiceRegState()));
-            event.putString("VoiceNetworkType", TelephonyUtils.getNetworkTypeString(
-                             serviceState.getVoiceNetworkType()));
-            event.putString("DataRegState", TelephonyUtils.getNetworkStateString(
-                             serviceState.getDataRegState()));
-            event.putString("DataNetworkType", TelephonyUtils.getNetworkTypeString(
-                             serviceState.getDataNetworkType()));
-            event.putString("OperatorName", serviceState.getOperatorAlphaLong());
-            event.putString("OperatorId", serviceState.getOperatorNumeric());
-            event.putBoolean("isManualNwSelection", serviceState.getIsManualSelection());
-            event.putBoolean("Roaming", serviceState.getRoaming());
-            event.putBoolean("isEmergencyOnly", serviceState.isEmergencyOnly());
-            event.putInt("NetworkId", serviceState.getNetworkId());
-            event.putInt("SystemId", serviceState.getSystemId());
-
-            if(subEvent.equals("InService")) {
-                switch(serviceState.getVoiceNetworkType()) {
-                    case TelephonyManager.NETWORK_TYPE_LTE:
-                        networkRat = TelephonyConstants.RAT_LTE;
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_UMTS:
-                        networkRat = TelephonyConstants.RAT_UMTS;
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_GSM:
-                        networkRat = TelephonyConstants.RAT_GSM;
-                        break;
-                }
-                if (networkRat != null) {
-                    event.putString("networkRat", networkRat);
-                }
-            }
-            event.putInt("subscriptionId", subscriptionId);
-            event.putString("subEvent", subEvent);
-            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged, event);
+            mEventFacade.postEvent(TelephonyConstants.EventServiceStateChanged,
+                new TelephonyEvents.ServiceStateEvent(
+                    serviceState, subscriptionId));
         }
 
     }
@@ -341,7 +205,8 @@ public class TelephonyStateListeners {
 
         @Override
         public void onCellInfoChanged(List<CellInfo> cellInfo) {
-            mEventFacade.postEvent(TelephonyConstants.EventCellInfoChanged, cellInfo);
+            mEventFacade.postEvent(
+                TelephonyConstants.EventCellInfoChanged, cellInfo);
         }
     }
 
@@ -362,13 +227,9 @@ public class TelephonyStateListeners {
 
         @Override
         public void onVoLteServiceStateChanged(VoLteServiceState volteInfo) {
-            Bundle event = new Bundle();
-
-            event.putString("srvccState",
-                    TelephonyUtils.getSrvccStateString(volteInfo.getSrvccState()));
-
             mEventFacade.postEvent(
-                    TelephonyConstants.EventVolteServiceStateChanged, event);
+                    TelephonyConstants.EventVolteServiceStateChanged,
+                    volteInfo);
         }
     }
 
@@ -391,11 +252,10 @@ public class TelephonyStateListeners {
 
         @Override
         public void onMessageWaitingIndicatorChanged(boolean messageWaitingIndicator) {
-            Bundle event = new Bundle();
-            event.putBoolean("MessageWaitingIndicator", messageWaitingIndicator);
-
             mEventFacade.postEvent(
-                    TelephonyConstants.EventMessageWaitingIndicatorChanged, event);
+                    TelephonyConstants.EventMessageWaitingIndicatorChanged,
+                    new TelephonyEvents.MessageWaitingIndicatorEvent(
+                        messageWaitingIndicator));
         }
     }
 

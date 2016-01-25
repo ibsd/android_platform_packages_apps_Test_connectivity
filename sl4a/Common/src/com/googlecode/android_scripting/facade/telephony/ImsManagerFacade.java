@@ -144,16 +144,8 @@ public class ImsManagerFacade extends RpcReceiver {
         if(ImsManager.isWfcEnabledByUser(mContext) == false) {
             return TelephonyConstants.WFC_MODE_DISABLED;
         }
-       switch(ImsManager.getWfcMode(mContext)) {
-           case ImsConfig.WfcModeFeatureValueConstants.WIFI_PREFERRED:
-               return TelephonyConstants.WFC_MODE_WIFI_PREFERRED;
-           case ImsConfig.WfcModeFeatureValueConstants.CELLULAR_PREFERRED:
-               return TelephonyConstants.WFC_MODE_CELLULAR_PREFERRED;
-           case ImsConfig.WfcModeFeatureValueConstants.WIFI_ONLY:
-               return TelephonyConstants.WFC_MODE_WIFI_ONLY;
-           default:
-               return TelephonyConstants.WFC_MODE_UNKNOWN;
-       }
+        return TelephonyUtils.getWfcModeString(
+            ImsManager.getWfcMode(mContext));
     }
 
     @Rpc(description = "Return True if WiFi Calling is enabled by user.")

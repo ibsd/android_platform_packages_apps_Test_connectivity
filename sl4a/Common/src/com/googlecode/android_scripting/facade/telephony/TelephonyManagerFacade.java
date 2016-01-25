@@ -636,7 +636,8 @@ public class TelephonyManagerFacade extends RpcReceiver {
                 "Please use getVoiceNetworkType()" +
                 " or getDataNetworkTpe()");
 
-        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(
+            mTelephonyManager.getNetworkType(subId));
     }
 
     @Rpc(description = "Returns the current voice RAT for" +
@@ -650,7 +651,8 @@ public class TelephonyManagerFacade extends RpcReceiver {
             " the specified voice subscription.")
     public String telephonyGetVoiceNetworkTypeForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getVoiceNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(
+            mTelephonyManager.getVoiceNetworkType(subId));
     }
 
     @Rpc(description = "Returns the current data RAT for" +
@@ -664,23 +666,14 @@ public class TelephonyManagerFacade extends RpcReceiver {
             " the specified data subscription")
     public String telephonyGetDataNetworkTypeForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        return TelephonyUtils.getNetworkTypeString(mTelephonyManager.getDataNetworkType(subId));
+        return TelephonyUtils.getNetworkTypeString(
+            mTelephonyManager.getDataNetworkType(subId));
     }
 
     @Rpc(description = "Returns the device phone type.")
     public String telephonyGetPhoneType() {
-        switch (mTelephonyManager.getPhoneType()) {
-            case TelephonyManager.PHONE_TYPE_GSM:
-                return TelephonyConstants.PHONE_TYPE_GSM;
-            case TelephonyManager.PHONE_TYPE_NONE:
-                return TelephonyConstants.PHONE_TYPE_NONE;
-            case TelephonyManager.PHONE_TYPE_CDMA:
-                return TelephonyConstants.PHONE_TYPE_CDMA;
-            case TelephonyManager.PHONE_TYPE_SIP:
-                return TelephonyConstants.PHONE_TYPE_SIP;
-            default:
-                return null;
-        }
+        return TelephonyUtils.getPhoneTypeString(
+            mTelephonyManager.getPhoneType());
     }
 
     @Rpc(description = "Returns the MCC for default subscription ID")
@@ -750,35 +743,14 @@ public class TelephonyManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns the state of the SIM card for specified slot ID.")
     public String telephonyGetSimStateForSlotId(
                   @RpcParameter(name = "slotId") Integer slotId) {
-        switch (mTelephonyManager.getSimState(slotId)) {
-            case TelephonyManager.SIM_STATE_UNKNOWN:
-                return TelephonyConstants.SIM_STATE_UNKNOWN;
-            case TelephonyManager.SIM_STATE_ABSENT:
-                return TelephonyConstants.SIM_STATE_ABSENT;
-            case TelephonyManager.SIM_STATE_PIN_REQUIRED:
-                return TelephonyConstants.SIM_STATE_PIN_REQUIRED;
-            case TelephonyManager.SIM_STATE_PUK_REQUIRED:
-                return TelephonyConstants.SIM_STATE_PUK_REQUIRED;
-            case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
-                return TelephonyConstants.SIM_STATE_NETWORK_LOCKED;
-            case TelephonyManager.SIM_STATE_READY:
-                return TelephonyConstants.SIM_STATE_READY;
-            case TelephonyManager.SIM_STATE_NOT_READY:
-                return TelephonyConstants.SIM_STATE_NOT_READY;
-            case TelephonyManager.SIM_STATE_PERM_DISABLED:
-                return TelephonyConstants.SIM_STATE_PERM_DISABLED;
-            case TelephonyManager.SIM_STATE_CARD_IO_ERROR:
-                return TelephonyConstants.SIM_STATE_CARD_IO_ERROR;
-            default:
-                Log.e("getSimStateForSlotId this should never happen. sim state:" +
-                        mTelephonyManager.getSimState(slotId));
-                return TelephonyConstants.SIM_STATE_UNKNOWN;
-        }
+        return TelephonyUtils.getSimStateString(
+            mTelephonyManager.getSimState(slotId));
     }
 
     @Rpc(description = "Get Authentication Challenge Response from a " +
             "given SIM Application")
-    public String telephonyGetIccSimChallengeResponse(@RpcParameter(name = "appType") Integer appType,
+    public String telephonyGetIccSimChallengeResponse(
+        @RpcParameter(name = "appType") Integer appType,
             @RpcParameter(name = "hexChallenge") String hexChallenge) {
         return telephonyGetIccSimChallengeResponseForSubscription(
                 SubscriptionManager.getDefaultSubscriptionId(), appType, hexChallenge);
@@ -1105,20 +1077,8 @@ public class TelephonyManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Returns the current data connection state")
     public String telephonyGetDataConnectionState() {
-        int state = mTelephonyManager.getDataState();
-
-        switch(state) {
-            case TelephonyManager.DATA_DISCONNECTED:
-                return TelephonyConstants.DATA_STATE_DISCONNECTED;
-            case TelephonyManager.DATA_CONNECTING:
-                return TelephonyConstants.DATA_STATE_CONNECTING;
-            case TelephonyManager.DATA_CONNECTED:
-                return TelephonyConstants.DATA_STATE_CONNECTED;
-            case TelephonyManager.DATA_SUSPENDED:
-                return TelephonyConstants.DATA_STATE_SUSPENDED;
-            default:
-                return TelephonyConstants.DATA_STATE_UNKNOWN;
-        }
+        return TelephonyUtils.getDataConnectionStateString(
+            mTelephonyManager.getDataState());
     }
 
     @Rpc(description = "Enables or Disables Video Calling()")
@@ -1175,18 +1135,8 @@ public class TelephonyManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns the call state for specified subscription ID")
     public String telephonyGetCallStateForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
-        switch (mTelephonyManager.getCallState(subId)) {
-            case TelephonyManager.CALL_STATE_IDLE:
-                return TelephonyConstants.TELEPHONY_STATE_IDLE;
-            case TelephonyManager.CALL_STATE_RINGING:
-                return TelephonyConstants.TELEPHONY_STATE_RINGING;
-            case TelephonyManager.CALL_STATE_OFFHOOK:
-                return TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
-            default:
-                Log.e("getCallStateForSubscription this should never happen. state:" +
-                        mTelephonyManager.getCallState(subId));
-                return TelephonyConstants.TELEPHONY_STATE_UNKNOWN;
-        }
+        return TelephonyUtils.getTelephonyCallStateString(
+            mTelephonyManager.getCallState(subId));
     }
 
     @Rpc(description = "Returns current signal strength for default subscription ID.")
