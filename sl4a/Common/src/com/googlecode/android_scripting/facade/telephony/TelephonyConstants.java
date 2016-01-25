@@ -309,6 +309,7 @@ public class TelephonyConstants {
     public static final String EventDataConnectionRealTimeInfoChanged = "DataConnectionRealTimeInfoChanged";
     public static final String EventDataConnectionStateChanged = "DataConnectionStateChanged";
     public static final String EventServiceStateChanged = "ServiceStateChanged";
+    public static final String EventSignalStrengthChanged = "SignalStrengthChanged";
     public static final String EventVolteServiceStateChanged = "VolteServiceStateChanged";
     public static final String EventMessageWaitingIndicatorChanged = "MessageWaitingIndicatorChanged";
     public static final String EventConnectivityChanged = "ConnectivityChanged";
@@ -364,4 +365,28 @@ public class TelephonyConstants {
     public static final String NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
     public static final String NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
     public static final String NETWORK_MODE_INVALID = "INVALID";
+
+    /**
+     * Constant for Signal Strength fields
+     * **/
+    public static class SignalStrengthContainer {
+        public static final String SIGNAL_STRENGTH_GSM = "gsmSignalStrength";
+        public static final String SIGNAL_STRENGTH_GSM_DBM = "gsmDbm";
+        public static final String SIGNAL_STRENGTH_GSM_LEVEL = "gsmLevel";
+        public static final String SIGNAL_STRENGTH_GSM_ASU_LEVEL = "gsmAsuLevel";
+        public static final String SIGNAL_STRENGTH_GSM_BIT_ERROR_RATE = "gsmBitErrorRate";
+        public static final String SIGNAL_STRENGTH_CDMA_DBM = "cdmaDbm";
+        public static final String SIGNAL_STRENGTH_CDMA_LEVEL = "cdmaLevel";
+        public static final String SIGNAL_STRENGTH_CDMA_ASU_LEVEL = "cdmaAsuLevel";
+        public static final String SIGNAL_STRENGTH_CDMA_ECIO = "cdmaEcio";
+        public static final String SIGNAL_STRENGTH_EVDO_DBM = "evdoDbm";
+        public static final String SIGNAL_STRENGTH_EVDO_ECIO = "evdoEcio";
+        public static final String SIGNAL_STRENGTH_LTE = "lteSignalStrength";
+        public static final String SIGNAL_STRENGTH_LTE_DBM = "lteDbm";
+        public static final String SIGNAL_STRENGTH_LTE_LEVEL = "lteLevel";
+        public static final String SIGNAL_STRENGTH_LTE_ASU_LEVEL = "lteAsuLevel";
+        public static final String SIGNAL_STRENGTH_DBM = "dbm";
+        public static final String SIGNAL_STRENGTH_LEVEL = "level";
+        public static final String SIGNAL_STRENGTH_ASU_LEVEL = "asuLevel";
+    }
 }

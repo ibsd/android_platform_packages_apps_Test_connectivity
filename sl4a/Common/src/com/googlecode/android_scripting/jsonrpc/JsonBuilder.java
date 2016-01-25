@@ -85,6 +85,7 @@ import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.ModemActivityInfo;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.SmsMessage;
+import android.telephony.SignalStrength;
 import android.telephony.SubscriptionInfo;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Base64;
@@ -97,6 +98,7 @@ import com.googlecode.android_scripting.event.Event;
 //FIXME: Refactor classes, constants and conversions out of here
 import com.googlecode.android_scripting.facade.telephony.InCallServiceImpl;
 import com.googlecode.android_scripting.facade.telephony.TelephonyUtils;
+import com.googlecode.android_scripting.facade.telephony.TelephonyConstants;
 
 public class JsonBuilder {
 
@@ -295,6 +297,10 @@ public class JsonBuilder {
         if (data instanceof ModemActivityInfo) {
             return buildModemActivityInfo((ModemActivityInfo) data);
         }
+        if (data instanceof SignalStrength) {
+            return buildSignalStrength((SignalStrength) data);
+        }
+
 
         return data.toString();
         // throw new JSONException("Failed to build JSON result. " +
@@ -1101,6 +1107,62 @@ public class JsonBuilder {
         info.put("TxTimeMs", build(tmp));
         info.put("RxTimeMs", modemInfo.getRxTimeMillis());
         info.put("EnergyUsedMw", modemInfo.getEnergyUsed());
+        return info;
+    }
+    private static JSONObject buildSignalStrength(SignalStrength signalStrength)
+            throws JSONException {
+        JSONObject info = new JSONObject();
+        info.put(TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_GSM,
+            signalStrength.getGsmSignalStrength());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_GSM_DBM,
+            signalStrength.getGsmDbm());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_GSM_LEVEL,
+            signalStrength.getGsmLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_GSM_ASU_LEVEL,
+            signalStrength.getGsmAsuLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_GSM_BIT_ERROR_RATE,
+            signalStrength.getGsmBitErrorRate());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_CDMA_DBM,
+            signalStrength.getCdmaDbm());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_CDMA_LEVEL,
+            signalStrength.getCdmaLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_CDMA_ASU_LEVEL,
+            signalStrength.getCdmaAsuLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_CDMA_ECIO,
+            signalStrength.getCdmaEcio());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_EVDO_DBM,
+            signalStrength.getEvdoDbm());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_EVDO_ECIO,
+            signalStrength.getEvdoEcio());
+        info.put(TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_LTE,
+            signalStrength.getLteSignalStrength());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_LTE_DBM,
+            signalStrength.getLteDbm());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_LTE_LEVEL,
+            signalStrength.getLteLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_LTE_ASU_LEVEL,
+            signalStrength.getLteAsuLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_LEVEL,
+            signalStrength.getLevel());
+        info.put(
+            TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_ASU_LEVEL,
+            signalStrength.getAsuLevel());
+        info.put(TelephonyConstants.SignalStrengthContainer.SIGNAL_STRENGTH_DBM,
+            signalStrength.getDbm());
         return info;
     }
 
