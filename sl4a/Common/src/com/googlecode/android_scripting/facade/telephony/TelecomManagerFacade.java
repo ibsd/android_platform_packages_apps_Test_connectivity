@@ -239,7 +239,7 @@ public class TelecomManagerFacade extends RpcReceiver {
             @RpcOptional
             Boolean enabled) {
         toggleCallWaitingForSubscription(
-                SubscriptionManager.getDefaultVoiceSubId(), enabled);
+                SubscriptionManager.getDefaultVoiceSubscriptionId(), enabled);
     }
 
     @Rpc(description = "Toggles call waiting feature on or off for specified subscription id.")
