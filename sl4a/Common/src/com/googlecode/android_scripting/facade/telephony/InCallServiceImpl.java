@@ -1177,45 +1177,45 @@ public class InCallServiceImpl extends InCallService {
     private static int getVideoCallCallbackEvent(String event) {
 
         switch (event) {
-            case TelephonyConstants.EventSessionModifyRequestReceived:
+            case TelephonyConstants.EVENT_VIDEO_SESSION_MODIFY_REQUEST_RECEIVED:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED;
-            case TelephonyConstants.EventSessionModifyResponseReceived:
+            case TelephonyConstants.EVENT_VIDEO_SESSION_MODIFY_RESPONSE_RECEIVED:
                 return VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED;
-            case TelephonyConstants.EventSessionEvent:
+            case TelephonyConstants.EVENT_VIDEO_SESSION_EVENT:
                 return VideoCallCallback.EVENT_SESSION_EVENT;
-            case TelephonyConstants.EventPeerDimensionsChanged:
+            case TelephonyConstants.EVENT_VIDEO_PEER_DIMENSIONS_CHANGED:
                 return VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED;
-            case TelephonyConstants.EventVideoQualityChanged:
+            case TelephonyConstants.EVENT_VIDEO_QUALITY_CHANGED:
                 return VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED;
-            case TelephonyConstants.EventDataUsageChanged:
+            case TelephonyConstants.EVENT_VIDEO_DATA_USAGE_CHANGED:
                 return VideoCallCallback.EVENT_DATA_USAGE_CHANGED;
-            case TelephonyConstants.EventCameraCapabilitiesChanged:
+            case TelephonyConstants.EVENT_VIDEO_CAMERA_CAPABILITIES_CHANGED:
                 return VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED;
         }
         Log.d("getVideoCallCallbackEvent: event is invalid.");
         return CallCallback.EVENT_INVALID;
     }
 
-    public static String getVideoCallListenerEventString(int event) {
+    public static String getVideoCallCallbackEventString(int event) {
 
         switch (event) {
             case VideoCallCallback.EVENT_SESSION_MODIFY_REQUEST_RECEIVED:
-                return TelephonyConstants.EventSessionModifyRequestReceived;
+                return TelephonyConstants.EVENT_VIDEO_SESSION_MODIFY_REQUEST_RECEIVED;
             case VideoCallCallback.EVENT_SESSION_MODIFY_RESPONSE_RECEIVED:
-                return TelephonyConstants.EventSessionModifyResponseReceived;
+                return TelephonyConstants.EVENT_VIDEO_SESSION_MODIFY_RESPONSE_RECEIVED;
             case VideoCallCallback.EVENT_SESSION_EVENT:
-                return TelephonyConstants.EventSessionEvent;
+                return TelephonyConstants.EVENT_VIDEO_SESSION_EVENT;
             case VideoCallCallback.EVENT_PEER_DIMENSIONS_CHANGED:
-                return TelephonyConstants.EventPeerDimensionsChanged;
+                return TelephonyConstants.EVENT_VIDEO_PEER_DIMENSIONS_CHANGED;
             case VideoCallCallback.EVENT_VIDEO_QUALITY_CHANGED:
-                return TelephonyConstants.EventVideoQualityChanged;
+                return TelephonyConstants.EVENT_VIDEO_QUALITY_CHANGED;
             case VideoCallCallback.EVENT_DATA_USAGE_CHANGED:
-                return TelephonyConstants.EventDataUsageChanged;
+                return TelephonyConstants.EVENT_VIDEO_DATA_USAGE_CHANGED;
             case VideoCallCallback.EVENT_CAMERA_CAPABILITIES_CHANGED:
-                return TelephonyConstants.EventCameraCapabilitiesChanged;
+                return TelephonyConstants.EVENT_VIDEO_CAMERA_CAPABILITIES_CHANGED;
         }
-        Log.d("getVideoCallListenerEventString: event is invalid.");
-        return TelephonyConstants.EventInvalid;
+        Log.d("getVideoCallCallbackEventString: event is invalid.");
+        return TelephonyConstants.EVENT_VIDEO_INVALID;
     }
 
     public static String getCallStateString(int state) {
@@ -1270,19 +1270,19 @@ public class InCallServiceImpl extends InCallService {
 
         switch (event) {
             case Connection.VideoProvider.SESSION_EVENT_RX_PAUSE:
-                return TelephonyConstants.SessionEventRxPause;
+                return TelephonyConstants.SESSION_EVENT_RX_PAUSE;
             case Connection.VideoProvider.SESSION_EVENT_RX_RESUME:
-                return TelephonyConstants.SessionEventRxResume;
+                return TelephonyConstants.SESSION_EVENT_RX_RESUME;
             case Connection.VideoProvider.SESSION_EVENT_TX_START:
-                return TelephonyConstants.SessionEventTxStart;
+                return TelephonyConstants.SESSION_EVENT_TX_START;
             case Connection.VideoProvider.SESSION_EVENT_TX_STOP:
-                return TelephonyConstants.SessionEventTxStop;
+                return TelephonyConstants.SESSION_EVENT_TX_STOP;
             case Connection.VideoProvider.SESSION_EVENT_CAMERA_FAILURE:
-                return TelephonyConstants.SessionEventCameraFailure;
+                return TelephonyConstants.SESSION_EVENT_CAMERA_FAILURE;
             case Connection.VideoProvider.SESSION_EVENT_CAMERA_READY:
-                return TelephonyConstants.SessionEventCameraReady;
+                return TelephonyConstants.SESSION_EVENT_CAMERA_READY;
             default:
-                return TelephonyConstants.SessionEventUnknown;
+                return TelephonyConstants.SESSION_EVENT_UNKNOWN;
         }
     }
 

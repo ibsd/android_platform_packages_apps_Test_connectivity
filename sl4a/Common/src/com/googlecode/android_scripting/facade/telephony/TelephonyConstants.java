@@ -238,6 +238,57 @@ public class TelephonyConstants {
     public static final String PRECISE_CALL_STATE_LISTEN_LEVEL_BACKGROUND = "BACKGROUND";
 
     /**
+     * Constant for Video Call Session Event Name
+     * **/
+    public static final String SESSION_EVENT_RX_PAUSE = "SESSION_EVENT_RX_PAUSE";
+    public static final String SESSION_EVENT_RX_RESUME = "SESSION_EVENT_RX_RESUME";
+    public static final String SESSION_EVENT_TX_START = "SESSION_EVENT_TX_START";
+    public static final String SESSION_EVENT_TX_STOP = "SESSION_EVENT_TX_STOP";
+    public static final String SESSION_EVENT_CAMERA_FAILURE = "SESSION_EVENT_CAMERA_FAILURE";
+    public static final String SESSION_EVENT_CAMERA_READY = "SESSION_EVENT_CAMERA_READY";
+    public static final String SESSION_EVENT_UNKNOWN = "SESSION_EVENT_UNKNOWN";
+
+    /**
+     * Constants used to Register or de-register for Video Call Callbacks
+     * **/
+    public static final String EVENT_VIDEO_SESSION_MODIFY_REQUEST_RECEIVED = "EVENT_VIDEO_SESSION_MODIFY_REQUEST_RECEIVED";
+    public static final String EVENT_VIDEO_SESSION_MODIFY_RESPONSE_RECEIVED = "EVENT_VIDEO_SESSION_MODIFY_RESPONSE_RECEIVED";
+    public static final String EVENT_VIDEO_SESSION_EVENT = "EVENT_VIDEO_SESSION_EVENT";
+    public static final String EVENT_VIDEO_PEER_DIMENSIONS_CHANGED = "EVENT_VIDEO_PEER_DIMENSIONS_CHANGED";
+    public static final String EVENT_VIDEO_QUALITY_CHANGED = "EVENT_VIDEO_QUALITY_CHANGED";
+    public static final String EVENT_VIDEO_DATA_USAGE_CHANGED = "EVENT_VIDEO_DATA_USAGE_CHANGED";
+    public static final String EVENT_VIDEO_CAMERA_CAPABILITIES_CHANGED = "EVENT_VIDEO_CAMERA_CAPABILITIES_CHANGED";
+    public static final String EVENT_VIDEO_INVALID = "EVENT_VIDEO_INVALID";
+
+    /**
+     * Constant for Network Preference
+     * **/
+    public static final String NETWORK_MODE_WCDMA_PREF = "NETWORK_MODE_WCDMA_PREF";
+    public static final String NETWORK_MODE_GSM_ONLY = "NETWORK_MODE_GSM_ONLY";
+    public static final String NETWORK_MODE_WCDMA_ONLY = "NETWORK_MODE_WCDMA_ONLY";
+    public static final String NETWORK_MODE_GSM_UMTS = "NETWORK_MODE_GSM_UMTS";
+    public static final String NETWORK_MODE_CDMA = "NETWORK_MODE_CDMA";
+    public static final String NETWORK_MODE_CDMA_NO_EVDO = "NETWORK_MODE_CDMA_NO_EVDO";
+    public static final String NETWORK_MODE_EVDO_NO_CDMA = "NETWORK_MODE_EVDO_NO_CDMA";
+    public static final String NETWORK_MODE_GLOBAL = "NETWORK_MODE_GLOBAL";
+    public static final String NETWORK_MODE_LTE_CDMA_EVDO = "NETWORK_MODE_LTE_CDMA_EVDO";
+    public static final String NETWORK_MODE_LTE_GSM_WCDMA = "NETWORK_MODE_LTE_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_ONLY = "NETWORK_MODE_LTE_ONLY";
+    public static final String NETWORK_MODE_LTE_WCDMA = "NETWORK_MODE_LTE_WCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_ONLY = "NETWORK_MODE_TDSCDMA_ONLY";
+    public static final String NETWORK_MODE_TDSCDMA_WCDMA = "NETWORK_MODE_TDSCDMA_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA = "NETWORK_MODE_LTE_TDSCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_GSM = "NETWORK_MODE_TDSCDMA_GSM";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM = "NETWORK_MODE_LTE_TDSCDMA_GSM";
+    public static final String NETWORK_MODE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA";
+    public static final String NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
+    public static final String NETWORK_MODE_INVALID = "INVALID";
+
+    /**
      * Constant for Messaging Event Name
      * **/
     public static final String EventSmsDeliverSuccess = "SmsDeliverSuccess";
@@ -278,29 +329,6 @@ public class TelephonyConstants {
     public static final String EventTelecomVideoCallCameraCapabilities = "TelecomVideoCallCameraCapabilities";
 
     /**
-     * Constant for Video Call Call-Back Event Name
-     * **/
-    public static final String EventSessionModifyRequestReceived = "SessionModifyRequestReceived";
-    public static final String EventSessionModifyResponseReceived = "SessionModifyResponseReceived";
-    public static final String EventSessionEvent = "SessionEvent";
-    public static final String EventPeerDimensionsChanged = "PeerDimensionsChanged";
-    public static final String EventVideoQualityChanged = "VideoQualityChanged";
-    public static final String EventDataUsageChanged = "DataUsageChanged";
-    public static final String EventCameraCapabilitiesChanged = "CameraCapabilitiesChanged";
-    public static final String EventInvalid = "Invalid";
-
-    /**
-     * Constant for Video Call Session Event Name
-     * **/
-    public static final String SessionEventRxPause = "SessionEventRxPause";
-    public static final String SessionEventRxResume = "SessionEventRxResume";
-    public static final String SessionEventTxStart = "SessionEventTxStart";
-    public static final String SessionEventTxStop = "SessionEventTxStop";
-    public static final String SessionEventCameraFailure = "SessionEventCameraFailure";
-    public static final String SessionEventCameraReady = "SessionEventCameraReady";
-    public static final String SessionEventUnknown = "SessionEventUnknown";
-
-    /**
      * Constant for Other Event Name
      * **/
     public static final String EventCellInfoChanged = "CellInfoChanged";
@@ -317,54 +345,30 @@ public class TelephonyConstants {
     /**
      * Constant for Packet Keep Alive Call Back
      * **/
-    public static final String PacketKeepaliveCallBack = "PacketKeepliveCallBack";
-    public static final String PacketKeepaliveCallBackStarted = "Started";
-    public static final String PacketKeepaliveCallBackStopped = "Stopped";
-    public static final String PacketKeepaliveCallBackError = "Error";
-    public static final String PacketKeepaliveCallBackInvalid = "Invalid";
+    public static final String EventPacketKeepaliveCallback = "PacketKeepaliveCallback";
+
+    /*Sub-Event Names*/
+    public static final String PacketKeepaliveCallbackStarted = "Started";
+    public static final String PacketKeepaliveCallbackStopped = "Stopped";
+    public static final String PacketKeepaliveCallbackError = "Error";
+    public static final String PacketKeepaliveCallbackInvalid = "Invalid";
 
     /**
      * Constant for Network Call Back
      * **/
-    public static final String NetworkCallBack = "NetworkCallBack";
-    public static final String NetworkCallBackPreCheck = "PreCheck";
-    public static final String NetworkCallBackAvailable = "Available";
-    public static final String NetworkCallBackLosing = "Losing";
-    public static final String NetworkCallBackLost = "Lost";
-    public static final String NetworkCallBackUnavailable = "Unavailable";
-    public static final String NetworkCallBackCapabilitiesChanged = "CapabilitiesChanged";
-    public static final String NetworkCallBackSuspended = "Suspended";
-    public static final String NetworkCallBackResumed = "Resumed";
-    public static final String NetworkCallBackLinkPropertiesChanged = "LinkPropertiesChanged";
-    public static final String NetworkCallBackInvalid = "Invalid";
+    public static final String EventNetworkCallback = "NetworkCallback";
 
-    /**
-     * Constant for Network Preference
-     * **/
-    public static final String NETWORK_MODE_WCDMA_PREF = "NETWORK_MODE_WCDMA_PREF";
-    public static final String NETWORK_MODE_GSM_ONLY = "NETWORK_MODE_GSM_ONLY";
-    public static final String NETWORK_MODE_WCDMA_ONLY = "NETWORK_MODE_WCDMA_ONLY";
-    public static final String NETWORK_MODE_GSM_UMTS = "NETWORK_MODE_GSM_UMTS";
-    public static final String NETWORK_MODE_CDMA = "NETWORK_MODE_CDMA";
-    public static final String NETWORK_MODE_CDMA_NO_EVDO = "NETWORK_MODE_CDMA_NO_EVDO";
-    public static final String NETWORK_MODE_EVDO_NO_CDMA = "NETWORK_MODE_EVDO_NO_CDMA";
-    public static final String NETWORK_MODE_GLOBAL = "NETWORK_MODE_GLOBAL";
-    public static final String NETWORK_MODE_LTE_CDMA_EVDO = "NETWORK_MODE_LTE_CDMA_EVDO";
-    public static final String NETWORK_MODE_LTE_GSM_WCDMA = "NETWORK_MODE_LTE_GSM_WCDMA";
-    public static final String NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA";
-    public static final String NETWORK_MODE_LTE_ONLY = "NETWORK_MODE_LTE_ONLY";
-    public static final String NETWORK_MODE_LTE_WCDMA = "NETWORK_MODE_LTE_WCDMA";
-    public static final String NETWORK_MODE_TDSCDMA_ONLY = "NETWORK_MODE_TDSCDMA_ONLY";
-    public static final String NETWORK_MODE_TDSCDMA_WCDMA = "NETWORK_MODE_TDSCDMA_WCDMA";
-    public static final String NETWORK_MODE_LTE_TDSCDMA = "NETWORK_MODE_LTE_TDSCDMA";
-    public static final String NETWORK_MODE_TDSCDMA_GSM = "NETWORK_MODE_TDSCDMA_GSM";
-    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM = "NETWORK_MODE_LTE_TDSCDMA_GSM";
-    public static final String NETWORK_MODE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_GSM_WCDMA";
-    public static final String NETWORK_MODE_LTE_TDSCDMA_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_WCDMA";
-    public static final String NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA";
-    public static final String NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
-    public static final String NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA = "NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA";
-    public static final String NETWORK_MODE_INVALID = "INVALID";
+    /*Sub-Event Names*/
+    public static final String NetworkCallbackPreCheck = "PreCheck";
+    public static final String NetworkCallbackAvailable = "Available";
+    public static final String NetworkCallbackLosing = "Losing";
+    public static final String NetworkCallbackLost = "Lost";
+    public static final String NetworkCallbackUnavailable = "Unavailable";
+    public static final String NetworkCallbackCapabilitiesChanged = "CapabilitiesChanged";
+    public static final String NetworkCallbackSuspended = "Suspended";
+    public static final String NetworkCallbackResumed = "Resumed";
+    public static final String NetworkCallbackLinkPropertiesChanged = "LinkPropertiesChanged";
+    public static final String NetworkCallbackInvalid = "Invalid";
 
     /**
      * Constant for Signal Strength fields
@@ -441,5 +445,4 @@ public class TelephonyConstants {
     public static class VoLteServiceStateContainer {
         public static final String SRVCC_STATE = "srvccState";
     }
-
 }
