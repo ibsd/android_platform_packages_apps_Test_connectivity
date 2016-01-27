@@ -123,6 +123,9 @@ public class JsonBuilder {
         if (data instanceof Boolean) {
             return data;
         }
+        if (data instanceof JsonSerializable) {
+            return ((JsonSerializable)data).toJSON();
+        }
         if (data instanceof JSONObject) {
             return data;
         }
