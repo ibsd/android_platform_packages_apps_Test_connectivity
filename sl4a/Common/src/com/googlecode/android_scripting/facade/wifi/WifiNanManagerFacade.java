@@ -273,11 +273,16 @@ public class WifiNanManagerFacade extends RpcReceiver {
                         | WifiNanSessionListener.LISTEN_MESSAGE_RECEIVED);
     }
 
-    @Rpc(description = "Send message.")
-    public void wifiNanSendMessage(@RpcParameter(name = "peerId") Integer peerId,
-            @RpcParameter(name = "message") String message) throws RemoteException {
-
-        mSession.sendMessage(peerId, message.getBytes(), message.length());
+    @Rpc(description = "Send peer-to-peer NAN message")
+    public void wifiNanSendMessage(
+            @RpcParameter(name = "peerId", description = "The ID of the peer being communicated "
+                    + "with. Obtained from a previous message or match session.") Integer peerId,
+            @RpcParameter(name = "message") String message,
+            @RpcParameter(name = "messageId", description = "Arbitrary handle used for "
+                    + "identification of the message in the message status callbacks")
+            Integer messageId)
+                    throws RemoteException {
+        mSession.sendMessage(peerId, message.getBytes(), message.length(), messageId);
     }
 
     private class NanEventListenerPostsEvents extends WifiNanEventListener {
@@ -367,16 +372,18 @@ public class WifiNanManagerFacade extends RpcReceiver {
         }
 
         @Override
-        public void onMessageSendSuccess() {
+        public void onMessageSendSuccess(int messageId) {
             Bundle mResults = new Bundle();
             mResults.putInt("listenerId", mListenerId);
+            mResults.putInt("messageId", messageId);
             mEventFacade.postEvent("WifiNanSessionOnMessageSendSuccess", mResults);
         }
 
         @Override
-        public void onMessageSendFail(int reason) {
+        public void onMessageSendFail(int messageId, int reason) {
             Bundle mResults = new Bundle();
             mResults.putInt("listenerId", mListenerId);
+            mResults.putInt("messageId", messageId);
             mResults.putInt("reason", reason);
             mEventFacade.postEvent("WifiNanSessionOnMessageSendFail", mResults);
         }
