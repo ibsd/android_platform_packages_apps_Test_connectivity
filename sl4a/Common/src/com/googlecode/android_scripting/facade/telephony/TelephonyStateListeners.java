@@ -23,6 +23,7 @@ import android.telephony.DataConnectionRealTimeInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.PreciseCallState;
 import android.telephony.ServiceState;
+import android.telephony.SignalStrength;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.telephony.VoLteServiceState;
@@ -395,6 +396,30 @@ public class TelephonyStateListeners {
 
             mEventFacade.postEvent(
                     TelephonyConstants.EventMessageWaitingIndicatorChanged, event);
+        }
+    }
+
+
+    public static class SignalStrengthChangeListener extends PhoneStateListener {
+
+        private final EventFacade mEventFacade;
+        public SignalStrength mSignalStrengths;
+        public static final int sListeningStates = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
+        public SignalStrengthChangeListener(EventFacade ef) {
+            super();
+            mEventFacade = ef;
+        }
+
+        public SignalStrengthChangeListener(EventFacade ef, int subId) {
+            super(subId);
+            mEventFacade = ef;
+        }
+
+        @Override
+        public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+            mSignalStrengths = signalStrength;
+            mEventFacade.postEvent(
+                TelephonyConstants.EventSignalStrengthChanged, signalStrength);
         }
     }
 
