@@ -492,7 +492,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
                        "for default subscription ID.")
     public Boolean telephonyStartTrackingSignalStrengthChange() {
         return telephonyStartTrackingSignalStrengthChangeForSubscription(
-                                 SubscriptionManager.getDefaultSubId());
+                                 SubscriptionManager.getDefaultSubscriptionId());
     }
 
     @Rpc(description = "Starts tracking signal strength change " +
@@ -514,7 +514,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
                        "for default subscription ID.")
     public Boolean telephonyStopTrackingSignalStrengthChange() {
         return telephonyStopTrackingSignalStrengthChangeForSubscription(
-                                 SubscriptionManager.getDefaultSubId());
+                                 SubscriptionManager.getDefaultSubscriptionId());
     }
 
     @Rpc(description = "Stops tracking signal strength change " +
@@ -1192,7 +1192,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
     @Rpc(description = "Returns current signal strength for default subscription ID.")
     public SignalStrength telephonyGetSignalStrength() {
         return telephonyGetSignalStrengthForSubscription(
-                               SubscriptionManager.getDefaultSubId());
+                               SubscriptionManager.getDefaultSubscriptionId());
     }
 
     @Rpc(description = "Returns current signal strength for specified subscription ID.")
