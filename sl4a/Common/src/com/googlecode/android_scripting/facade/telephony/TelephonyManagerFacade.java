@@ -30,6 +30,7 @@ import android.telephony.CellLocation;
 import android.telephony.ModemActivityInfo;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.provider.Telephony;
@@ -59,6 +60,8 @@ import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .DataConnectionStateChangeListener;
 import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .ServiceStateChangeListener;
+import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
+                                                   .SignalStrengthChangeListener;
 import com.googlecode.android_scripting.facade.telephony.TelephonyStateListeners
                                                    .VoiceMailStateChangeListener;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -137,6 +140,8 @@ public class TelephonyManagerFacade extends RpcReceiver {
                                                      new StateChangeListener();
                     tempStateListener.mServiceStateChangeListener =
                         new ServiceStateChangeListener(mEventFacade, subId);
+                    tempStateListener.mSignalStrengthChangeListener =
+                        new SignalStrengthChangeListener(mEventFacade, subId);
                     tempStateListener.mDataConnectionStateChangeListener =
                         new DataConnectionStateChangeListener(mEventFacade,
                                                       mTelephonyManager, subId);
@@ -475,6 +480,50 @@ public class TelephonyManagerFacade extends RpcReceiver {
         try {
             mTelephonyManager.listen(
                 StateChangeListeners.get(subId).mServiceStateChangeListener,
+                PhoneStateListener.LISTEN_NONE);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Starts tracking signal strength change " +
+                       "for default subscription ID.")
+    public Boolean telephonyStartTrackingSignalStrengthChange() {
+        return telephonyStartTrackingSignalStrengthChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Starts tracking signal strength change " +
+                       "for specified subscription ID.")
+    public Boolean telephonyStartTrackingSignalStrengthChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+         try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mSignalStrengthChangeListener,
+                SignalStrengthChangeListener.sListeningStates);
+            return true;
+        } catch (Exception e) {
+            Log.e("Invalid subscription ID");
+            return false;
+        }
+    }
+
+    @Rpc(description = "Stops tracking signal strength change " +
+                       "for default subscription ID.")
+    public Boolean telephonyStopTrackingSignalStrengthChange() {
+        return telephonyStopTrackingSignalStrengthChangeForSubscription(
+                                 SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Stops tracking signal strength change " +
+                       "for specified subscription ID.")
+    public Boolean telephonyStopTrackingSignalStrengthChangeForSubscription(
+                   @RpcParameter(name = "subId") Integer subId) {
+        try {
+            mTelephonyManager.listen(
+                StateChangeListeners.get(subId).mSignalStrengthChangeListener,
                 PhoneStateListener.LISTEN_NONE);
             return true;
         } catch (Exception e) {
@@ -1140,6 +1189,18 @@ public class TelephonyManagerFacade extends RpcReceiver {
         }
     }
 
+    @Rpc(description = "Returns current signal strength for default subscription ID.")
+    public SignalStrength telephonyGetSignalStrength() {
+        return telephonyGetSignalStrengthForSubscription(
+                               SubscriptionManager.getDefaultSubId());
+    }
+
+    @Rpc(description = "Returns current signal strength for specified subscription ID.")
+    public SignalStrength telephonyGetSignalStrengthForSubscription(
+                    @RpcParameter(name = "subId") Integer subId) {
+        return StateChangeListeners.get(subId).mSignalStrengthChangeListener.mSignalStrengths;
+    }
+
     @Rpc(description = "Returns the sim count.")
     public int telephonyGetSimCount() {
         return mTelephonyManager.getSimCount();
@@ -1147,6 +1208,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
 
     private static class StateChangeListener {
         private ServiceStateChangeListener mServiceStateChangeListener;
+        private SignalStrengthChangeListener mSignalStrengthChangeListener;
         private CallStateChangeListener mCallStateChangeListener;
         private CellInfoChangeListener mCellInfoChangeListener;
         private DataConnectionStateChangeListener
@@ -1164,6 +1226,7 @@ public class TelephonyManagerFacade extends RpcReceiver {
            telephonyStopTrackingCallStateChangeForSubscription(subId);
            telephonyStopTrackingDataConnectionRTInfoChangeForSubscription(subId);
            telephonyStopTrackingServiceStateChangeForSubscription(subId);
+           telephonyStopTrackingSignalStrengthChangeForSubscription(subId);
            telephonyStopTrackingDataConnectionStateChangeForSubscription(subId);
         }
     }

@@ -47,7 +47,6 @@ import com.googlecode.android_scripting.facade.media.MediaScannerFacade;
 import com.googlecode.android_scripting.facade.media.MediaSessionFacade;
 import com.googlecode.android_scripting.facade.telephony.CarrierConfigFacade;
 import com.googlecode.android_scripting.facade.telephony.ImsManagerFacade;
-import com.googlecode.android_scripting.facade.telephony.SignalStrengthFacade;
 import com.googlecode.android_scripting.facade.telephony.SmsFacade;
 import com.googlecode.android_scripting.facade.telephony.SubscriptionManagerFacade;
 import com.googlecode.android_scripting.facade.telephony.TelecomCallFacade;
@@ -117,7 +116,6 @@ public class FacadeConfiguration {
         sFacadeClassList.add(BluetoothHidFacade.class);
         sFacadeClassList.add(BluetoothMapFacade.class);
         sFacadeClassList.add(BluetoothRfcommFacade.class);
-        sFacadeClassList.add(SignalStrengthFacade.class);
         sFacadeClassList.add(WebCamFacade.class);
         sFacadeClassList.add(WifiP2pManagerFacade.class);
         sFacadeClassList.add(BluetoothLeScanFacade.class);
