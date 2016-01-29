@@ -18,6 +18,8 @@ package com.googlecode.android_scripting.rpc;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Parcelable;
 
 import com.googlecode.android_scripting.facade.AndroidFacade;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
@@ -101,6 +103,37 @@ public final class MethodDescriptor {
       }
     }
 
+    return invoke(manager, args);
+  }
+
+  /**
+   * Invokes the call that belongs to this object with the given parameters. Wraps the response
+   * (possibly an exception) in a JSONObject.
+   *
+   * @param parameters {@code Bundle} containing the parameters
+   * @return result
+   * @throws Throwable
+   */
+  public Object invoke(RpcReceiverManager manager, final Bundle parameters) throws Throwable {
+    final Annotation annotations[][] = getParameterAnnotations();
+    final Class<?>[] parameterTypes = getMethod().getParameterTypes();
+    final Object[] args = new Object[parameterTypes.length];
+
+    for (int i = 0; i < parameterTypes.length; i++) {
+      Class<?> parameterType = parameterTypes[i];
+      String parameterName = getName(annotations[i]);
+      if (i < parameterTypes.length) {
+        args[i] = convertParameter(parameters, parameterType, parameterName);
+      } else if (MethodDescriptor.hasDefaultValue(annotations[i])) {
+        args[i] = MethodDescriptor.getDefaultValue(parameterType, annotations[i]);
+      } else {
+        throw new RpcError("Argument " + (i + 1) + " is not present");
+      }
+    }
+    return invoke(manager, args);
+  }
+
+  private Object invoke(RpcReceiverManager manager, Object[] args) throws Throwable{
     Object result = null;
     try {
       result = manager.invoke(mClass, mMethod, args);
@@ -166,6 +199,41 @@ public final class MethodDescriptor {
       throw new RpcError("Argument " + (index + 1) + " should be of type "
           + ((Class<?>) type).getSimpleName() + ".");
     }
+  }
+
+  private Object convertParameter(Bundle bundle, Class<?> type, String name) {
+    Object param = null;
+    if (type.isAssignableFrom(Boolean.class)) {
+      param = bundle.getBoolean(name, false);
+    }
+    if (type.isAssignableFrom(Boolean[].class)) {
+      param = bundle.getBooleanArray(name);
+    }
+    if (type.isAssignableFrom(String.class)) {
+      param = bundle.getString(name);
+    }
+    if (type.isAssignableFrom(String[].class)) {
+      param = bundle.getStringArray(name);
+    }
+    if (type.isAssignableFrom(Integer.class)) {
+      param = bundle.getInt(name, 0);
+    }
+    if (type.isAssignableFrom(Integer[].class)) {
+      param = bundle.getIntArray(name);
+    }
+    if (type.isAssignableFrom(Bundle.class)) {
+      param = bundle.getBundle(name);
+    }
+    if (type.isAssignableFrom(Parcelable.class)) {
+      param = bundle.getParcelable(name);
+    }
+    if (type.isAssignableFrom(Parcelable[].class)) {
+      param = bundle.getParcelableArray(name);
+    }
+    if (type.isAssignableFrom(Intent.class)) {
+      param = bundle.getParcelable(name);
+    }
+    return param;
   }
 
   public static Object buildIntent(JSONObject jsonObject) throws JSONException {
