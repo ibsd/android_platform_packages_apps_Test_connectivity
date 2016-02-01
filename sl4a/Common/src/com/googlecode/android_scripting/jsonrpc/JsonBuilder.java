@@ -88,6 +88,7 @@ import android.telephony.SmsMessage;
 import android.telephony.SignalStrength;
 import android.telephony.SubscriptionInfo;
 import android.telephony.gsm.GsmCellLocation;
+import android.telephony.VoLteServiceState;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
@@ -296,6 +297,9 @@ public class JsonBuilder {
         }
         if (data instanceof CameraCapabilities) {
             return buildCameraCapabilities((CameraCapabilities) data);
+        }
+        if (data instanceof VoLteServiceState) {
+            return buildVoLteServiceStateEvent((VoLteServiceState) data);
         }
         if (data instanceof ModemActivityInfo) {
             return buildModemActivityInfo((ModemActivityInfo) data);
@@ -1092,6 +1096,15 @@ public class JsonBuilder {
         capabilities.put("MaxZoom", build(cameraCapabilities.getMaxZoom()));
 
         return capabilities;
+    }
+
+    private static JSONObject buildVoLteServiceStateEvent(
+        VoLteServiceState volteInfo)
+            throws JSONException {
+        JSONObject info = new JSONObject();
+        info.put(TelephonyConstants.VoLteServiceStateContainer.SRVCC_STATE,
+            TelephonyUtils.getSrvccStateString(volteInfo.getSrvccState()));
+        return info;
     }
 
     private static JSONObject buildModemActivityInfo(ModemActivityInfo modemInfo)

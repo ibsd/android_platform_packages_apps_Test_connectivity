@@ -389,4 +389,57 @@ public class TelephonyConstants {
         public static final String SIGNAL_STRENGTH_LEVEL = "level";
         public static final String SIGNAL_STRENGTH_ASU_LEVEL = "asuLevel";
     }
+
+    public static class CallStateContainer {
+        public static final String INCOMING_NUMBER = "incomingNumber";
+        public static final String SUBSCRIPTION_ID = "subscriptionId";
+        public static final String SUB_EVENT = "subEvent";
+    }
+
+    public static class PreciseCallStateContainer {
+        public static final String TYPE = "type";
+        public static final String CAUSE = "cause";
+        public static final String SUBSCRIPTION_ID = "subscriptionId";
+        public static final String SUB_EVENT = "subEvent";
+    }
+
+    public static class DataConnectionRealTimeInfoContainer {
+        public static final String TYPE = "type";
+        public static final String TIME = "time";
+        public static final String SUBSCRIPTION_ID = "subscriptionId";
+        public static final String SUB_EVENT = "subEvent";
+    }
+
+    public static class DataConnectionStateContainer {
+        public static final String TYPE = "type";
+        public static final String DATA_NETWORK_TYPE = "dataNetworkType";
+        public static final String STATE_CODE = "stateCode";
+        public static final String SUBSCRIPTION_ID = "subscriptionId";
+        public static final String SUB_EVENT = "subEvent";
+    }
+
+    public static class ServiceStateContainer {
+        public static final String VOICE_REG_STATE = "voiceRegState";
+        public static final String VOICE_NETWORK_TYPE = "voiceNetworkType";
+        public static final String DATA_REG_STATE = "dataRegState";
+        public static final String DATA_NETWORK_TYPE = "dataNetworkType";
+        public static final String OPERATOR_NAME = "operatorName";
+        public static final String OPERATOR_ID = "operatorId";
+        public static final String IS_MANUAL_NW_SELECTION = "isManualNwSelection";
+        public static final String ROAMING = "roaming";
+        public static final String IS_EMERGENCY_ONLY = "isEmergencyOnly";
+        public static final String NETWORK_ID = "networkId";
+        public static final String SYSTEM_ID = "systemId";
+        public static final String SUBSCRIPTION_ID = "subscriptionId";
+        public static final String SUB_EVENT = "subEvent";
+    }
+
+    public static class MessageWaitingIndicatorContainer {
+        public static final String IS_MESSAGE_WAITING = "isMessageWaiting";
+    }
+
+    public static class VoLteServiceStateContainer {
+        public static final String SRVCC_STATE = "srvccState";
+    }
+
 }

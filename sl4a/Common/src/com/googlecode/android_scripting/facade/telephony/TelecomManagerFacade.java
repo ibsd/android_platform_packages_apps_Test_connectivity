@@ -116,31 +116,13 @@ public class TelecomManagerFacade extends RpcReceiver {
     @Rpc(description = "Get the current call state.")
     public String telecomGetCallState() {
         int state = mTelecomManager.getCallState();
-        String stateStr = null;
-        if (state == TelephonyManager.CALL_STATE_RINGING) {
-            stateStr = TelephonyConstants.TELEPHONY_STATE_RINGING;
-        } else if (state == TelephonyManager.CALL_STATE_IDLE) {
-            stateStr = TelephonyConstants.TELEPHONY_STATE_IDLE;
-        } else if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
-            stateStr = TelephonyConstants.TELEPHONY_STATE_OFFHOOK;
-        }
-        return stateStr;
+        return TelephonyUtils.getTelephonyCallStateString(state);
     }
 
     @Rpc(description = "Get the current tty mode.")
     public String telecomGetCurrentTtyMode() {
         int mode = mTelecomManager.getCurrentTtyMode();
-        String modeStr = null;
-        if (mode == TelecomManager.TTY_MODE_FULL) {
-            modeStr = TelephonyConstants.TTY_MODE_FULL;
-        } else if (mode == TelecomManager.TTY_MODE_HCO) {
-            modeStr = TelephonyConstants.TTY_MODE_HCO;
-        } else if (mode == TelecomManager.TTY_MODE_OFF) {
-            modeStr = TelephonyConstants.TTY_MODE_OFF;
-        } else if (mode == TelecomManager.TTY_MODE_VCO) {
-            modeStr = TelephonyConstants.TTY_MODE_VCO;
-        }
-        return modeStr;
+        return TelephonyUtils.getTtyModeString(mode);
     }
 
     @Rpc(description = "Bring incallUI to foreground.")
