@@ -91,7 +91,7 @@ public class JsonRpcServer extends SimpleServer {
 
             MethodDescriptor rpc = receiverManager.getMethodDescriptor(method);
             if (rpc == null) {
-                send(writer, JsonRpcResult.error(id, new RpcError("Unknown RPC.")), UID);
+                send(writer, JsonRpcResult.error(id, new RpcError("Unknown RPC: " + method)), UID);
                 continue;
             }
             try {
