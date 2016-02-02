@@ -31,9 +31,8 @@
 using android::sp;
 using ipc::binder::IBluetooth;
 
-typedef void (*MFP)(rapidjson::Document&);
 typedef std::map<std::string, MFP> function_map;
-function_map _funcMap;
+function_map* _funcMap = NULL;
 BluetoothBinderFacade bt_binder;
 
 void _clean_result(rapidjson::Document &doc) {
@@ -228,20 +227,23 @@ void bluetooth_binder_set_adv_settings_wrapper(rapidjson::Document &doc) {
 // End Wrappers ... I'm not a large water dwelling mammal...
 
 CommandReceiver::CommandReceiver() {
-  _funcMap.insert(std::make_pair("initiate", &initiate));
-  _funcMap.insert(std::make_pair("BluetoothBinderInitInterface",
+  if (_funcMap == NULL) {
+    _funcMap = new function_map();
+  }
+  _funcMap->insert(std::make_pair("initiate", &initiate));
+  _funcMap->insert(std::make_pair("BluetoothBinderInitInterface",
     &bluetooth_binder_init_interface_wapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderGetName",
+  _funcMap->insert(std::make_pair("BluetoothBinderGetName",
     &bluetooth_binder_get_local_name_wrapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderSetName",
+  _funcMap->insert(std::make_pair("BluetoothBinderSetName",
     &bluetooth_binder_set_local_name_wrapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderGetAddress",
+  _funcMap->insert(std::make_pair("BluetoothBinderGetAddress",
     &bluetooth_binder_get_local_address_wrapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderEnable",
+  _funcMap->insert(std::make_pair("BluetoothBinderEnable",
     &bluetooth_binder_enable_wrapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderRegisterBLE",
+  _funcMap->insert(std::make_pair("BluetoothBinderRegisterBLE",
     &bluetooth_binder_register_ble_wrapper));
-  _funcMap.insert(std::make_pair("BluetoothBinderSetAdvSettings",
+  _funcMap->insert(std::make_pair("BluetoothBinderSetAdvSettings",
     &bluetooth_binder_set_adv_settings_wrapper));
 }
 
@@ -253,9 +255,17 @@ void CommandReceiver::Call(rapidjson::Document& doc) {
     cmd = doc[sl4n::kMethodStr].GetString();
   }
 
-  function_map::const_iterator iter = _funcMap.find(cmd);
-  if (iter != _funcMap.end()) {
+  function_map::const_iterator iter = _funcMap->find(cmd);
+  if (iter != _funcMap->end()) {
     iter->second(doc);
   }
   _clean_result(doc);
+}
+
+void CommandReceiver::RegisterCommand(std::string name, MFP command) {
+  if (_funcMap == NULL) {
+    _funcMap = new function_map();
+  }
+
+  _funcMap->insert(std::make_pair(name, command));
 }
