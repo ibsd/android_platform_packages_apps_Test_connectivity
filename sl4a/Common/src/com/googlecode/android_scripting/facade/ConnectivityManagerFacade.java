@@ -130,7 +130,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getPacketKeepaliveReceiverEventString(EVENT_STARTED));
-                mEventFacade.postEvent(TelephonyConstants.PacketKeepaliveCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
             }
         }
 
@@ -142,7 +142,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getPacketKeepaliveReceiverEventString(EVENT_STOPPED));
-                mEventFacade.postEvent(TelephonyConstants.PacketKeepaliveCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
             }
         }
 
@@ -155,7 +155,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("subEvent",
                         getPacketKeepaliveReceiverEventString(EVENT_ERROR));
                 event.putInt("error", error);
-                mEventFacade.postEvent(TelephonyConstants.PacketKeepaliveCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
             }
         }
     }
@@ -207,7 +207,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_PRECHECK));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -219,7 +219,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_AVAILABLE));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -232,7 +232,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_LOSING));
                 event.putInt("maxMsToLive", maxMsToLive);
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -244,7 +244,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_LOST));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -256,7 +256,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_UNAVAILABLE));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -271,7 +271,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_CAPABILITIES_CHANGED));
                 event.putInt("RSSI", networkCapabilities.getSignalStrength());
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -283,7 +283,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_SUSPENDED));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -296,7 +296,7 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_LINK_PROPERTIES_CHANGED));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
 
@@ -308,30 +308,30 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 event.putString("id", mId);
                 event.putString("subEvent",
                         getNetworkCallbackEventString(EVENT_RESUMED));
-                mEventFacade.postEvent(TelephonyConstants.NetworkCallBack, event);
+                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
             }
         }
     }
 
     private static int getNetworkCallbackEvent(String event) {
         switch (event) {
-            case TelephonyConstants.NetworkCallBackPreCheck:
+            case TelephonyConstants.NetworkCallbackPreCheck:
                 return NetworkCallback.EVENT_PRECHECK;
-            case TelephonyConstants.NetworkCallBackAvailable:
+            case TelephonyConstants.NetworkCallbackAvailable:
                 return NetworkCallback.EVENT_AVAILABLE;
-            case TelephonyConstants.NetworkCallBackLosing:
+            case TelephonyConstants.NetworkCallbackLosing:
                 return NetworkCallback.EVENT_LOSING;
-            case TelephonyConstants.NetworkCallBackLost:
+            case TelephonyConstants.NetworkCallbackLost:
                 return NetworkCallback.EVENT_LOST;
-            case TelephonyConstants.NetworkCallBackUnavailable:
+            case TelephonyConstants.NetworkCallbackUnavailable:
                 return NetworkCallback.EVENT_UNAVAILABLE;
-            case TelephonyConstants.NetworkCallBackCapabilitiesChanged:
+            case TelephonyConstants.NetworkCallbackCapabilitiesChanged:
                 return NetworkCallback.EVENT_CAPABILITIES_CHANGED;
-            case TelephonyConstants.NetworkCallBackSuspended:
+            case TelephonyConstants.NetworkCallbackSuspended:
                 return NetworkCallback.EVENT_SUSPENDED;
-            case TelephonyConstants.NetworkCallBackResumed:
+            case TelephonyConstants.NetworkCallbackResumed:
                 return NetworkCallback.EVENT_RESUMED;
-            case TelephonyConstants.NetworkCallBackLinkPropertiesChanged:
+            case TelephonyConstants.NetworkCallbackLinkPropertiesChanged:
                 return NetworkCallback.EVENT_LINK_PROPERTIES_CHANGED;
         }
         return NetworkCallback.EVENT_INVALID;
@@ -340,34 +340,34 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     private static String getNetworkCallbackEventString(int event) {
         switch (event) {
             case NetworkCallback.EVENT_PRECHECK:
-                return TelephonyConstants.NetworkCallBackPreCheck;
+                return TelephonyConstants.NetworkCallbackPreCheck;
             case NetworkCallback.EVENT_AVAILABLE:
-                return TelephonyConstants.NetworkCallBackAvailable;
+                return TelephonyConstants.NetworkCallbackAvailable;
             case NetworkCallback.EVENT_LOSING:
-                return TelephonyConstants.NetworkCallBackLosing;
+                return TelephonyConstants.NetworkCallbackLosing;
             case NetworkCallback.EVENT_LOST:
-                return TelephonyConstants.NetworkCallBackLost;
+                return TelephonyConstants.NetworkCallbackLost;
             case NetworkCallback.EVENT_UNAVAILABLE:
-                return TelephonyConstants.NetworkCallBackUnavailable;
+                return TelephonyConstants.NetworkCallbackUnavailable;
             case NetworkCallback.EVENT_CAPABILITIES_CHANGED:
-                return TelephonyConstants.NetworkCallBackCapabilitiesChanged;
+                return TelephonyConstants.NetworkCallbackCapabilitiesChanged;
             case NetworkCallback.EVENT_SUSPENDED:
-                return TelephonyConstants.NetworkCallBackSuspended;
+                return TelephonyConstants.NetworkCallbackSuspended;
             case NetworkCallback.EVENT_RESUMED:
-                return TelephonyConstants.NetworkCallBackResumed;
+                return TelephonyConstants.NetworkCallbackResumed;
             case NetworkCallback.EVENT_LINK_PROPERTIES_CHANGED:
-                return TelephonyConstants.NetworkCallBackLinkPropertiesChanged;
+                return TelephonyConstants.NetworkCallbackLinkPropertiesChanged;
         }
-        return TelephonyConstants.NetworkCallBackInvalid;
+        return TelephonyConstants.NetworkCallbackInvalid;
     }
 
     private static int getPacketKeepaliveReceiverEvent(String event) {
         switch (event) {
-            case TelephonyConstants.PacketKeepaliveCallBackStarted:
+            case TelephonyConstants.PacketKeepaliveCallbackStarted:
                 return PacketKeepaliveReceiver.EVENT_STARTED;
-            case TelephonyConstants.PacketKeepaliveCallBackStopped:
+            case TelephonyConstants.PacketKeepaliveCallbackStopped:
                 return PacketKeepaliveReceiver.EVENT_STOPPED;
-            case TelephonyConstants.PacketKeepaliveCallBackError:
+            case TelephonyConstants.PacketKeepaliveCallbackError:
                 return PacketKeepaliveReceiver.EVENT_ERROR;
         }
         return PacketKeepaliveReceiver.EVENT_INVALID;
@@ -376,13 +376,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
     private static String getPacketKeepaliveReceiverEventString(int event) {
         switch (event) {
             case PacketKeepaliveReceiver.EVENT_STARTED:
-                return TelephonyConstants.PacketKeepaliveCallBackStarted;
+                return TelephonyConstants.PacketKeepaliveCallbackStarted;
             case PacketKeepaliveReceiver.EVENT_STOPPED:
-                return TelephonyConstants.PacketKeepaliveCallBackStopped;
+                return TelephonyConstants.PacketKeepaliveCallbackStopped;
             case PacketKeepaliveReceiver.EVENT_ERROR:
-                return TelephonyConstants.PacketKeepaliveCallBackError;
+                return TelephonyConstants.PacketKeepaliveCallbackError;
         }
-        return TelephonyConstants.PacketKeepaliveCallBackInvalid;
+        return TelephonyConstants.PacketKeepaliveCallbackInvalid;
     }
 
     private final ConnectivityManager mManager;
