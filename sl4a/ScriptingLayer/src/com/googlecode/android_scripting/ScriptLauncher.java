@@ -24,8 +24,6 @@ import com.googlecode.android_scripting.facade.FacadeManager;
 import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
 import com.googlecode.android_scripting.interpreter.InterpreterProcess;
-import com.googlecode.android_scripting.interpreter.html.HtmlActivityTask;
-import com.googlecode.android_scripting.interpreter.html.HtmlInterpreter;
 
 import java.io.File;
 
@@ -33,28 +31,6 @@ public class ScriptLauncher {
 
   private ScriptLauncher() {
     // Utility class.
-  }
-
-  public static HtmlActivityTask launchHtmlScript(File script, Service service, Intent intent,
-      InterpreterConfiguration config) {
-    if (!script.exists()) {
-      throw new RuntimeException("No such script to launch.");
-    }
-    HtmlInterpreter interpreter =
-        (HtmlInterpreter) config.getInterpreterByName(HtmlInterpreter.HTML);
-    if (interpreter == null) {
-      throw new RuntimeException("HtmlInterpreter is not available.");
-    }
-    final FacadeManager manager =
-        new FacadeManager(FacadeConfiguration.getSdkLevel(), service, intent,
-            FacadeConfiguration.getFacadeClasses());
-    FutureActivityTaskExecutor executor =
-        ((BaseApplication) service.getApplication()).getTaskExecutor();
-    final HtmlActivityTask task =
-        new HtmlActivityTask(manager, interpreter.getAndroidJsSource(),
-            interpreter.getJsonSource(), script.getAbsolutePath(), true);
-    executor.execute(task);
-    return task;
   }
 
   public static InterpreterProcess launchInterpreter(final AndroidProxy proxy, Intent intent,

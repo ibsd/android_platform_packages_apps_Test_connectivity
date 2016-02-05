@@ -39,7 +39,6 @@ import com.googlecode.android_scripting.ScriptLauncher;
 import com.googlecode.android_scripting.ScriptProcess;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
 import com.googlecode.android_scripting.interpreter.InterpreterProcess;
-import com.googlecode.android_scripting.interpreter.html.HtmlInterpreter;
 import com.googlecode.android_scripting.interpreter.shell.ShellInterpreter;
 
 import org.connectbot.ConsoleActivity;
@@ -173,19 +172,6 @@ public class ScriptingLayerService extends ForegroundService {
       return START_REDELIVER_INTENT;
     }
 
-    String name = intent.getStringExtra(Constants.EXTRA_SCRIPT_PATH);
-    if (name != null && name.endsWith(HtmlInterpreter.HTML_EXTENSION)) {
-      if (Integer.valueOf(android.os.Build.VERSION.SDK) > 21) {
-          Log.e(LOG_TAG, "Starting a WebViewClient not permitted for your SDK Version.");
-      } else {
-          launchHtmlScript(intent);
-      }
-      if (mProcessMap.isEmpty()) {
-        stopSelf(startId);
-      }
-      return START_REDELIVER_INTENT;
-    }
-
     //TODO: b/26538940 We need to go back to a strict policy and fix the problems
     StrictMode.ThreadPolicy sl4aPolicy = new StrictMode.ThreadPolicy.Builder()
         .detectAll()
@@ -250,11 +236,6 @@ public class ScriptingLayerService extends ForegroundService {
       }
     }
     return androidProxy;
-  }
-
-  private void launchHtmlScript(Intent intent) {
-    File script = new File(intent.getStringExtra(Constants.EXTRA_SCRIPT_PATH));
-    ScriptLauncher.launchHtmlScript(script, this, intent, mInterpreterConfiguration);
   }
 
   private ScriptProcess launchScript(Intent intent, AndroidProxy proxy) {
