@@ -293,13 +293,14 @@ public class WifiNanManagerFacade extends RpcReceiver {
         @Override
         public void onConfigCompleted(ConfigRequest configRequest) {
             Bundle mResults = new Bundle();
-            mResults.putParcelable("config", configRequest);
+            mResults.putParcelable("configRequest", configRequest);
             mEventFacade.postEvent("WifiNanOnConfigCompleted", mResults);
         }
 
         @Override
-        public void onConfigFailed(int reason) {
+        public void onConfigFailed(ConfigRequest failedConfig, int reason) {
             Bundle mResults = new Bundle();
+            mResults.putParcelable("failedConfig", failedConfig);
             mResults.putInt("reason", reason);
             mEventFacade.postEvent("WifiNanOnConfigFailed", mResults);
         }
