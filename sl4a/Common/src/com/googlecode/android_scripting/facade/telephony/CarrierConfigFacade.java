@@ -21,6 +21,7 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.CarrierConfigManager;
 
 import com.googlecode.android_scripting.facade.AndroidFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
@@ -35,10 +36,14 @@ import com.googlecode.android_scripting.rpc.RpcOptional;
 public class CarrierConfigFacade extends RpcReceiver {
     private final Service mService;
     private final AndroidFacade mAndroidFacade;
+    private final CarrierConfigManager mCarrierConfigManager;
+
     public CarrierConfigFacade(FacadeManager manager) {
         super(manager);
         mService = manager.getService();
         mAndroidFacade = manager.getReceiver(AndroidFacade.class);
+        mCarrierConfigManager =
+            (CarrierConfigManager)mService.getSystemService(Context.CARRIER_CONFIG_SERVICE);
     }
 
     @Rpc(description = "Tethering Entitlement Check")
