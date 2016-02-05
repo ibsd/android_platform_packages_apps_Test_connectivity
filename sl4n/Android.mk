@@ -22,12 +22,15 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := sl4n
 
 LOCAL_C_INCLUDES += \
+  frameworks/opt/net/wifi/service/jni \
+  hardware/libhardware_legacy/include/hardware_legacy \
   system/bt \
   $(LOCAL_PATH)/rapidjson/include \
   $(LOCAL_PATH)/facades
 
 LOCAL_SRC_FILES := \
   facades/bluetooth/bluetooth_binder_facade.cpp \
+  facades/wifi/wifi_facade.cpp \
   main.cpp \
   utils/command_receiver.cpp \
   utils/common_utils.cpp
@@ -45,6 +48,28 @@ LOCAL_STATIC_LIBRARIES += \
   libbtcore \
   libosi \
   libbluetooth-client
+
+# set correct Wi-Fi HAL library path and add Wi-Fi related libraries
+# ============================================================
+LIB_WIFI_HAL := libwifi-hal
+
+ifeq ($(BOARD_WLAN_DEVICE), bcmdhd)
+  LIB_WIFI_HAL := libwifi-hal-bcm
+else ifeq ($(BOARD_WLAN_DEVICE), qcwcn)
+  LIB_WIFI_HAL := libwifi-hal-qcom
+else ifeq ($(BOARD_WLAN_DEVICE), mrvl)
+  # this is commented because none of the nexus devices
+  # that sport Marvell's wifi have support for HAL
+  # LIB_WIFI_HAL := libwifi-hal-mrvl
+else ifeq ($(BOARD_WLAN_DEVICE), MediaTek)
+  # support MTK WIFI HAL
+  LIB_WIFI_HAL := libwifi-hal-mt66xx
+endif
+
+LOCAL_STATIC_LIBRARIES += \
+  $(LIB_WIFI_HAL) \
+  libnl \
+  libwifi-hal-stub
 
 
 LOCAL_CFLAGS += -std=c++11 -Wall -Wno-unused-parameter -Wno-missing-field-initializers
