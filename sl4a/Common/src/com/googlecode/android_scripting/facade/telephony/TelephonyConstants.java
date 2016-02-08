@@ -397,21 +397,21 @@ public class TelephonyConstants {
     public static class CallStateContainer {
         public static final String INCOMING_NUMBER = "incomingNumber";
         public static final String SUBSCRIPTION_ID = "subscriptionId";
-        public static final String SUB_EVENT = "subEvent";
+        public static final String CALL_STATE = "callState";
     }
 
     public static class PreciseCallStateContainer {
         public static final String TYPE = "type";
         public static final String CAUSE = "cause";
         public static final String SUBSCRIPTION_ID = "subscriptionId";
-        public static final String SUB_EVENT = "subEvent";
+        public static final String PRECISE_CALL_STATE = "preciseCallState";
     }
 
     public static class DataConnectionRealTimeInfoContainer {
         public static final String TYPE = "type";
         public static final String TIME = "time";
         public static final String SUBSCRIPTION_ID = "subscriptionId";
-        public static final String SUB_EVENT = "subEvent";
+        public static final String DATA_CONNECTION_POWER_STATE = "dataConnectionPowerState";
     }
 
     public static class DataConnectionStateContainer {
@@ -419,7 +419,7 @@ public class TelephonyConstants {
         public static final String DATA_NETWORK_TYPE = "dataNetworkType";
         public static final String STATE_CODE = "stateCode";
         public static final String SUBSCRIPTION_ID = "subscriptionId";
-        public static final String SUB_EVENT = "subEvent";
+        public static final String DATA_CONNECTION_STATE = "dataConnectionState";
     }
 
     public static class ServiceStateContainer {
@@ -435,7 +435,7 @@ public class TelephonyConstants {
         public static final String NETWORK_ID = "networkId";
         public static final String SYSTEM_ID = "systemId";
         public static final String SUBSCRIPTION_ID = "subscriptionId";
-        public static final String SUB_EVENT = "subEvent";
+        public static final String SERVICE_STATE = "serviceState";
     }
 
     public static class MessageWaitingIndicatorContainer {
@@ -444,5 +444,17 @@ public class TelephonyConstants {
 
     public static class VoLteServiceStateContainer {
         public static final String SRVCC_STATE = "srvccState";
+    }
+
+    public static class PacketKeepaliveContainer {
+        public static final String ID = "id";
+        public static final String PACKET_KEEPALIVE_EVENT = "packetKeepaliveEvent";
+    }
+
+    public static class NetworkCallbackContainer {
+        public static final String ID = "id";
+        public static final String NETWORK_CALLBACK_EVENT = "networkCallbackEvent";
+        public static final String MAX_MS_TO_LIVE = "maxMsToLive";
+        public static final String RSSI = "rssi";
     }
 }

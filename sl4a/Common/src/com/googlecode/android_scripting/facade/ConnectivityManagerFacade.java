@@ -35,6 +35,7 @@ import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.telephony.TelephonyConstants;
+import com.googlecode.android_scripting.facade.telephony.TelephonyEvents;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcOptional;
@@ -126,11 +127,11 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onStarted() {
             Log.d("PacketKeepaliveCallback on start!");
             if ((mEvents & EVENT_STARTED) == EVENT_STARTED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getPacketKeepaliveReceiverEventString(EVENT_STARTED));
-                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventPacketKeepaliveCallback,
+                    new TelephonyEvents.PacketKeepaliveEvent(
+                        mId,
+                        getPacketKeepaliveReceiverEventString(EVENT_STARTED)));
             }
         }
 
@@ -138,11 +139,11 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onStopped() {
             Log.d("PacketKeepaliveCallback on stop!");
             if ((mEvents & EVENT_STOPPED) == EVENT_STOPPED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getPacketKeepaliveReceiverEventString(EVENT_STOPPED));
-                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventPacketKeepaliveCallback,
+                    new TelephonyEvents.PacketKeepaliveEvent(
+                        mId,
+                        getPacketKeepaliveReceiverEventString(EVENT_STOPPED)));
             }
         }
 
@@ -150,12 +151,11 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onError(int error) {
             Log.d("PacketKeepaliveCallback on error! - code:" + error);
             if ((mEvents & EVENT_ERROR) == EVENT_ERROR) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getPacketKeepaliveReceiverEventString(EVENT_ERROR));
-                event.putInt("error", error);
-                mEventFacade.postEvent(TelephonyConstants.EventPacketKeepaliveCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventPacketKeepaliveCallback,
+                    new TelephonyEvents.PacketKeepaliveEvent(
+                        mId,
+                        getPacketKeepaliveReceiverEventString(EVENT_ERROR)));
             }
         }
     }
@@ -203,11 +203,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onPreCheck(Network network) {
             Log.d("NetworkCallback onPreCheck");
             if ((mEvents & EVENT_PRECHECK) == EVENT_PRECHECK) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_PRECHECK));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_PRECHECK),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -215,11 +217,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onAvailable(Network network) {
             Log.d("NetworkCallback onAvailable");
             if ((mEvents & EVENT_AVAILABLE) == EVENT_AVAILABLE) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_AVAILABLE));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_AVAILABLE),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -227,12 +231,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onLosing(Network network, int maxMsToLive) {
             Log.d("NetworkCallback onLosing");
             if ((mEvents & EVENT_LOSING) == EVENT_LOSING) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_LOSING));
-                event.putInt("maxMsToLive", maxMsToLive);
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_LOSING),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        maxMsToLive));
             }
         }
 
@@ -240,11 +245,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onLost(Network network) {
             Log.d("NetworkCallback onLost");
             if ((mEvents & EVENT_LOST) == EVENT_LOST) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_LOST));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_LOST),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -252,11 +259,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onUnavailable() {
             Log.d("NetworkCallback onUnavailable");
             if ((mEvents & EVENT_UNAVAILABLE) == EVENT_UNAVAILABLE) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_UNAVAILABLE));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_UNAVAILABLE),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -266,12 +275,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
             Log.d("NetworkCallback onCapabilitiesChanged. RSSI:" +
                     networkCapabilities.getSignalStrength());
             if ((mEvents & EVENT_CAPABILITIES_CHANGED) == EVENT_CAPABILITIES_CHANGED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_CAPABILITIES_CHANGED));
-                event.putInt("RSSI", networkCapabilities.getSignalStrength());
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_CAPABILITIES_CHANGED),
+                        networkCapabilities.getSignalStrength(),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -279,11 +289,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onNetworkSuspended(Network network) {
             Log.d("NetworkCallback onNetworkSuspended");
             if ((mEvents & EVENT_SUSPENDED) == EVENT_SUSPENDED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_SUSPENDED));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_SUSPENDED),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -292,11 +304,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
                 LinkProperties linkProperties) {
             Log.d("NetworkCallback onLinkPropertiesChanged");
             if ((mEvents & EVENT_LINK_PROPERTIES_CHANGED) == EVENT_LINK_PROPERTIES_CHANGED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_LINK_PROPERTIES_CHANGED));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_LINK_PROPERTIES_CHANGED),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
 
@@ -304,11 +318,13 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         public void onNetworkResumed(Network network) {
             Log.d("NetworkCallback onNetworkResumed");
             if ((mEvents & EVENT_RESUMED) == EVENT_RESUMED) {
-                Bundle event = new Bundle();
-                event.putString("id", mId);
-                event.putString("subEvent",
-                        getNetworkCallbackEventString(EVENT_RESUMED));
-                mEventFacade.postEvent(TelephonyConstants.EventNetworkCallback, event);
+                mEventFacade.postEvent(
+                    TelephonyConstants.EventNetworkCallback,
+                    new TelephonyEvents.NetworkCallbackEvent(
+                        mId,
+                        getNetworkCallbackEventString(EVENT_RESUMED),
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE,
+                        TelephonyEvents.NetworkCallbackEvent.INVALID_VALUE));
             }
         }
     }

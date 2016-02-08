@@ -28,21 +28,17 @@ import com.googlecode.android_scripting.facade.telephony.TelephonyUtils;
 public class TelephonyEvents {
 
     public static class CallStateEvent implements JsonSerializable {
-        private String mSubEvent;
+        private String mCallState;
         private String mIncomingNumber;
         private int mSubscriptionId;
 
         CallStateEvent(int state, String incomingNumber, int subscriptionId) {
-            mSubEvent = null;
+            mCallState = null;
             mIncomingNumber = TelephonyUtils.formatIncomingNumber(
                     incomingNumber);
-            mSubEvent = TelephonyUtils.getTelephonyCallStateString(
+            mCallState = TelephonyUtils.getTelephonyCallStateString(
                     state);
             mSubscriptionId = subscriptionId;
-        }
-
-        public String getSubEvent() {
-            return mSubEvent;
         }
 
         public String getIncomingNumber() {
@@ -62,8 +58,8 @@ public class TelephonyEvents {
             callState.put(
                     TelephonyConstants.CallStateContainer.INCOMING_NUMBER,
                     mIncomingNumber);
-            callState.put(TelephonyConstants.CallStateContainer.SUB_EVENT,
-                    mSubEvent);
+            callState.put(TelephonyConstants.CallStateContainer.CALL_STATE,
+                    mCallState);
 
             return callState;
         }
@@ -71,23 +67,19 @@ public class TelephonyEvents {
 
     public static class PreciseCallStateEvent implements JsonSerializable {
         private PreciseCallState mPreciseCallState;
-        private String mSubEvent;
+        private String mPreciseCallStateString;
         private String mType;
         private int mCause;
         private int mSubscriptionId;
 
         PreciseCallStateEvent(int newState, String type,
                 PreciseCallState preciseCallState, int subscriptionId) {
-            mSubEvent = TelephonyUtils.getPreciseCallStateString(
+            mPreciseCallStateString = TelephonyUtils.getPreciseCallStateString(
                     newState);
             mPreciseCallState = preciseCallState;
             mType = type;
             mSubscriptionId = subscriptionId;
             mCause = preciseCallState.getPreciseDisconnectCause();
-        }
-
-        public String getSubEvent() {
-            return mSubEvent;
         }
 
         public String getType() {
@@ -115,7 +107,8 @@ public class TelephonyEvents {
             preciseCallState.put(
                     TelephonyConstants.PreciseCallStateContainer.TYPE, mType);
             preciseCallState.put(
-                    TelephonyConstants.PreciseCallStateContainer.SUB_EVENT, mSubEvent);
+                    TelephonyConstants.PreciseCallStateContainer.PRECISE_CALL_STATE,
+                    mPreciseCallStateString);
             preciseCallState.put(
                     TelephonyConstants.PreciseCallStateContainer.CAUSE, mCause);
 
@@ -125,7 +118,7 @@ public class TelephonyEvents {
 
     public static class DataConnectionRealTimeInfoEvent implements JsonSerializable {
         private DataConnectionRealTimeInfo mDataConnectionRealTimeInfo;
-        private String mSubEvent;
+        private String mDataConnectionPowerState;
         private int mSubscriptionId;
         private long mTime;
 
@@ -134,13 +127,9 @@ public class TelephonyEvents {
                 int subscriptionId) {
             mTime = dataConnectionRealTimeInfo.getTime();
             mSubscriptionId = subscriptionId;
-            mSubEvent = TelephonyUtils.getDcPowerStateString(
+            mDataConnectionPowerState = TelephonyUtils.getDcPowerStateString(
                     dataConnectionRealTimeInfo.getDcPowerState());
             mDataConnectionRealTimeInfo = dataConnectionRealTimeInfo;
-        }
-
-        public String getSubEvent() {
-            return mSubEvent;
         }
 
         public int getSubscriptionId() {
@@ -161,15 +150,15 @@ public class TelephonyEvents {
                     TelephonyConstants.DataConnectionRealTimeInfoContainer.TIME,
                     mTime);
             dataConnectionRealTimeInfo.put(
-                    TelephonyConstants.DataConnectionRealTimeInfoContainer.SUB_EVENT,
-                    mSubEvent);
+                    TelephonyConstants.DataConnectionRealTimeInfoContainer.DATA_CONNECTION_POWER_STATE,
+                    mDataConnectionPowerState);
 
             return dataConnectionRealTimeInfo;
         }
     }
 
     public static class DataConnectionStateEvent implements JsonSerializable {
-        private String mSubEvent;
+        private String mDataConnectionState;
         private int mSubscriptionId;
         private int mState;
         private String mDataNetworkType;
@@ -177,14 +166,10 @@ public class TelephonyEvents {
         DataConnectionStateEvent(int state, String dataNetworkType,
                 int subscriptionId) {
             mSubscriptionId = subscriptionId;
-            mSubEvent = TelephonyUtils.getDataConnectionStateString(
+            mDataConnectionState = TelephonyUtils.getDataConnectionStateString(
                     state);
             mDataNetworkType = dataNetworkType;
             mState = state;
-        }
-
-        public String getSubEvent() {
-            return mSubEvent;
         }
 
         public int getSubscriptionId() {
@@ -206,8 +191,8 @@ public class TelephonyEvents {
                     TelephonyConstants.DataConnectionStateContainer.SUBSCRIPTION_ID,
                     mSubscriptionId);
             dataConnectionState.put(
-                    TelephonyConstants.DataConnectionStateContainer.SUB_EVENT,
-                    mSubEvent);
+                    TelephonyConstants.DataConnectionStateContainer.DATA_CONNECTION_STATE,
+                    mDataConnectionState);
             dataConnectionState.put(
                     TelephonyConstants.DataConnectionStateContainer.DATA_NETWORK_TYPE,
                     mDataNetworkType);
@@ -220,24 +205,20 @@ public class TelephonyEvents {
     }
 
     public static class ServiceStateEvent implements JsonSerializable {
-        private String mSubEvent;
+        private String mServiceStateString;
         private int mSubscriptionId;
         private ServiceState mServiceState;
 
         ServiceStateEvent(ServiceState serviceState, int subscriptionId) {
             mServiceState = serviceState;
             mSubscriptionId = subscriptionId;
-            mSubEvent = TelephonyUtils.getNetworkStateString(
+            mServiceStateString = TelephonyUtils.getNetworkStateString(
                     serviceState.getState());
-            if (mSubEvent.equals(
+            if (mServiceStateString.equals(
                     TelephonyConstants.SERVICE_STATE_OUT_OF_SERVICE) &&
                     serviceState.isEmergencyOnly()) {
-                mSubEvent = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
+                mServiceStateString = TelephonyConstants.SERVICE_STATE_EMERGENCY_ONLY;
             }
-        }
-
-        public String getSubEvent() {
-            return mSubEvent;
         }
 
         public int getSubscriptionId() {
@@ -292,7 +273,8 @@ public class TelephonyEvents {
                     TelephonyConstants.ServiceStateContainer.SYSTEM_ID,
                     mServiceState.getSystemId());
             serviceState.put(
-                    TelephonyConstants.ServiceStateContainer.SUB_EVENT, mSubEvent);
+                    TelephonyConstants.ServiceStateContainer.SERVICE_STATE,
+                    mServiceStateString);
 
             return serviceState;
         }
@@ -317,6 +299,63 @@ public class TelephonyEvents {
                     mMessageWaitingIndicator);
 
             return messageWaitingIndicator;
+        }
+    }
+
+    public static class PacketKeepaliveEvent implements JsonSerializable {
+        private String mId;
+        private String mPacketKeepaliveEvent;
+
+        public PacketKeepaliveEvent(String id, String event) {
+            mId = id;
+            mPacketKeepaliveEvent = event;
+        }
+
+        public JSONObject toJSON() throws JSONException {
+            JSONObject packetKeepalive = new JSONObject();
+
+            packetKeepalive.put(
+                    TelephonyConstants.PacketKeepaliveContainer.ID,
+                    mId);
+            packetKeepalive.put(
+                    TelephonyConstants.PacketKeepaliveContainer.PACKET_KEEPALIVE_EVENT,
+                    mPacketKeepaliveEvent);
+
+            return packetKeepalive;
+        }
+    }
+
+    public static class NetworkCallbackEvent implements JsonSerializable {
+        public static final Integer INVALID_VALUE = null;
+        private String mId;
+        private String mNetworkCallbackEvent;
+        private Integer mRssi;
+        private Integer mMaxMsToLive;
+
+        public NetworkCallbackEvent(String id, String event, Integer rssi, Integer maxMsToLive) {
+            mId = id;
+            mNetworkCallbackEvent = event;
+            mRssi = rssi;
+            mMaxMsToLive = maxMsToLive;
+        }
+
+        public JSONObject toJSON() throws JSONException {
+            JSONObject networkCallback = new JSONObject();
+
+            networkCallback.put(
+                    TelephonyConstants.NetworkCallbackContainer.ID,
+                    mId);
+            networkCallback.put(
+                    TelephonyConstants.NetworkCallbackContainer.NETWORK_CALLBACK_EVENT,
+                    mNetworkCallbackEvent);
+            networkCallback.put(
+                    TelephonyConstants.NetworkCallbackContainer.MAX_MS_TO_LIVE,
+                    mMaxMsToLive);
+            networkCallback.put(
+                    TelephonyConstants.NetworkCallbackContainer.RSSI,
+                    mRssi);
+
+            return networkCallback;
         }
     }
 
