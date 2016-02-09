@@ -32,8 +32,6 @@ import com.googlecode.android_scripting.FutureActivityTaskExecutor;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.facade.EventFacade;
 import com.googlecode.android_scripting.facade.FacadeManager;
-import com.googlecode.android_scripting.interpreter.html.HtmlActivityTask;
-import com.googlecode.android_scripting.interpreter.html.HtmlInterpreter;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiver;
 import com.googlecode.android_scripting.rpc.Rpc;
 import com.googlecode.android_scripting.rpc.RpcDefault;
@@ -450,31 +448,6 @@ public class UiFacade extends RpcReceiver {
     }
   }
 
-  /**
-   * See <a href=http://code.google.com/p/android-scripting/wiki/UsingWebView>wiki page</a> for more
-   * detail.
-   */
-  @Rpc(description = "Display a WebView with the given URL.")
-  public void webViewShow(
-      @RpcParameter(name = "url") String url,
-      @RpcParameter(name = "wait", description = "block until the user exits the WebView") @RpcOptional Boolean wait)
-      throws IOException {
-    String jsonSrc = FileUtils.readFromAssetsFile(mService, HtmlInterpreter.JSON_FILE);
-    String AndroidJsSrc = FileUtils.readFromAssetsFile(mService, HtmlInterpreter.ANDROID_JS_FILE);
-    HtmlActivityTask task = new HtmlActivityTask(mManager, AndroidJsSrc, jsonSrc, url, false);
-    mTaskQueue.execute(task);
-    if (wait != null && wait) {
-      try {
-        task.getResult();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  /**
-   * Context menus are used primarily with {@link #webViewShow}
-   */
   @Rpc(description = "Adds a new item to context menu.")
   public void addContextMenuItem(
       @RpcParameter(name = "label", description = "label for this menu item") String label,
@@ -707,7 +680,6 @@ public class UiFacade extends RpcReceiver {
 @Override
   public void shutdown() {
     fullDismiss();
-    HtmlActivityTask.shutdown();
   }
 
   private class UiMenuItem {
