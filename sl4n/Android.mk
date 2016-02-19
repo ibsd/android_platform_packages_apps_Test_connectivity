@@ -30,7 +30,6 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SRC_FILES := \
   facades/bluetooth/bluetooth_binder_facade.cpp \
-  facades/wifi/wifi_facade.cpp \
   main.cpp \
   utils/command_receiver.cpp \
   utils/common_utils.cpp
