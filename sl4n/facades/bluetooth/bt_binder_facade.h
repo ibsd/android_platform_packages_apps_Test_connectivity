@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2015 Google, Inc.
+//  Copyright (C) 2016 Google, Inc.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 #include <service/common/bluetooth/binder/IBluetoothLowEnergy.h>
 #include <tuple>
 
-// BluetoothBinderFacade provides simple wrappers to call Binder apis.
+// BtBinderFacade provides simple wrappers to call Binder apis.
 // Each public function returns a tuple of the return type and an integer
 // representing the pass/fail value of the function. The functions check to see
 // if the API call is actually possible. If it is the function's tuple will
@@ -34,17 +34,17 @@
 // TODO(tturney): Instead of using an integer in the tuple to represent
 // pass/fail, create a class that properly represents the result of the
 // function.
-class BluetoothBinderFacade {
+class BtBinderFacade {
  public:
-  BluetoothBinderFacade();
-  std::tuple<bool, int> BluetoothBinderEnable();
-  std::tuple<std::string, int> BluetoothBinderGetAddress();
-  std::tuple<std::string, int> BluetoothBinderGetName();
-  std::tuple<bool, int> BluetoothBinderInitInterface();
-  std::tuple<bool, int> BluetoothBinderRegisterBLE();
-  std::tuple<int, int> BluetoothBinderSetAdvSettings(
+  BtBinderFacade();
+  std::tuple<bool, int> BtBinderEnable();
+  std::tuple<std::string, int> BtBinderGetAddress();
+  std::tuple<std::string, int> BtBinderGetName();
+  std::tuple<bool, int> BtBinderInitInterface();
+  std::tuple<bool, int> BtBinderRegisterBLE();
+  std::tuple<int, int> BtBinderSetAdvSettings(
     int mode, int timeout_seconds, int tx_power_level, bool is_connectable);
-  std::tuple<bool, int> BluetoothBinderSetName(std::string name);
+  std::tuple<bool, int> BtBinderSetName(std::string name);
 
  private:
   bool SharedValidator();
