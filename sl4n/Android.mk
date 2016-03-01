@@ -29,7 +29,7 @@ LOCAL_C_INCLUDES += \
   $(LOCAL_PATH)/facades
 
 LOCAL_SRC_FILES := \
-  facades/bluetooth/bluetooth_binder_facade.cpp \
+  facades/bluetooth/bt_binder_facade.cpp \
   facades/test/test_facade.cpp \
   main.cpp \
   utils/command_receiver.cpp \
