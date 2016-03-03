@@ -52,6 +52,12 @@ void CommandReceiver::Call(rapidjson::Document& doc) {
   } else if (doc.HasMember(sl4n::kMethodStr)) {
     cmd = doc[sl4n::kMethodStr].GetString();
   }
+
+  function_map::const_iterator iter = _funcMap->find(cmd);
+  if (iter != _funcMap->end()) {
+    iter->second(doc);
+  }
+  _clean_result(doc);
 }
 
 void CommandReceiver::RegisterCommand(std::string name, MFP command) {
