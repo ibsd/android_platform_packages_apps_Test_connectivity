@@ -17,8 +17,8 @@
 #pragma once
 
 #include <rapidjson/document.h>
-#include <service/common/bluetooth/binder/IBluetooth.h>
-#include <service/common/bluetooth/binder/IBluetoothLowEnergy.h>
+#include <android/bluetooth/IBluetooth.h>
+#include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <tuple>
 
 // BtBinderFacade provides simple wrappers to call Binder apis.
@@ -50,12 +50,12 @@ class BtBinderFacade {
   bool SharedValidator();
   // Returns a handle to the IBluetooth Binder from the Android ServiceManager.
   // Binder client code can use this to make calls to the service.
-  android::sp<ipc::binder::IBluetooth> bt_iface;
+  android::sp<android::bluetooth::IBluetooth> bt_iface;
 
   // Returns a handle to the IBluetoothLowEnergy Binder from the Android
   // ServiceManager. Binder client code can use this to make calls to the
   // service.
-  android::sp<ipc::binder::IBluetoothLowEnergy> ble_iface;
+  android::sp<android::bluetooth::IBluetoothLowEnergy> ble_iface;
   std::map<int, bluetooth::AdvertiseSettings> adv_settings_map;
   int adv_settings_count;
   int manu_data_count;
