@@ -22,33 +22,42 @@
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
 #include <binder/IPCThreadState.h>
+#include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
 
 #include "bt_binder_facade.h"
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
-#include <service/common/bluetooth/binder/IBluetooth.h>
-#include <service/common/bluetooth/binder/IBluetoothCallback.h>
-#include <service/common/bluetooth/binder/IBluetoothLowEnergy.h>
+#include <android/bluetooth/IBluetooth.h>
+#include <android/bluetooth/IBluetoothCallback.h>
+#include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <service/common/bluetooth/low_energy_constants.h>
 #include <tuple>
 #include <utils/command_receiver.h>
 #include <utils/common_utils.h>
 
+using android::bluetooth::IBluetooth;
+using android::bluetooth::IBluetoothLowEnergy;
+using android::getService;
+using android::OK;
 using android::sp;
-using ipc::binder::IBluetooth;
-using ipc::binder::IBluetoothLowEnergy;
+using android::String8;
+using android::String16;
 
 std::atomic_bool ble_registering(false);
 std::atomic_int ble_client_id(0);
+
+std::string kServiceName = "bluetooth-service";
 
 bool BtBinderFacade::SharedValidator() {
   if (bt_iface == NULL) {
     LOG(ERROR) << sl4n::kTagStr << " IBluetooth interface not initialized";
     return false;
   }
-  if (!bt_iface->IsEnabled()) {
+  bool ret;
+  bt_iface->IsEnabled(&ret);
+  if (!ret) {
     LOG(ERROR) << sl4n::kTagStr << " IBluetooth interface not enabled";
     return false;
   }
@@ -60,8 +69,9 @@ std::tuple<bool, int> BtBinderFacade::BtBinderEnable() {
     LOG(ERROR) << sl4n::kTagStr << ": IBluetooth interface not enabled";
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
   }
-  bool result = bt_iface->Enable();
-  if (!result) {
+  bool ret;
+  bt_iface->Enable(&ret);
+  if (!ret) {
     LOG(ERROR) << sl4n::kTagStr << ": Failed to enable the Bluetooth service";
     return std::make_tuple(false, sl4n_error_codes::kPassInt);
   } else {
@@ -73,14 +83,19 @@ std::tuple<std::string, int> BtBinderFacade::BtBinderGetAddress() {
   if (!SharedValidator()) {
     return std::make_tuple(sl4n::kFailStr, sl4n_error_codes::kFailInt);
   }
-  return std::make_tuple(bt_iface->GetAddress(), sl4n_error_codes::kPassInt);
+  String16 address;
+  bt_iface->GetAddress(&address);
+  return std::make_tuple(std::string(String8(address).string()), sl4n_error_codes::kPassInt);
 }
 
 std::tuple<std::string, int> BtBinderFacade::BtBinderGetName() {
   if (!SharedValidator()) {
     return std::make_tuple(sl4n::kFailStr,sl4n_error_codes::kFailInt);
   }
-  std::string name = bt_iface->GetName();
+
+  String16 name16;
+  bt_iface->GetName(&name16);
+  std::string name = std::string(String8(name16).string());
   if (name.empty()) {
     LOG(ERROR) << sl4n::kTagStr << ": Failed to get device name";
     return std::make_tuple(sl4n::kFailStr, sl4n_error_codes::kFailInt);
@@ -95,7 +110,9 @@ std::tuple<bool, int> BtBinderFacade::BtBinderSetName(
   if (!SharedValidator()) {
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
   }
-  bool result = bt_iface->SetName(name);
+
+  bool result;
+  bt_iface->SetName(String16(String8(name.c_str())), &result);
   if (!result) {
     LOG(ERROR) << sl4n::kTagStr << ": Failed to set device name";
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
@@ -104,10 +121,10 @@ std::tuple<bool, int> BtBinderFacade::BtBinderSetName(
 }
 
 std::tuple<bool, int> BtBinderFacade::BtBinderInitInterface() {
-  bt_iface = IBluetooth::getClientInterface();
-  if(!bt_iface.get()) {
-    LOG(ERROR) << sl4n::kTagStr <<
-      ": Failed to initialize IBluetooth interface";
+  status_t status = getService(String16(kServiceName.c_str()), &bt_iface);
+  if (status != OK) {
+    LOG(ERROR) << "Failed to get service binder: '" << kServiceName
+               << "' status=" << status;
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
   }
   return std::make_tuple(true, sl4n_error_codes::kPassInt);
@@ -118,7 +135,7 @@ std::tuple<bool, int> BtBinderFacade::BtBinderRegisterBLE() {
   if (!SharedValidator()) {
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
   }
-  ble_iface = bt_iface->GetLowEnergyInterface();
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if(!ble_iface.get()) {
     LOG(ERROR) << sl4n::kTagStr << ": Failed to register BLE";
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
