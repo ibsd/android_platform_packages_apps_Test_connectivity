@@ -55,7 +55,7 @@ std::tuple<bool, int> BluetoothBinderFacade::BluetoothBinderEnable() {
     LOG(ERROR) << sl4n::kTagStr << ": IBluetooth interface not enabled";
     return std::make_tuple(false, sl4n_error_codes::kFailInt);
   }
-  bool result = bt_iface->Enable(false);
+  bool result = bt_iface->Enable();
   if (!result) {
     LOG(ERROR) << sl4n::kTagStr << ": Failed to enable the Bluetooth service";
     return std::make_tuple(false, sl4n_error_codes::kPassInt);
