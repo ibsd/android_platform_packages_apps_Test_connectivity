@@ -16,7 +16,7 @@ For the initial build of Android:
     lunch aosp_<TARGET>
     make [-j15]
 
-*where <ANDROID_SOURCE_ROOT> is the root directory of the android tree and <TARGET> is the lunch
+*where `<ANDROID_SOURCE_ROOT>` is the root directory of the android tree and `<TARGET>` is the lunch
 target name*
 
 Then Build SL4N:
@@ -47,4 +47,4 @@ b) To enable RPC access from the command prompt:
 
     adb forward tcp:<HOST_PORT_NUM> tcp:<DEVICE_PORT_NUM>
     adb shell -c "/system/bin/sl4n" &
-*where <HOST_PORT_NUM> and <DEVICE_PORT_NUM> are the tcp ports on the host computer and device.*
+*where `<HOST_PORT_NUM>` and `<DEVICE_PORT_NUM>` are the tcp ports on the host computer and device.*
