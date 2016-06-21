@@ -40,6 +40,7 @@ LOCAL_SHARED_LIBRARIES += \
   libutils \
   libhardware \
   libwifi-hal \
+  libwifi-system \
   liblog
 
 LOCAL_STATIC_LIBRARIES += \
@@ -49,7 +50,6 @@ LOCAL_STATIC_LIBRARIES += \
 
 LOCAL_STATIC_LIBRARIES += \
   libnl \
-  libwifi-hal-stub
 
 
 LOCAL_CFLAGS += -std=c++11 -Wall -Wno-unused-parameter -Wno-missing-field-initializers

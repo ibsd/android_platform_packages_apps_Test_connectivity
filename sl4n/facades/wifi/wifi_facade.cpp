@@ -29,8 +29,8 @@
 #include <base/strings/string_util.h>
 #include <utils/command_receiver.h>
 #include <utils/common_utils.h>
-#include <wifi_hal.h>
-#include <wifi_hal_stub.h>
+#include <hardware_legacy/wifi_hal.h>
+#include <wifi_system/hal.h>
 
 #include "wifi_facade.h"
 
@@ -51,16 +51,7 @@ std::tuple<bool, int> WifiFacade::WifiInit() {
 
 bool WifiFacade::WifiStartHal() {
   if (wifi_hal_handle == NULL) {
-    if (init_wifi_stub_hal_func_table(&hal_fn) != 0) {
-      LOG(ERROR) << sl4n::kTagStr
-          << ": Can not initialize the basic function pointer table";
-      return false;
-    }
-
-    wifi_error res = init_wifi_vendor_hal_func_table(&hal_fn);
-    if (res != WIFI_SUCCESS) {
-      LOG(ERROR) << sl4n::kTagStr
-          << ": Can not initialize the vendor function pointer table";
+    if (!android::wifi_system::init_wifi_hal_function_table(&hal_fn)) {
       return false;
     }
 
