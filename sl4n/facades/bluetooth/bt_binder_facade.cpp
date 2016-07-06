@@ -152,10 +152,13 @@ std::tuple<int, int> BtBinderFacade::BtBinderSetAdvSettings(
   switch (mode) {
     case sl4n_ble::kAdvSettingsModeLowPowerInt :
       adv_mode = bluetooth::AdvertiseSettings::Mode::MODE_LOW_POWER;
+      break;
     case sl4n_ble::kAdvSettingsModeBalancedInt :
       adv_mode = bluetooth::AdvertiseSettings::Mode::MODE_BALANCED;
+      break;
     case sl4n_ble::kAdvSettingsModeLowLatencyInt :
       adv_mode = bluetooth::AdvertiseSettings::Mode::MODE_LOW_LATENCY;
+      break;
     default :
       LOG(ERROR) << sl4n::kTagStr <<
         ": Input mode is outside the accepted values";
@@ -168,14 +171,18 @@ std::tuple<int, int> BtBinderFacade::BtBinderSetAdvSettings(
 
   bluetooth::AdvertiseSettings::TxPowerLevel adv_tx_power_level;
   switch (tx_power_level) {
-    case sl4n_ble::kAdvSettingsTxPowerLevelUltraLowInt: tx_power_level =
+    case sl4n_ble::kAdvSettingsTxPowerLevelUltraLowInt: adv_tx_power_level =
       bluetooth::AdvertiseSettings::TxPowerLevel::TX_POWER_LEVEL_ULTRA_LOW;
-    case sl4n_ble::kAdvSettingsTxPowerLevelLowInt: tx_power_level =
+      break;
+    case sl4n_ble::kAdvSettingsTxPowerLevelLowInt: adv_tx_power_level =
       bluetooth::AdvertiseSettings::TxPowerLevel::TX_POWER_LEVEL_LOW;
-    case sl4n_ble::kAdvSettingsTxPowerLevelMediumInt: tx_power_level =
+      break;
+    case sl4n_ble::kAdvSettingsTxPowerLevelMediumInt: adv_tx_power_level =
       bluetooth::AdvertiseSettings::TxPowerLevel::TX_POWER_LEVEL_MEDIUM;
-    case sl4n_ble::kAdvSettingsTxPowerLevelHighInt: tx_power_level =
+      break;
+    case sl4n_ble::kAdvSettingsTxPowerLevelHighInt: adv_tx_power_level =
       bluetooth::AdvertiseSettings::TxPowerLevel::TX_POWER_LEVEL_HIGH;
+      break;
     default :
       LOG(ERROR) << sl4n::kTagStr <<
         ": Input tx power level is outside the accepted values";
